@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diary</title>
+  <style>
+    body {
+      margin: 0;
+      background: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Noto Sans JP", sans-serif;
+    }
+    .container {
+      height: 100vh;
+      padding: 0 18px;
+      box-sizing: border-box;
+    }
+    .spacer {
+      height: 30vh;
+    }
+    input {
+      width: 100%;
+      font-size: 16px;
+      border: none;
+      border-bottom: 1px solid #ccc;
+      padding: 8px 0;
+      outline: none;
+    }
+    button {
+      margin-top: 48px;
+      width: 100%;
+      height: 48px;
+      background: #000;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="spacer"></div>
+    <input type="text" placeholder="（写メ日記の題名を記入して下さい）" />
+    <button>Next</button>
+  </div>
+
+  <!-- ★ここに追加 -->
+  <script>
+    const btn = document.querySelector("button");
+    const input = document.querySelector("input");
+
+    btn.addEventListener("click", () => {
+      const value = input.value.trim();
+      if (!value) {
+        alert("文字を入力してください");
+        return;
+      }
+      alert("入力内容：\n" + value);
+    });
+  </script>
+  <!-- ★ここまで -->
+
+</body>
+</html>
