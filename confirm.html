@@ -5,6 +5,9 @@
   <title>確認画面</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <!-- LIFF SDK（④-①：読み込むだけ） -->
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Noto Sans JP", sans-serif;
@@ -55,7 +58,7 @@
       history.back();
     }
 
-    // LINEに戻る（※ 今は仮）
+    // LINEに戻る（※ まだ仮）
     function backToLine() {
       location.href = "https://line.me/R/";
     }
