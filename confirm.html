@@ -35,6 +35,10 @@
       font-size: 16px;
       margin-bottom: 10px;
     }
+
+    button[disabled] {
+      opacity: 0.5;
+    }
   </style>
 </head>
 
@@ -45,34 +49,38 @@
   <div class="box" id="confirmText"></div>
 
   <button onclick="goBack()">戻る</button>
-  <button onclick="sendToLine()">この内容で送信</button>
+  <button id="sendBtn" onclick="sendToLine()">この内容で送信</button>
   <button onclick="backToLine()">LINEに戻る</button>
 
   <script>
-    // 入力内容を取得（URLパラメータ）
     const params = new URLSearchParams(location.search);
-    const diary = params.get("diary") || "";
+    const diary = (params.get("diary") || "").trim();
 
-    // 表示（空の場合はメッセージ表示）
-    document.getElementById("confirmText").textContent =
-      diary.trim() !== "" ? diary : "（送信内容がありません）";
+    const confirmText = document.getElementById("confirmText");
+    const sendBtn = document.getElementById("sendBtn");
 
-    // LIFF 初期化
+    // 表示制御
+    if (!diary) {
+      confirmText.textContent = "（送信内容がありません）";
+      sendBtn.disabled = true; // ★ ここが重要
+    } else {
+      confirmText.textContent = diary;
+    }
+
+    // LIFF初期化
     async function initLiff() {
       try {
-        await liff.init({ liffId: "2009019646-C6qMfHN2" });
+        await liff.init({ liffId: "2009019646-N1brg84A" });
       } catch (e) {
         console.log("LIFF init failed:", e);
       }
     }
     initLiff();
 
-    // 戻る
     function goBack() {
       history.back();
     }
 
-    // LINEに戻る（手動）
     function backToLine() {
       if (window.liff && liff.isInClient()) {
         liff.closeWindow();
@@ -81,16 +89,14 @@
       }
     }
 
-    // ★ 空送信を防ぐ（必須修正）
     async function sendToLine() {
-      // 空チェック
-      if (!diary || diary.trim().length === 0) {
-        alert("送信する内容がありません。戻って入力してください。");
+      // ★ 二重ガード（安全）
+      if (!diary) {
+        alert("送信内容がありません。");
         return;
       }
 
-      // LINE内チェック
-      if (!(window.liff && liff.isInClient())) {
+      if (!liff.isInClient()) {
         alert("LINEアプリ内から送信してください。");
         return;
       }
@@ -103,7 +109,7 @@
           }
         ]);
 
-        // 送信後はトークに戻る
+        // 成功したら即トークへ戻す
         liff.closeWindow();
 
       } catch (e) {
@@ -115,4 +121,5 @@
 
 </body>
 </html>
+
 
