@@ -8,14 +8,9 @@
   <style>
     body {
       margin: 0;
+      padding: 20px;
       background: #ffffff;
       font-family: -apple-system, BlinkMacSystemFont, "Noto Sans JP", sans-serif;
-    }
-
-    .container {
-      min-height: 100vh;
-      padding: 18px;
-      box-sizing: border-box;
     }
 
     h1 {
@@ -25,40 +20,43 @@
 
     textarea {
       width: 100%;
-      min-height: 160px;
+      height: 200px;
       font-size: 16px;
-      padding: 10px;
+      padding: 12px;
       box-sizing: border-box;
+      margin-bottom: 20px;
     }
 
     button {
       width: 100%;
-      margin-top: 16px;
-      padding: 12px;
+      padding: 14px;
       font-size: 16px;
     }
   </style>
 </head>
 
 <body>
-  <div class="container">
 
-    <h1>写メ日記入力</h1>
+  <h1>写メ日記を入力</h1>
 
-    <!-- 重要：Pages前提 / GET方式 / confirm.html -->
-    <form action="confirm.html" method="GET">
+  <textarea
+    id="diary"
+    placeholder="ここに写メ日記の本文を入力してください"></textarea>
 
-      <!-- name 属性が「値を渡す鍵」 -->
-      <textarea
-        name="diary"
-        placeholder="ここに写メ日記を入力してください"
-        required
-      ></textarea>
+  <button onclick="goConfirm()">確認へ</button>
 
-      <button type="submit">Next</button>
-    </form>
+  <script>
+    function goConfirm() {
+      const diary = document.getElementById("diary").value.trim();
 
-  </div>
-</body>
-</html>
+      // ★ 空送信防止（必須）
+      if (!diary) {
+        alert("内容を入力してください。");
+        document.getElementById("diary").focus();
+        return;
+      }
+
+      // 確認画面へ遷移
+      location.href =
+
 
