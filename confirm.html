@@ -2,86 +2,65 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
+  <title>確認</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>確認画面</title>
-
-  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
-      padding: 20px;
-    }
-    .box {
-      border: 1px solid #ccc;
-      padding: 12px;
-      margin-bottom: 16px;
-      white-space: pre-wrap;
-    }
-    button {
-      width: 100%;
-      padding: 14px;
-      margin-top: 12px;
-      font-size: 16px;
-    }
-  </style>
 </head>
-
 <body>
-  <h2>入力内容の確認</h2>
 
-  <div id="content" class="box"></div>
+<h2>入力内容の確認</h2>
 
-  <button onclick="send()">この内容で送信</button>
-  <button onclick="history.back()">戻る</button>
+<div id="content"></div>
 
-  <script>
-    const WORKER_URL =
-      "https://lucky-bush-6437diary-api.doropbox-kyoto.workers.dev/";
+<button id="sendBtn">この内容で送信</button>
+<button onclick="history.back()">戻る</button>
 
-    const params = new URLSearchParams(location.search);
-    const text = params.get("text");
+<script>
+  // localStorage から本文を取得
+  const text = localStorage.getItem("diaryText") || "";
 
-    document.getElementById("content").innerText =
-      text || "（送信内容がありません）";
+  document.getElementById("content").innerText =
+    text ? text : "（送信内容がありません）";
 
-    async function initLiff() {
-      await liff.init({ liffId: "2009019646-C6qMfHN2" });
+  document.getElementById("sendBtn").addEventListener("click", async () => {
+    if (!text) {
+      alert("送信内容がありません");
+      return;
     }
-    initLiff();
 
-    async function send() {
-      if (!text) {
-        alert("送信内容がありません");
-        return;
-      }
-
-      try {
-        const res = await fetch(WORKER_URL, {
+    try {
+      const res = await fetch(
+        "https://lucky-bush-6437diary-api.doropbox-kyoto.workers.dev/",
+        {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            text: text,
-            sentAt: new Date().toISOString()
+            message: text
           })
-        });
-
-        if (!res.ok) {
-          throw new Error("送信失敗");
         }
+      );
 
-        alert("送信しました");
-        liff.closeWindow();
-
-      } catch (e) {
-        alert("エラーが発生しました");
+      if (!res.ok) {
+        throw new Error("送信に失敗しました");
       }
+
+      // 送信成功 → LINE に戻る
+      if (window.liff) {
+        liff.closeWindow();
+      } else {
+        alert("送信しました");
+      }
+
+    } catch (e) {
+      alert("エラーが発生しました");
     }
-  </script>
+  });
+</script>
+
 </body>
 </html>
+
 
 
 
