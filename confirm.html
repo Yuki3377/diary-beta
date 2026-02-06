@@ -1,110 +1,114 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8" />
   <title>確認画面</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-
   <style>
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Noto Sans JP", sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
       margin: 0;
       padding: 20px;
       background: #ffffff;
     }
-
     h1 {
       font-size: 18px;
       margin-bottom: 12px;
     }
-
     .box {
       border: 1px solid #ddd;
       padding: 12px;
+      border-radius: 6px;
       margin-bottom: 20px;
-      background: #f9f9f9;
       white-space: pre-wrap;
     }
-
     button {
       width: 100%;
-      padding: 12px;
+      padding: 14px;
       font-size: 16px;
-      margin-bottom: 10px;
+      border-radius: 6px;
+      border: none;
+      margin-bottom: 12px;
     }
-
-    button:disabled {
+    .back {
       background: #e0e0e0;
-      color: #999;
+    }
+    .send {
+      background: #06c755;
+      color: #fff;
+    }
+    .send:disabled {
+      background: #bdbdbd;
+    }
+    .line {
+      background: #f5f5f5;
+    }
+    .success {
+      text-align: center;
+      font-size: 16px;
+      margin-top: 40px;
     }
   </style>
 </head>
-
 <body>
 
-  <h1>入力内容の確認</h1>
+<h1>入力内容の確認</h1>
+<div id="content" class="box">読み込み中...</div>
 
-  <div class="box" id="confirmText"></div>
+<button class="back" onclick="goBack()">戻る</button>
+<button id="sendBtn" class="send" onclick="send()">この内容で送信</button>
+<button class="line" onclick="closeLiff()">LINEに戻る</button>
 
-  <button onclick="goBack()">戻る</button>
-  <button id="sendBtn" onclick="sendToLine()">この内容で送信</button>
-  <button onclick="backToLine()">LINEに戻る</button>
+<script>
+  const text = sessionStorage.getItem("diaryText") || "";
 
-  <script>
-    const params = new URLSearchParams(location.search);
-    const diary = (params.get("diary") || "").trim();
+  const contentEl = document.getElementById("content");
+  const sendBtn = document.getElementById("sendBtn");
 
-    const confirmText = document.getElementById("confirmText");
-    const sendBtn = document.getElementById("sendBtn");
+  if (!text.trim()) {
+    contentEl.textContent = "（送信内容がありません）";
+    sendBtn.disabled = true;
+  } else {
+    contentEl.textContent = text;
+  }
 
-    if (!diary) {
-      confirmText.textContent = "（送信内容がありません）";
-      sendBtn.disabled = true;
-    } else {
-      confirmText.textContent = diary;
-      sendBtn.disabled = false;
-    }
+  async function send() {
+    if (!text.trim()) return;
 
-    async function initLiff() {
-      try {
-        await liff.init({ liffId: "2009019646-N1brg84A" });
-      } catch (e) {
-        console.log(e);
+    await liff.init({ liffId: "2009019646-C6qMfHN2" });
+
+    await liff.sendMessages([
+      {
+        type: "text",
+        text: text
       }
-    }
-    initLiff();
+    ]);
 
-    function goBack() {
-      history.back();
-    }
+    document.body.innerHTML = `
+      <div class="success">
+        送信しました。<br>
+        LINEに戻ります…
+      </div>
+    `;
 
-    function backToLine() {
-      if (liff.isInClient()) {
-        liff.closeWindow();
-      } else {
-        location.href = "https://line.me/R/";
-      }
-    }
+    setTimeout(() => {
+      liff.closeWindow();
+    }, 800);
+  }
 
-    async function sendToLine() {
-      if (!diary) return;
+  function goBack() {
+    history.back();
+  }
 
-      try {
-        await liff.sendMessages([
-          { type: "text", text: diary }
-        ]);
-        liff.closeWindow();
-      } catch (e) {
-        alert("送信に失敗しました");
-        console.log(e);
-      }
-    }
-  </script>
+  function closeLiff() {
+    liff.closeWindow();
+  }
+</script>
 
 </body>
 </html>
+
 
 
 
