@@ -15,12 +15,10 @@
       padding: 20px;
       background: #ffffff;
     }
-
     h1 {
       font-size: 18px;
       margin-bottom: 12px;
     }
-
     .box {
       border: 1px solid #ddd;
       padding: 12px;
@@ -28,7 +26,6 @@
       background: #f9f9f9;
       white-space: pre-wrap;
     }
-
     button {
       width: 100%;
       padding: 12px;
@@ -45,6 +42,7 @@
   <div class="box" id="confirmText"></div>
 
   <button onclick="goBack()">戻る</button>
+  <button onclick="sendToLine()">この内容で送信</button>
   <button onclick="backToLine()">LINEに戻る</button>
 
   <script>
@@ -53,21 +51,14 @@
     const diary = params.get("diary") || "";
     document.getElementById("confirmText").textContent = diary;
 
-    // LIFF 初期化（最小）
+    // LIFF 初期化（正式ID）
     async function initLiff() {
       try {
         await liff.init({ liffId: "2009019646-N1brg84A" });
-
-        if (liff.isInClient()) {
-          console.log("LIFF initialized in LINE");
-        } else {
-          console.log("LIFF opened in browser");
-        }
       } catch (e) {
-        console.log("LIFF init skipped or failed:", e);
+        console.log("LIFF init failed:", e);
       }
     }
-
     initLiff();
 
     // 戻る
@@ -75,12 +66,33 @@
       history.back();
     }
 
-    // LINEに戻る（LIFF内なら close）
+    // LINEに戻る
     function backToLine() {
       if (window.liff && liff.isInClient()) {
         liff.closeWindow();
       } else {
         location.href = "https://line.me/R/";
+      }
+    }
+
+    // ★ 自動送信しない：ボタン押下時のみ送信
+    async function sendToLine() {
+      if (!(window.liff && liff.isInClient())) {
+        alert("LINEアプリ内から送信してください。");
+        return;
+      }
+
+      try {
+        await liff.sendMessages([
+          {
+            type: "text",
+            text: diary
+          }
+        ]);
+        alert("送信しました。");
+      } catch (e) {
+        alert("送信に失敗しました。");
+        console.log(e);
       }
     }
   </script>
