@@ -49,18 +49,18 @@
   <button onclick="backToLine()">LINEに戻る</button>
 
   <script>
-    // 入力内容を取得して表示
+    // 入力内容を取得（URLパラメータ）
     const params = new URLSearchParams(location.search);
     const diary = params.get("diary") || "";
-    document.getElementById("confirmText").textContent = diary;
 
-    // LIFF 初期化（正式ID）
+    // 表示（空の場合はメッセージ表示）
+    document.getElementById("confirmText").textContent =
+      diary.trim() !== "" ? diary : "（送信内容がありません）";
+
+    // LIFF 初期化
     async function initLiff() {
       try {
-       await liff.init({
-  liffId: "2009019646-C6qMfHN2"
-});
-
+        await liff.init({ liffId: "2009019646-C6qMfHN2" });
       } catch (e) {
         console.log("LIFF init failed:", e);
       }
@@ -81,8 +81,15 @@
       }
     }
 
-    // ★ ユーザー操作でのみ送信 → 送信後は自動でLINEトークへ戻る
+    // ★ 空送信を防ぐ（必須修正）
     async function sendToLine() {
+      // 空チェック
+      if (!diary || diary.trim().length === 0) {
+        alert("送信する内容がありません。戻って入力してください。");
+        return;
+      }
+
+      // LINE内チェック
       if (!(window.liff && liff.isInClient())) {
         alert("LINEアプリ内から送信してください。");
         return;
@@ -96,7 +103,7 @@
           }
         ]);
 
-        // 送信完了後、自動でトーク画面へ戻る
+        // 送信後はトークに戻る
         liff.closeWindow();
 
       } catch (e) {
