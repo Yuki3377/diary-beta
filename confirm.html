@@ -15,10 +15,12 @@
       padding: 20px;
       background: #ffffff;
     }
+
     h1 {
       font-size: 18px;
       margin-bottom: 12px;
     }
+
     .box {
       border: 1px solid #ddd;
       padding: 12px;
@@ -26,6 +28,7 @@
       background: #f9f9f9;
       white-space: pre-wrap;
     }
+
     button {
       width: 100%;
       padding: 12px;
@@ -66,7 +69,7 @@
       history.back();
     }
 
-    // LINEに戻る
+    // LINEに戻る（手動）
     function backToLine() {
       if (window.liff && liff.isInClient()) {
         liff.closeWindow();
@@ -75,7 +78,7 @@
       }
     }
 
-    // ★ 自動送信しない：ボタン押下時のみ送信
+    // ★ ユーザー操作でのみ送信 → 送信後は自動でLINEトークへ戻る
     async function sendToLine() {
       if (!(window.liff && liff.isInClient())) {
         alert("LINEアプリ内から送信してください。");
@@ -89,7 +92,10 @@
             text: diary
           }
         ]);
-        alert("送信しました。");
+
+        // 送信完了後、自動でトーク画面へ戻る
+        liff.closeWindow();
+
       } catch (e) {
         alert("送信に失敗しました。");
         console.log(e);
