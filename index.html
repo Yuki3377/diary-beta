@@ -2,38 +2,39 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
+  <title>写メ日記入力</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Diary</title>
+
   <style>
     body {
       margin: 0;
       background: #ffffff;
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Noto Sans JP", sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Noto Sans JP", sans-serif;
     }
+
     .container {
-      height: 100vh;
-      padding: 0 18px;
+      min-height: 100vh;
+      padding: 18px;
       box-sizing: border-box;
     }
-    .spacer {
-      height: 30vh;
+
+    h1 {
+      font-size: 18px;
+      margin-bottom: 12px;
     }
-    input {
+
+    textarea {
       width: 100%;
+      min-height: 160px;
       font-size: 16px;
-      border: none;
-      border-bottom: 1px solid #ccc;
-      padding: 8px 0;
-      outline: none;
+      padding: 10px;
+      box-sizing: border-box;
     }
+
     button {
-      margin-top: 48px;
       width: 100%;
-      height: 48px;
-      background: #000;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
+      margin-top: 16px;
+      padding: 12px;
       font-size: 16px;
     }
   </style>
@@ -41,26 +42,23 @@
 
 <body>
   <div class="container">
-    <div class="spacer"></div>
-    <input type="text" placeholder="（写メ日記の題名を記入して下さい）" />
-    <button>Next</button>
+
+    <h1>写メ日記入力</h1>
+
+    <!-- 重要：Pages前提 / GET方式 / confirm.html -->
+    <form action="confirm.html" method="GET">
+
+      <!-- name 属性が「値を渡す鍵」 -->
+      <textarea
+        name="diary"
+        placeholder="ここに写メ日記を入力してください"
+        required
+      ></textarea>
+
+      <button type="submit">Next</button>
+    </form>
+
   </div>
-
-  <!-- ★ここに追加 -->
-  <script>
-    const btn = document.querySelector("button");
-    const input = document.querySelector("input");
-
-    btn.addEventListener("click", () => {
-      const value = input.value.trim();
-      if (!value) {
-        alert("文字を入力してください");
-        return;
-      }
-      alert("入力内容：\n" + value);
-    });
-  </script>
-  <!-- ★ここまで -->
-
 </body>
 </html>
+
