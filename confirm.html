@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>確認画面</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Noto Sans JP", sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #ffffff;
+    }
+
+    h1 {
+      font-size: 18px;
+      margin-bottom: 12px;
+    }
+
+    .box {
+      border: 1px solid #ddd;
+      padding: 12px;
+      margin-bottom: 20px;
+      background: #f9f9f9;
+      white-space: pre-wrap;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>入力内容の確認</h1>
+
+  <div class="box" id="confirmText"></div>
+
+  <button onclick="goBack()">戻る</button>
+  <button onclick="backToLine()">LINEに戻る</button>
+
+  <script>
+    // 入力内容を取得して表示
+    const params = new URLSearchParams(location.search);
+    const diary = params.get("diary") || "";
+    document.getElementById("confirmText").textContent = diary;
+
+    // 戻る（ブラウザバック）
+    function goBack() {
+      history.back();
+    }
+
+    // LINEに戻る（※ 今は仮）
+    function backToLine() {
+      location.href = "https://line.me/R/";
+    }
+  </script>
+
+</body>
+</html>
+
