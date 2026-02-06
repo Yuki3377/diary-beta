@@ -5,7 +5,6 @@
   <title>確認画面</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- LIFF SDK -->
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
   <style>
@@ -36,8 +35,9 @@
       margin-bottom: 10px;
     }
 
-    button[disabled] {
-      opacity: 0.5;
+    button:disabled {
+      background: #e0e0e0;
+      color: #999;
     }
   </style>
 </head>
@@ -59,20 +59,19 @@
     const confirmText = document.getElementById("confirmText");
     const sendBtn = document.getElementById("sendBtn");
 
-    // 表示制御
     if (!diary) {
       confirmText.textContent = "（送信内容がありません）";
-      sendBtn.disabled = true; // ★ ここが重要
+      sendBtn.disabled = true;
     } else {
       confirmText.textContent = diary;
+      sendBtn.disabled = false;
     }
 
-    // LIFF初期化
     async function initLiff() {
       try {
         await liff.init({ liffId: "2009019646-N1brg84A" });
       } catch (e) {
-        console.log("LIFF init failed:", e);
+        console.log(e);
       }
     }
     initLiff();
@@ -82,7 +81,7 @@
     }
 
     function backToLine() {
-      if (window.liff && liff.isInClient()) {
+      if (liff.isInClient()) {
         liff.closeWindow();
       } else {
         location.href = "https://line.me/R/";
@@ -90,30 +89,15 @@
     }
 
     async function sendToLine() {
-      // ★ 二重ガード（安全）
-      if (!diary) {
-        alert("送信内容がありません。");
-        return;
-      }
-
-      if (!liff.isInClient()) {
-        alert("LINEアプリ内から送信してください。");
-        return;
-      }
+      if (!diary) return;
 
       try {
         await liff.sendMessages([
-          {
-            type: "text",
-            text: diary
-          }
+          { type: "text", text: diary }
         ]);
-
-        // 成功したら即トークへ戻す
         liff.closeWindow();
-
       } catch (e) {
-        alert("送信に失敗しました。");
+        alert("送信に失敗しました");
         console.log(e);
       }
     }
@@ -121,5 +105,6 @@
 
 </body>
 </html>
+
 
 
