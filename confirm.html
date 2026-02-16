@@ -1,39 +1,10 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8" />
-  <title>確認</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-</head>
-<body>
-
-<h2>入力内容の確認</h2>
-
-<div id="content"></div>
-
-<button id="sendBtn">この内容で送信</button>
-<button onclick="history.back()">戻る</button>
-
-<hr>
-<h3>AI生成結果</h3>
-<div id="result" style="white-space: pre-wrap;"></div>
-
 <script>
   const text = localStorage.getItem("diaryText") || "";
 
-  const contentEl = document.getElementById("content");
-  const resultEl = document.getElementById("result");
-  const sendBtn = document.getElementById("sendBtn");
-
-  contentEl.innerText =
+  document.getElementById("content").innerText =
     text ? text : "（送信内容がありません）";
 
-  sendBtn.addEventListener("click", async () => {
-    if (!text) {
-      alert("送信内容がありません");
-      return;
-    }
-
+  document.getElementById("sendBtn").addEventListener("click", async () => {
     try {
       const res = await fetch(
         "https://lucky-bush-6437diary-api.doropbox-kyoto.workers.dev",
@@ -43,28 +14,19 @@
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            text: text
+            message: text
           })
         }
       );
 
-      const data = await res.json();
+      const raw = await res.text();
 
-      if (!data.success) {
-        resultEl.innerText = "AI生成に失敗しました";
-        console.error(data);
-        return;
-      }
-
-      resultEl.innerText = data.result;
+      // そのまま表示
+      document.getElementById("result").innerText = raw;
 
     } catch (e) {
-      resultEl.innerText = "通信エラーが発生しました";
-      console.error(e);
+      document.getElementById("result").innerText =
+        "通信エラー: " + e.message;
     }
   });
 </script>
-
-</body>
-</html>
-
