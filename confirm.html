@@ -1,12 +1,89 @@
-const res = await fetch(
-  "https://lucky-bush-6437diary-api.doropbox-kyoto.workers.dev",
-  {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      text: text
-    })
+export default {
+  async fetch(request, env) {
+
+    // CORS
+    if (request.method === "OPTIONS") {
+      return new Response(null, {
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "POST, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type"
+        }
+      });
+    }
+
+    if (request.method !== "POST") {
+      return new Response("Method Not Allowed", { status: 405 });
+    }
+
+    try {
+      const body = await request.json();
+      const userText = body.text || "";
+
+      if (!userText) {
+        return new Response(
+          JSON.stringify({ result: "入力が空です" }),
+          {
+            headers: {
+              "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": "*"
+            }
+          }
+        );
+      }
+
+      const openaiRes = await fetch(
+        "https://api.openai.com/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${env.OPENAI_API_KEY}`
+          },
+          body: JSON.stringify({
+            model: "gpt-4o-mini",
+            messages: [
+              {
+                role: "system",
+                content:
+                  "あなたはナイトワーク女性の写メ日記を魅力的に整えるプロです。男性が会いたくなる文章にしてください。"
+              },
+              {
+                role: "user",
+                content: userText
+              }
+            ],
+            temperature: 0.9
+          })
+        }
+      );
+
+      const data = await openaiRes.json();
+
+      const resultText =
+        data.choices?.[0]?.message?.content || "生成できませんでした";
+
+      return new Response(
+        JSON.stringify({ result: resultText }),
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*"
+          }
+        }
+      );
+
+    } catch (err) {
+      return new Response(
+        JSON.stringify({ result: "エラー: " + err.message }),
+        {
+          status: 500,
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*"
+          }
+        }
+      );
+    }
   }
-);
+};
