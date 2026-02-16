@@ -1,89 +1,56 @@
-export default {
-  async fetch(request, env) {
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>確認</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+</head>
+<body>
 
-    // CORS
-    if (request.method === "OPTIONS") {
-      return new Response(null, {
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "POST, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type"
-        }
-      });
-    }
+<h2>入力内容の確認</h2>
 
-    if (request.method !== "POST") {
-      return new Response("Method Not Allowed", { status: 405 });
-    }
+<div id="content"></div>
 
+<button id="sendBtn">この内容で送信</button>
+<button onclick="history.back()">戻る</button>
+
+<hr>
+<h3>AI生成結果</h3>
+<pre id="result" style="white-space: pre-wrap;"></pre>
+
+<script>
+  const text = localStorage.getItem("diaryText") || "";
+
+  const contentEl = document.getElementById("content");
+  const resultEl = document.getElementById("result");
+  const sendBtn = document.getElementById("sendBtn");
+
+  contentEl.innerText =
+    text ? text : "（送信内容がありません）";
+
+  sendBtn.addEventListener("click", async () => {
     try {
-      const body = await request.json();
-      const userText = body.text || "";
-
-      if (!userText) {
-        return new Response(
-          JSON.stringify({ result: "入力が空です" }),
-          {
-            headers: {
-              "Content-Type": "application/json",
-              "Access-Control-Allow-Origin": "*"
-            }
-          }
-        );
-      }
-
-      const openaiRes = await fetch(
-        "https://api.openai.com/v1/chat/completions",
+      const res = await fetch(
+        "https://lucky-bush-6437diary-api.doropbox-kyoto.workers.dev",
         {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${env.OPENAI_API_KEY}`
+            "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            model: "gpt-4o-mini",
-            messages: [
-              {
-                role: "system",
-                content:
-                  "あなたはナイトワーク女性の写メ日記を魅力的に整えるプロです。男性が会いたくなる文章にしてください。"
-              },
-              {
-                role: "user",
-                content: userText
-              }
-            ],
-            temperature: 0.9
+            text: text
           })
         }
       );
 
-      const data = await openaiRes.json();
+      const data = await res.json();
+      resultEl.innerText = data.result;
 
-      const resultText =
-        data.choices?.[0]?.message?.content || "生成できませんでした";
-
-      return new Response(
-        JSON.stringify({ result: resultText }),
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*"
-          }
-        }
-      );
-
-    } catch (err) {
-      return new Response(
-        JSON.stringify({ result: "エラー: " + err.message }),
-        {
-          status: 500,
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*"
-          }
-        }
-      );
+    } catch (e) {
+      resultEl.innerText = "通信エラー: " + e.message;
     }
-  }
-};
+  });
+</script>
+
+</body>
+</html>
