@@ -1,56 +1,12 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8" />
-  <title>確認</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-</head>
-<body>
-
-<h2>入力内容の確認</h2>
-
-<div id="content"></div>
-
-<button id="sendBtn">この内容で送信</button>
-<button onclick="history.back()">戻る</button>
-
-<hr>
-<h3>サーバー応答</h3>
-<pre id="result" style="white-space: pre-wrap;"></pre>
-
-<script>
-  const text = localStorage.getItem("diaryText") || "";
-
-  const contentEl = document.getElementById("content");
-  const resultEl = document.getElementById("result");
-  const sendBtn = document.getElementById("sendBtn");
-
-  contentEl.innerText =
-    text ? text : "（送信内容がありません）";
-
-  sendBtn.addEventListener("click", async () => {
-    try {
-      const res = await fetch(
-        "https://lucky-bush-6437diary-api.doropbox-kyoto.workers.dev",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            message: text
-          })
-        }
-      );
-
-      const raw = await res.text();
-      resultEl.innerText = raw;
-
-    } catch (e) {
-      resultEl.innerText = "通信エラー: " + e.message;
-    }
-  });
-</script>
-
-</body>
-</html>
+const res = await fetch(
+  "https://lucky-bush-6437diary-api.doropbox-kyoto.workers.dev",
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      text: text
+    })
+  }
+);
