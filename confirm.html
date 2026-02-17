@@ -4,6 +4,31 @@
   <meta charset="UTF-8" />
   <title>確認</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Noto Sans JP", sans-serif;
+      padding: 20px;
+      background: #fff;
+    }
+    button {
+      padding: 10px 16px;
+      margin: 8px 0;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    #result {
+      white-space: pre-wrap;
+      background: #f7f7f7;
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+    #strategy {
+      font-size: 12px;
+      color: gray;
+      margin-top: 8px;
+    }
+  </style>
 </head>
 <body>
 
@@ -16,13 +41,15 @@
 
 <hr>
 <h3>AI生成結果</h3>
-<pre id="result" style="white-space: pre-wrap;"></pre>
+<div id="strategy"></div>
+<div id="result"></div>
 
 <script>
   const text = localStorage.getItem("diaryText") || "";
 
   const contentEl = document.getElementById("content");
   const resultEl = document.getElementById("result");
+  const strategyEl = document.getElementById("strategy");
   const sendBtn = document.getElementById("sendBtn");
 
   contentEl.innerText =
@@ -30,6 +57,10 @@
 
   sendBtn.addEventListener("click", async () => {
     try {
+
+      resultEl.innerText = "生成中...";
+      strategyEl.innerText = "";
+
       const res = await fetch(
         "https://lucky-bush-6437diary-api.doropbox-kyoto.workers.dev",
         {
@@ -38,13 +69,26 @@
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            text: text
+            name: "テスト",
+            selfName: "わたし",
+            customerName: "お兄さん",
+            age: "20代",
+            character: "妹系",
+            personality: "甘え体質",
+            emotion: "甘えたい",
+            situation: "出勤前"
           })
         }
       );
 
+      if (!res.ok) {
+        throw new Error("APIエラー: " + res.status);
+      }
+
       const data = await res.json();
-      resultEl.innerText = data.result;
+
+      resultEl.innerText = data.diary || "生成失敗";
+      strategyEl.innerText = "戦略: " + (data.strategy || "未判定");
 
     } catch (e) {
       resultEl.innerText = "通信エラー: " + e.message;
