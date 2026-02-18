@@ -23,11 +23,6 @@
       border-radius: 8px;
       margin-top: 10px;
     }
-    #strategy {
-      font-size: 12px;
-      color: gray;
-      margin-top: 8px;
-    }
   </style>
 </head>
 <body>
@@ -41,7 +36,6 @@
 
 <hr>
 <h3>AI生成結果</h3>
-<div id="strategy"></div>
 <div id="result"></div>
 
 <script>
@@ -49,7 +43,6 @@
 
   const contentEl = document.getElementById("content");
   const resultEl = document.getElementById("result");
-  const strategyEl = document.getElementById("strategy");
   const sendBtn = document.getElementById("sendBtn");
 
   contentEl.innerText =
@@ -59,23 +52,17 @@
     try {
 
       resultEl.innerText = "生成中...";
-      strategyEl.innerText = "";
 
       const res = await fetch(
-        "https://lucky-bush-6437diary-api.doropbox-kyoto.workers.dev",
+        "https://lucky-bush-6437diary-api.doropbox-kyoto.workers.dev/generate",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            name: "テスト",
-            selfName: "わたし",
-            customerName: "お兄さん",
-            age: "20代",
-            character: "妹系",
-            personality: "甘え体質",
-            emotion: "甘えたい",
+            title: text || "今日の気持ち",
+            mood: "甘えたい",
             situation: "出勤前"
           })
         }
@@ -87,8 +74,7 @@
 
       const data = await res.json();
 
-      resultEl.innerText = data.diary || "生成失敗";
-      strategyEl.innerText = "戦略: " + (data.strategy || "未判定");
+      resultEl.innerText = data.result || "生成失敗";
 
     } catch (e) {
       resultEl.innerText = "通信エラー: " + e.message;
