@@ -13,39 +13,38 @@
   --card: #ffffff;
 }
 
-/* ===== 共通 ===== */
+/* ===== 共通レイアウト ===== */
 
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   background: var(--bg);
   color: var(--text);
-  transition: all .3s ease;
+  transition: all .25s ease;
 }
 
 .container {
-  max-width: 480px;
+  max-width: 520px;
   margin: 40px auto;
   padding: 20px;
 }
 
 h1 {
   font-size: 22px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   letter-spacing: 1px;
 }
 
 .theme-switcher {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .theme-switcher button {
-  flex: 1;
   padding: 8px;
-  font-size: 12px;
+  font-size: 11px;
   border-radius: 8px;
   border: 1px solid #ccc;
   background: #eee;
@@ -88,39 +87,55 @@ select, input {
   white-space: pre-wrap;
 }
 
-/* ===== テーマ定義 ===== */
+/* ========================= */
+/* ===== 15テーマ ===== */
+/* ========================= */
 
-/* A：ラグジュアリー */
-body.luxury {
-  --bg: #0f0f0f;
-  --text: #f5f5f5;
-  --accent: #c9a227;
-  --card: #1a1a1a;
-}
+/* 1 Luxury */
+body.t1 { --bg:#0f0f0f; --text:#f5f5f5; --accent:#c9a227; --card:#1a1a1a; }
 
-/* B：ピンク */
-body.pink {
-  --bg: #fff6f9;
-  --text: #333;
-  --accent: #ff6b9d;
-  --card: #ffffff;
-}
+/* 2 Soft Pink */
+body.t2 { --bg:#fff6f9; --text:#333; --accent:#ff6b9d; --card:#ffffff; }
 
-/* C：ミニマル */
-body.minimal {
-  --bg: #ffffff;
-  --text: #111;
-  --accent: #000000;
-  --card: #f4f4f4;
-}
+/* 3 Minimal */
+body.t3 { --bg:#ffffff; --text:#111; --accent:#000; --card:#f4f4f4; }
 
-/* D：リッチダーク */
-body.richdark {
-  --bg: #141022;
-  --text: #e6dfff;
-  --accent: #a855f7;
-  --card: #1f1b2e;
-}
+/* 4 Rich Purple */
+body.t4 { --bg:#141022; --text:#e6dfff; --accent:#a855f7; --card:#1f1b2e; }
+
+/* 5 Rose Gold */
+body.t5 { --bg:#fff8f9; --text:#3a2a2f; --accent:#b94e79; --card:#ffffff; }
+
+/* 6 Neon Pink */
+body.t6 { --bg:#1a0f1a; --text:#ffe6f6; --accent:#ff007f; --card:#241224; }
+
+/* 7 Mauve */
+body.t7 { --bg:#f6f0f4; --text:#2a1f2a; --accent:#9d4e91; --card:#ffffff; }
+
+/* 8 Pastel */
+body.t8 { --bg:#fff0f5; --text:#444; --accent:#ff5fa2; --card:#ffffff; }
+
+/* 9 Dark Pink */
+body.t9 { --bg:#12060f; --text:#f8d9e8; --accent:#d6006b; --card:#1b0b15; }
+
+/* 10 Champagne */
+body.t10 { --bg:#faf6ef; --text:#4a3f35; --accent:#c7a45c; --card:#ffffff; }
+
+/* 11 Midnight Blue */
+body.t11 { --bg:#0e1a2b; --text:#e3f2ff; --accent:#2f80ed; --card:#152437; }
+
+/* 12 Emerald */
+body.t12 { --bg:#0f1f1c; --text:#d9fff8; --accent:#00c896; --card:#162a26; }
+
+/* 13 Sunset */
+body.t13 { --bg:#2b0f14; --text:#ffe4d9; --accent:#ff6a3d; --card:#3a171c; }
+
+/* 14 Lavender */
+body.t14 { --bg:#f5f3ff; --text:#2d2250; --accent:#8b5cf6; --card:#ffffff; }
+
+/* 15 Graphite */
+body.t15 { --bg:#1c1c1c; --text:#f1f1f1; --accent:#777; --card:#2a2a2a; }
+
 </style>
 </head>
 
@@ -129,12 +144,22 @@ body.richdark {
 <div class="container">
   <h1>Shame Diary AI</h1>
 
-  <!-- テーマ切替 -->
   <div class="theme-switcher">
-    <button onclick="setTheme('luxury')">Luxury</button>
-    <button onclick="setTheme('pink')">Pink</button>
-    <button onclick="setTheme('minimal')">Minimal</button>
-    <button onclick="setTheme('richdark')">Rich</button>
+    <button onclick="setTheme('t1')">Luxury</button>
+    <button onclick="setTheme('t2')">Soft Pink</button>
+    <button onclick="setTheme('t3')">Minimal</button>
+    <button onclick="setTheme('t4')">Rich Purple</button>
+    <button onclick="setTheme('t5')">Rose Gold</button>
+    <button onclick="setTheme('t6')">Neon Pink</button>
+    <button onclick="setTheme('t7')">Mauve</button>
+    <button onclick="setTheme('t8')">Pastel</button>
+    <button onclick="setTheme('t9')">Dark Pink</button>
+    <button onclick="setTheme('t10')">Champagne</button>
+    <button onclick="setTheme('t11')">Midnight</button>
+    <button onclick="setTheme('t12')">Emerald</button>
+    <button onclick="setTheme('t13')">Sunset</button>
+    <button onclick="setTheme('t14')">Lavender</button>
+    <button onclick="setTheme('t15')">Graphite</button>
   </div>
 
   <div class="card">
@@ -186,3 +211,4 @@ function setTheme(theme) {
 
 </body>
 </html>
+
