@@ -38,3 +38,151 @@ h1 {
 .theme-switcher {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.theme-switcher button {
+  flex: 1;
+  padding: 8px;
+  font-size: 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background: #eee;
+  cursor: pointer;
+}
+
+.card {
+  margin-bottom: 20px;
+  padding: 15px;
+  background: var(--card);
+  border-radius: 12px;
+}
+
+select, input {
+  width: 100%;
+  padding: 12px;
+  margin-top: 6px;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+}
+
+.generate-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  margin-top: 20px;
+  cursor: pointer;
+}
+
+.result {
+  margin-top: 30px;
+  padding: 15px;
+  background: rgba(0,0,0,0.05);
+  border-radius: 12px;
+  white-space: pre-wrap;
+}
+
+/* ===== テーマ定義 ===== */
+
+/* A：ラグジュアリー */
+body.luxury {
+  --bg: #0f0f0f;
+  --text: #f5f5f5;
+  --accent: #c9a227;
+  --card: #1a1a1a;
+}
+
+/* B：ピンク */
+body.pink {
+  --bg: #fff6f9;
+  --text: #333;
+  --accent: #ff6b9d;
+  --card: #ffffff;
+}
+
+/* C：ミニマル */
+body.minimal {
+  --bg: #ffffff;
+  --text: #111;
+  --accent: #000000;
+  --card: #f4f4f4;
+}
+
+/* D：リッチダーク */
+body.richdark {
+  --bg: #141022;
+  --text: #e6dfff;
+  --accent: #a855f7;
+  --card: #1f1b2e;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <h1>Shame Diary AI</h1>
+
+  <!-- テーマ切替 -->
+  <div class="theme-switcher">
+    <button onclick="setTheme('luxury')">Luxury</button>
+    <button onclick="setTheme('pink')">Pink</button>
+    <button onclick="setTheme('minimal')">Minimal</button>
+    <button onclick="setTheme('richdark')">Rich</button>
+  </div>
+
+  <div class="card">
+    <label>今日の感情</label>
+    <select>
+      <option>甘えたい</option>
+      <option>ムラムラしてる</option>
+      <option>寂しい</option>
+      <option>ご機嫌</option>
+      <option>イチャイチャしたい</option>
+    </select>
+  </div>
+
+  <div class="card">
+    <label>状況</label>
+    <select>
+      <option>出勤前</option>
+      <option>待機中</option>
+      <option>明日出勤</option>
+      <option>退勤</option>
+    </select>
+  </div>
+
+  <div class="card">
+    <label>題名</label>
+    <input type="text" placeholder="題名を入力">
+  </div>
+
+  <button class="generate-btn" onclick="generate()">生成する</button>
+
+  <div class="result" id="result"></div>
+</div>
+
+<script>
+function generate() {
+  document.getElementById("result").innerText =
+`今日はちょっと我慢できないかも。
+
+待機中なのに落ち着かなくて。
+
+お兄さん、どうする？`;
+}
+
+function setTheme(theme) {
+  document.body.className = '';
+  document.body.classList.add(theme);
+}
+</script>
+
+</body>
+</html>
