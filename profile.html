@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>売れるキャラを作る</title>
+<title>プロフィール登録</title>
 
 <style>
 body{
@@ -55,16 +55,36 @@ body{
 
 input{
   width:100%;
-  padding:12px;
-  font-size:15px;
+  padding:10px 12px;
+  font-size:14px;
   border-radius:12px;
   border:1px solid #eee;
   margin-bottom:10px;
   outline:none;
+  box-sizing:border-box;
 }
 
 input:focus{
   border-color:#ff85b3;
+}
+
+.short-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.short-row input{
+  flex:1;
+  max-width:180px;
+}
+
+.checkbox-wrap{
+  font-size:12px;
+  color:#666;
+  display:flex;
+  align-items:center;
+  gap:4px;
 }
 
 .button-group{
@@ -82,7 +102,6 @@ input:focus{
   cursor:pointer;
 }
 
-/* 高さを変えない */
 .btn.active{
   background:#ff85b3;
   color:#fff;
@@ -110,20 +129,29 @@ input:focus{
 <div class="wrapper">
 
   <div class="header">
-    <h1 class="title">売れるキャラを作る</h1>
-    <p class="subtitle">あなたの魅力をAIに覚えさせましょう</p>
+    <h1 class="title">プロフィール登録</h1>
+    <p class="subtitle">変更はいつでも可能です</p>
   </div>
 
   <div class="card">
     <h2>基本情報</h2>
     <input type="text" id="name" placeholder="源氏名">
-    <input type="text" id="selfCall" placeholder="自分の呼び方（例：私・あたし）">
+
+    <div class="short-row">
+      <input type="text" id="selfCall" placeholder="自分の呼び方（僕・わたし）">
+      <label class="checkbox-wrap">
+        <input type="checkbox" id="sameAsName">
+        源氏名と同じ
+      </label>
+    </div>
+
     <input type="text" id="customerCall" placeholder="お客様の呼び方（例：あなた・○○さん）">
   </div>
 
   <div class="card">
     <h2>年齢</h2>
     <div class="button-group" id="ageGroup">
+      <div class="btn">10代</div>
       <div class="btn">20代</div>
       <div class="btn">30代</div>
       <div class="btn">40代</div>
@@ -139,11 +167,12 @@ input:focus{
       <div class="btn">清楚系</div>
       <div class="btn">お姉さん系</div>
       <div class="btn">人妻系</div>
+      <div class="btn">熟女</div>
     </div>
   </div>
 
   <div class="card">
-    <h2>個性（最大3つ）</h2>
+    <h2>個性（最大で3つ選択可）</h2>
     <div class="button-group" id="traitGroup">
       <div class="btn">S気質</div>
       <div class="btn">M気質</div>
@@ -153,6 +182,12 @@ input:focus{
       <div class="btn">巨乳</div>
       <div class="btn">グラマー</div>
       <div class="btn">大人の色気</div>
+      <div class="btn">ちょっぴり挑発的</div>
+      <div class="btn">ツンデレ</div>
+      <div class="btn">恥ずかしがり</div>
+      <div class="btn">密着好き</div>
+      <div class="btn">聞き上手</div>
+      <div class="btn">かまってちゃん</div>
     </div>
   </div>
 
@@ -172,6 +207,18 @@ window.onload=function(){
   restoreMulti("traitGroup",profile.traits||[]);
 };
 
+document.getElementById("sameAsName").addEventListener("change",function(){
+  if(this.checked){
+    document.getElementById("selfCall").value=
+      document.getElementById("name").value;
+    saveProfile();
+  }
+});
+
+document.querySelectorAll("input").forEach(input=>{
+  input.addEventListener("input",saveProfile);
+});
+
 function saveProfile(){
   const profile={
     name:name.value,
@@ -184,10 +231,6 @@ function saveProfile(){
   localStorage.setItem("profile",JSON.stringify(profile));
   showToast();
 }
-
-document.querySelectorAll("input").forEach(input=>{
-  input.addEventListener("input",saveProfile);
-});
 
 function setupSingle(groupId){
   const group=document.getElementById(groupId);
