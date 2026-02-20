@@ -6,7 +6,7 @@
 <title>写メ日記AI</title>
 
 <style>
-:root {
+:root{
   --bg:#fff4f8;
   --card:#ffffff;
   --accent:#ff5fa2;
@@ -14,18 +14,54 @@
   --text:#444;
   --radius:18px;
 }
+
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,sans-serif;
   background:var(--bg);
   color:var(--text);
 }
+
 .wrapper{
   max-width:520px;
   margin:40px auto;
   padding:20px;
 }
-h1{text-align:center;margin-bottom:20px;}
+
+h1{
+  text-align:center;
+  margin-bottom:20px;
+}
+
+/* ===== プロフィールバー ===== */
+
+.profile-bar{
+  background:white;
+  padding:12px 16px;
+  border-radius:30px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:20px;
+  box-shadow:0 6px 18px rgba(255,95,162,0.1);
+  font-size:12px;
+}
+
+.profile-info{
+  opacity:0.8;
+}
+
+.edit-btn{
+  background:var(--accent);
+  color:white;
+  border:none;
+  border-radius:20px;
+  padding:6px 12px;
+  font-size:11px;
+  cursor:pointer;
+}
+
+/* ===== カード ===== */
 
 .card{
   background:var(--card);
@@ -35,7 +71,10 @@ h1{text-align:center;margin-bottom:20px;}
   box-shadow:0 8px 20px rgba(255,95,162,0.08);
 }
 
-label{font-size:13px;font-weight:600;}
+label{
+  font-size:13px;
+  font-weight:600;
+}
 
 select,input{
   width:100%;
@@ -45,15 +84,15 @@ select,input{
   margin-top:8px;
 }
 
-button{
+button.primary{
   width:100%;
-  padding:14px;
+  padding:15px;
   border:none;
   border-radius:25px;
   background:linear-gradient(135deg,#ff5fa2,#ff85b3);
   color:white;
+  font-size:15px;
   cursor:pointer;
-  margin-top:10px;
 }
 
 .result{
@@ -64,6 +103,26 @@ button{
   white-space:pre-wrap;
   display:none;
 }
+
+/* ===== モーダル ===== */
+
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.3);
+  display:none;
+  justify-content:center;
+  align-items:center;
+}
+
+.modal-content{
+  background:white;
+  width:90%;
+  max-width:400px;
+  padding:20px;
+  border-radius:20px;
+}
+
 </style>
 </head>
 <body>
@@ -71,132 +130,133 @@ button{
 <div class="wrapper">
 <h1>写メ日記 AI</h1>
 
-<div class="card">
-<label>名前</label>
-<input id="name">
+<div class="profile-bar">
+  <div class="profile-info" id="profileDisplay">プロフィール未設定</div>
+  <button class="edit-btn" onclick="openModal()">編集</button>
 </div>
 
 <div class="card">
-<label>自分の呼び方</label>
-<input id="selfCall">
+  <label>今日の感情</label>
+  <select id="mood">
+    <option>甘えたい</option>
+    <option>ムラムラしている</option>
+    <option>寂しい</option>
+    <option>ご機嫌</option>
+  </select>
 </div>
 
 <div class="card">
-<label>お客様の呼び方</label>
-<input id="customerCall">
+  <label>題名</label>
+  <input id="title">
 </div>
 
-<div class="card">
-<label>年齢</label>
-<select id="age">
-<option>20代</option>
-<option>30代</option>
-<option>40代</option>
-<option>50代</option>
-</select>
-</div>
-
-<div class="card">
-<label>キャラクター</label>
-<select id="character">
-<option>妹系</option>
-<option>小悪魔系</option>
-<option>清楚系</option>
-<option>お姉さん系</option>
-<option>人妻系</option>
-</select>
-</div>
-
-<div class="card">
-<label>個性</label>
-<select id="trait">
-<option>甘え体質</option>
-<option>S気質</option>
-<option>M気質</option>
-<option>寂しがり</option>
-<option>大人の色気</option>
-</select>
-</div>
-
-<div class="card">
-<label>今日の感情</label>
-<select id="mood">
-<option>甘えたい</option>
-<option>ムラムラしている</option>
-<option>寂しい</option>
-<option>ご機嫌</option>
-</select>
-</div>
-
-<div class="card">
-<label>題名</label>
-<input id="title">
-</div>
-
-<button onclick="generate()">生成する</button>
+<button class="primary" onclick="generate()">生成する</button>
 
 <div class="result" id="result"></div>
 
 </div>
 
+<!-- ===== プロフィールモーダル ===== -->
+
+<div class="modal" id="profileModal">
+  <div class="modal-content">
+    <h3>プロフィール編集</h3>
+
+    <label>名前</label>
+    <input id="name">
+
+    <label>自分の呼び方</label>
+    <input id="selfCall">
+
+    <label>お客様の呼び方</label>
+    <input id="customerCall">
+
+    <label>年齢</label>
+    <select id="age">
+      <option>20代</option>
+      <option>30代</option>
+      <option>40代</option>
+      <option>50代</option>
+    </select>
+
+    <label>キャラクター</label>
+    <select id="character">
+      <option>妹系</option>
+      <option>小悪魔系</option>
+      <option>清楚系</option>
+      <option>お姉さん系</option>
+      <option>人妻系</option>
+    </select>
+
+    <button class="primary" onclick="saveProfile()">保存する</button>
+  </div>
+</div>
+
 <script>
+
+/* ===== プロフィール表示更新 ===== */
+
+function updateProfileBar(){
+  const saved=localStorage.getItem("profile");
+  const display=document.getElementById("profileDisplay");
+
+  if(!saved){
+    display.innerText="プロフィール未設定";
+    return;
+  }
+
+  const p=JSON.parse(saved);
+  display.innerText=
+`${p.name}｜${p.age}｜${p.character}`;
+}
+
+/* ===== モーダル ===== */
+
+function openModal(){
+  document.getElementById("profileModal").style.display="flex";
+}
+
+function saveProfile(){
+  const profile={
+    name:document.getElementById("name").value,
+    selfCall:document.getElementById("selfCall").value,
+    customerCall:document.getElementById("customerCall").value,
+    age:document.getElementById("age").value,
+    character:document.getElementById("character").value
+  };
+
+  localStorage.setItem("profile",JSON.stringify(profile));
+  document.getElementById("profileModal").style.display="none";
+  updateProfileBar();
+}
+
+/* ===== 生成 ===== */
 
 function generate(){
 
-const name=document.getElementById("name").value;
-const selfCall=document.getElementById("selfCall").value;
-const customerCall=document.getElementById("customerCall").value;
-const age=document.getElementById("age").value;
-const character=document.getElementById("character").value;
-const trait=document.getElementById("trait").value;
-const mood=document.getElementById("mood").value;
-const title=document.getElementById("title").value;
+  const saved=localStorage.getItem("profile");
+  if(!saved){
+    alert("プロフィールを設定してください");
+    return;
+  }
 
-if(!name||!selfCall||!customerCall||!title){
-  alert("未入力があります");
-  return;
-}
+  const p=JSON.parse(saved);
+  const mood=document.getElementById("mood").value;
+  const title=document.getElementById("title").value;
 
-/* ===== 年齢補正 ===== */
-let ageTone="";
-if(age==="20代") ageTone="ちょっと素直に";
-if(age==="30代") ageTone="少し余裕を見せながら";
-if(age==="40代") ageTone="落ち着いた距離で";
-if(age==="50代") ageTone="包み込むように";
-
-/* ===== キャラ補正 ===== */
-let charTone="";
-if(character==="妹系") charTone="ねぇ、";
-if(character==="小悪魔系") charTone="ふふ、";
-if(character==="清楚系") charTone="今日は、";
-if(character==="お姉さん系") charTone="ほら、";
-if(character==="人妻系") charTone="内緒だけど、";
-
-/* ===== 個性補正 ===== */
-let traitTone="";
-if(trait==="甘え体質") traitTone="少し甘えさせて？";
-if(trait==="S気質") traitTone="いじわるしちゃうよ？";
-if(trait==="M気質") traitTone="優しくしてほしいな";
-if(trait==="寂しがり") traitTone="ひとりはイヤで";
-if(trait==="大人の色気") traitTone="ちゃんと見ててね";
-
-/* ===== 文章生成 ===== */
-
-const text=
+  const text=
 `${title}
 
-${ageTone}${charTone}
-${selfCall}、今日は${mood}気分。
+${p.selfCall}、今日は${mood}気分。
 
-${traitTone}
+${p.customerCall}、どうする？`;
 
-${customerCall}、どうする？`;
-
-const result=document.getElementById("result");
-result.innerText=text;
-result.style.display="block";
-
+  const result=document.getElementById("result");
+  result.innerText=text;
+  result.style.display="block";
 }
+
+window.onload=updateProfileBar;
 
 </script>
 
