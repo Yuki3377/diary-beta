@@ -11,26 +11,42 @@ body{
   font-family:-apple-system,BlinkMacSystemFont,sans-serif;
   background:#fff4f8;
 }
+
 .wrapper{
   max-width:520px;
   margin:40px auto;
   padding:20px;
+  animation:fadeUp .4s ease;
 }
+
+@keyframes fadeUp{
+  from{opacity:0; transform:translateY(10px);}
+  to{opacity:1; transform:translateY(0);}
+}
+
 .card{
   background:#fff;
-  padding:18px;
+  padding:16px;
   border-radius:18px;
-  margin-bottom:15px;
+  margin-bottom:14px;
   box-shadow:0 8px 20px rgba(255,95,162,0.08);
 }
+
 input,textarea{
   width:100%;
-  padding:12px;
+  padding:10px 12px;
   border-radius:12px;
   border:1px solid #eee;
   margin-top:8px;
   font-size:14px;
+  box-sizing:border-box;
 }
+
+textarea{
+  resize:none;
+  min-height:80px;
+}
+
 button.primary{
   width:100%;
   padding:14px;
@@ -39,12 +55,14 @@ button.primary{
   background:linear-gradient(135deg,#ff5fa2,#ff85b3);
   color:white;
 }
+
 .button-group{
   display:flex;
   flex-wrap:wrap;
   gap:8px;
   margin-top:10px;
 }
+
 .choice-btn{
   padding:6px 12px;
   border-radius:20px;
@@ -53,23 +71,62 @@ button.primary{
   font-size:12px;
   cursor:pointer;
 }
+
 .choice-btn.active{
   background:#ff85b3;
   color:#fff;
-  border:none;
+  border:1px solid #ff85b3;
 }
+
 .result{
   margin-top:20px;
-  padding:20px;
+  padding:18px;
   background:#ffd6e8;
   border-radius:18px;
   white-space:pre-wrap;
   display:none;
 }
+
 .profileInfo{
   font-size:13px;
   color:#888;
   margin-bottom:10px;
+}
+
+/* ===== モーダル ===== */
+
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.35);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  opacity:0;
+  pointer-events:none;
+  transition:.2s ease;
+  z-index:999;
+}
+
+.modal.active{
+  opacity:1;
+  pointer-events:auto;
+}
+
+.modal-box{
+  background:#fff;
+  padding:28px 40px;
+  border-radius:20px;
+  font-size:18px;
+  font-weight:600;
+  color:#ff5fa2;
+  box-shadow:0 20px 40px rgba(0,0,0,0.2);
+  animation:pop .2s ease;
+}
+
+@keyframes pop{
+  from{transform:scale(.9); opacity:0;}
+  to{transform:scale(1); opacity:1;}
 }
 </style>
 </head>
@@ -94,13 +151,18 @@ button.primary{
 
 <div class="card">
 <label>印象や出来事（お客様とあなたにしか分からない内容）</label>
-<textarea id="memory" rows="3"></textarea>
+<textarea id="memory"></textarea>
 </div>
 
 <button class="primary" onclick="generateThanks()">つくる</button>
 
 <div class="result" id="result"></div>
 
+</div>
+
+<!-- モーダル -->
+<div id="modal" class="modal">
+  <div class="modal-box" id="modalText"></div>
 </div>
 
 <script>
@@ -123,6 +185,14 @@ const hints=[
 "また誘ってくだい"
 ];
 
+function showModal(message){
+  const modal=document.getElementById("modal");
+  const text=document.getElementById("modalText");
+  text.innerText=message;
+  modal.classList.add("active");
+  setTimeout(()=>{ modal.classList.remove("active"); },1500);
+}
+
 function createHintButtons(){
   const container=document.getElementById("hintButtons");
   hints.forEach(h=>{
@@ -142,9 +212,9 @@ function createHintButtons(){
 }
 
 function loadProfile(){
-  const saved=localStorage.getItem("diaryProfile");
+  const saved=localStorage.getItem("profile");
   if(!saved){
-    alert("プロフィールが未登録です。先に設定してください。");
+    showModal("プロフィールが未登録です");
     return;
   }
   profile=JSON.parse(saved);
@@ -156,7 +226,7 @@ function loadProfile(){
 function generateThanks(){
 
   if(!profile){
-    alert("プロフィール未登録");
+    showModal("プロフィールが未登録です");
     return;
   }
 
@@ -164,7 +234,7 @@ function generateThanks(){
   const memory=document.getElementById("memory").value;
 
   if(!place){
-    alert("場所は必須です");
+    showModal("場所は必須です");
     return;
   }
 
