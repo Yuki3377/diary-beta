@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>写メ日記生成</title>
+<title>写メ日記をつくる</title>
 
 <style>
 body{
@@ -23,21 +23,46 @@ body{
   margin-bottom:15px;
   box-shadow:0 8px 20px rgba(255,95,162,0.08);
 }
-select,input{
+input{
   width:100%;
   padding:12px;
   border-radius:12px;
   border:1px solid #eee;
   margin-top:8px;
 }
-button{
+
+.button-group{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:10px;
+}
+
+.choice-btn{
+  padding:8px 14px;
+  border-radius:20px;
+  border:1px solid #ffb6d2;
+  background:#fff;
+  cursor:pointer;
+  font-size:13px;
+}
+
+.choice-btn.active{
+  background:#ff85b3;
+  color:#fff;
+  border:none;
+}
+
+button.primary{
   width:100%;
   padding:14px;
   border:none;
   border-radius:25px;
   background:linear-gradient(135deg,#ff5fa2,#ff85b3);
   color:white;
+  margin-top:10px;
 }
+
 .result{
   margin-top:20px;
   padding:20px;
@@ -46,18 +71,11 @@ button{
   white-space:pre-wrap;
   display:none;
 }
-.profileInfo{
-  font-size:13px;
-  color:#888;
-  margin-bottom:10px;
-}
+
 .history{
   margin-top:30px;
 }
-.history h3{
-  font-size:14px;
-  margin-bottom:10px;
-}
+
 .history-item{
   background:#fff;
   padding:10px;
@@ -67,8 +85,15 @@ button{
   cursor:pointer;
   border:1px solid #eee;
 }
+
 .history-item:hover{
   background:#ffeaf4;
+}
+
+.profileInfo{
+  font-size:13px;
+  color:#888;
+  margin-bottom:10px;
 }
 </style>
 </head>
@@ -77,29 +102,18 @@ button{
 
 <div class="wrapper">
 
-<h2>写メ日記生成</h2>
+<h2>写メ日記をつくる</h2>
 
 <div class="profileInfo" id="profileInfo"></div>
 
 <div class="card">
 <label>感情</label>
-<select id="mood">
-<option>甘えたい</option>
-<option>ムラムラしている</option>
-<option>寂しい</option>
-<option>ご機嫌</option>
-<option>イチャイチャしたい</option>
-</select>
+<div class="button-group" id="moodButtons"></div>
 </div>
 
 <div class="card">
 <label>日記の状況</label>
-<select id="situation">
-<option>出勤前（当日）</option>
-<option>待機中</option>
-<option>明日出勤</option>
-<option>退勤</option>
-</select>
+<div class="button-group" id="situationButtons"></div>
 </div>
 
 <div class="card">
@@ -107,12 +121,12 @@ button{
 <input id="title">
 </div>
 
-<button onclick="generate()">生成する</button>
+<button class="primary" onclick="generate()">つくる</button>
 
 <div class="result" id="result"></div>
 
 <div class="history">
-<h3>生成履歴</h3>
+<h3>過去につくった日記</h3>
 <div id="historyList"></div>
 </div>
 
@@ -121,8 +135,39 @@ button{
 <script>
 
 let profile=null;
+let selectedMood=null;
+let selectedSituation=null;
 
-/* ===== プロフィール読み込み ===== */
+const moods=[
+"甘えたい",
+"ムラムラしている",
+"寂しい",
+"ご機嫌",
+"イチャイチャしたい"
+];
+
+const situations=[
+"出勤前（当日）",
+"待機中",
+"明日出勤",
+"退勤"
+];
+
+function createButtons(list, containerId, callback){
+  const container=document.getElementById(containerId);
+  list.forEach(item=>{
+    const btn=document.createElement("button");
+    btn.className="choice-btn";
+    btn.innerText=item;
+    btn.onclick=()=>{
+      [...container.children].forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      callback(item);
+    };
+    container.appendChild(btn);
+  });
+}
+
 function loadProfile(){
   const saved=localStorage.getItem("diaryProfile");
   if(!saved){
@@ -130,12 +175,10 @@ function loadProfile(){
     return;
   }
   profile=JSON.parse(saved);
-
   document.getElementById("profileInfo").innerText=
-    `${profile.name || ""}（${profile.character || ""} / ${profile.age || ""}）`;
+  `${profile.name || ""}（${profile.character || ""} / ${profile.age || ""}）`;
 }
 
-/* ===== キャラ別語尾 ===== */
 function characterTone(character){
   const toneMap={
     "妹系":{
@@ -162,34 +205,29 @@ function characterTone(character){
   return toneMap[character] || toneMap["妹系"];
 }
 
-/* ===== 生成 ===== */
 function generate(){
-
   if(!profile){
     alert("プロフィール未登録");
     return;
   }
 
-  const mood=document.getElementById("mood").value;
-  const situation=document.getElementById("situation").value;
   const title=document.getElementById("title").value;
 
-  if(!title){
-    alert("題名は必須です");
+  if(!title || !selectedMood || !selectedSituation){
+    alert("題名・感情・状況を選択してください");
     return;
   }
 
-  const customer=profile.customerCall || "お兄さん";
   const tone=characterTone(profile.character);
-
   const intro=tone.intro[Math.floor(Math.random()*tone.intro.length)];
   const ending=tone.ending[Math.floor(Math.random()*tone.ending.length)];
+  const customer=profile.customerCall || "お兄さん";
 
   const text=`${title}
 
 ${intro}
 
-${situation}で、ちょっと${mood}。
+${selectedSituation}で、ちょっと${selectedMood}。
 
 ${customer}どうする？
 
@@ -202,28 +240,22 @@ ${ending}`;
   saveHistory(text);
 }
 
-/* ===== 履歴保存 ===== */
 function saveHistory(text){
   let history=JSON.parse(localStorage.getItem("diaryHistory") || "[]");
-
   history.unshift(text);
-  history = history.slice(0,5);
-
-  localStorage.setItem("diaryHistory", JSON.stringify(history));
-
+  history=history.slice(0,5);
+  localStorage.setItem("diaryHistory",JSON.stringify(history));
   renderHistory();
 }
 
-/* ===== 履歴表示 ===== */
 function renderHistory(){
   const history=JSON.parse(localStorage.getItem("diaryHistory") || "[]");
   const list=document.getElementById("historyList");
   list.innerHTML="";
-
   history.forEach(item=>{
     const div=document.createElement("div");
     div.className="history-item";
-    div.innerText=item.split("\n")[0]; // 題名だけ表示
+    div.innerText=item.split("\n")[0];
     div.onclick=()=>{
       document.getElementById("result").innerText=item;
       document.getElementById("result").style.display="block";
@@ -234,6 +266,8 @@ function renderHistory(){
 
 window.onload=function(){
   loadProfile();
+  createButtons(moods,"moodButtons",(v)=>selectedMood=v);
+  createButtons(situations,"situationButtons",(v)=>selectedSituation=v);
   renderHistory();
 };
 
