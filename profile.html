@@ -24,9 +24,7 @@ body{
   to{opacity:1; transform:translateY(0);}
 }
 
-.header{
-  margin-bottom:20px;
-}
+.header{ margin-bottom:20px; }
 
 .title{
   font-size:20px;
@@ -64,9 +62,7 @@ input{
   box-sizing:border-box;
 }
 
-input:focus{
-  border-color:#ff85b3;
-}
+input:focus{ border-color:#ff85b3; }
 
 .short-row{
   display:flex;
@@ -108,6 +104,43 @@ input:focus{
   color:#fff;
   border:1px solid #ff85b3;
 }
+
+/* ===== エラーモーダル ===== */
+
+.error-modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.35);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  opacity:0;
+  pointer-events:none;
+  transition:.2s ease;
+  z-index:999;
+}
+
+.error-modal.active{
+  opacity:1;
+  pointer-events:auto;
+}
+
+.error-box{
+  background:#fff;
+  padding:28px 40px;
+  border-radius:20px;
+  font-size:18px;
+  font-weight:600;
+  color:#ff5fa2;
+  box-shadow:0 20px 40px rgba(0,0,0,0.2);
+  animation:pop .2s ease;
+}
+
+@keyframes pop{
+  from{transform:scale(.9); opacity:0;}
+  to{transform:scale(1); opacity:1;}
+}
+
 </style>
 </head>
 
@@ -178,6 +211,13 @@ input:focus{
 
 </div>
 
+<!-- エラーモーダル -->
+<div id="errorModal" class="error-modal">
+  <div class="error-box">
+    選択は最大３つまでです
+  </div>
+</div>
+
 <script>
 
 window.onload=function(){
@@ -229,13 +269,21 @@ function setupMulti(groupId,max){
     btn.onclick=()=>{
       const active=group.querySelectorAll(".active");
       if(!btn.classList.contains("active")&&active.length>=max){
-        alert("最大3つまでです");
+        showError();
         return;
       }
       btn.classList.toggle("active");
       saveProfile();
     };
   });
+}
+
+function showError(){
+  const modal=document.getElementById("errorModal");
+  modal.classList.add("active");
+  setTimeout(()=>{
+    modal.classList.remove("active");
+  },1500);
 }
 
 function getSingle(groupId){
