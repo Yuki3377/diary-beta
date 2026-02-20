@@ -141,101 +141,71 @@ button.primary{
 
 <script>
 
-/* ================================
-   Prompt Builder
-================================ */
+/* ======================
+   キャラ別語尾
+====================== */
 
-function buildPrompt(data){
+function characterTone(character){
 
-  return {
-    profile:{
-      name:data.name,
-      selfCall:data.selfCall,
-      customerCall:data.customerCall,
-      age:data.age,
-      character:data.character
+  const toneMap={
+    "妹系":{
+      intro:["ねえねえ…","ちょっと聞いて？"],
+      ending:["待ってるね？","来てくれるよね？"]
     },
-    condition:{
-      mood:data.mood,
-      situation:data.situation,
-      title:data.title
+    "小悪魔系":{
+      intro:["ふーん…","どうする？"],
+      ending:["来ないと後悔するかもよ？","ちゃんと来てね？"]
+    },
+    "清楚系":{
+      intro:["少しだけ…","今日はちょっと…"],
+      ending:["お誘いお待ちしています。","お時間あればぜひ。"]
+    },
+    "お姉さん系":{
+      intro:["ほら、","今日はね、"],
+      ending:["癒してあげる。","待ってるわ。"]
+    },
+    "人妻系":{
+      intro:["内緒だけど、","ちょっとだけ…"],
+      ending:["ちゃんと時間作ってね。","わかってるわよね？"]
     }
   };
 
+  return toneMap[character];
 }
 
-/* ================================
-   ローカル生成ロジック（AI代替）
-================================ */
-
-function generateText(prompt){
-
-  const {profile,condition}=prompt;
-
-  const introMap={
-    "出勤前（当日）":["そろそろ準備しよっかなって。","今日ちゃんと来てくれる？"],
-    "待機中":["いまお部屋で待ってる。","静かすぎてちょっと寂しい。"],
-    "明日出勤":["明日いるよ。","予定あけといてくれる？"],
-    "退勤":["今日はそろそろ帰るね。","ちょっと名残惜しい。"]
-  };
-
-  const moodMap={
-    "甘えたい":["今日は甘えたい気分。","優しくされたい日かも。"],
-    "ムラムラしている":["変なスイッチ入ってる。","触れられたらすぐ反応しそう。"],
-    "寂しい":["ひとりだと考えちゃう。","会いたくなるよね。"],
-    "ご機嫌":["今日は機嫌いいよ。","ちょっとテンション高め。"],
-    "イチャイチャしたい":["くっつきたい。","距離近いの嫌いじゃない。"]
-  };
-
-  const endings=[
-    "お誘い待ってます。",
-    "一緒にイチャイチャしましょう。",
-    `${profile.customerCall || "お兄さん"}来てくれる？`
-  ];
-
-  const intro=introMap[condition.situation][Math.floor(Math.random()*2)];
-  const moodLine=moodMap[condition.mood][Math.floor(Math.random()*2)];
-  const ending=endings[Math.floor(Math.random()*endings.length)];
-
-  return `${condition.title}
-
-${intro}
-
-${moodLine}
-
-${ending}`;
-
-}
-
-/* ================================
-   生成実行
-================================ */
+/* ======================
+   生成
+====================== */
 
 function generate(){
 
-  const data={
-    name:document.getElementById("name").value,
-    selfCall:document.getElementById("selfCall").value,
-    customerCall:document.getElementById("customerCall").value,
-    age:document.getElementById("age").value,
-    character:document.getElementById("character").value,
-    mood:document.getElementById("mood").value,
-    situation:document.getElementById("situation").value,
-    title:document.getElementById("title").value
-  };
+  const name=document.getElementById("name").value;
+  const customer=document.getElementById("customerCall").value || "お兄さん";
+  const mood=document.getElementById("mood").value;
+  const situation=document.getElementById("situation").value;
+  const character=document.getElementById("character").value;
+  const title=document.getElementById("title").value;
 
-  if(!data.title){
-    alert("題名必須");
-    return;
-  }
+  if(!title){alert("題名必須");return;}
 
-  const prompt=buildPrompt(data);
-  const text=generateText(prompt);
+  const tone=characterTone(character);
+
+  const intro=tone.intro[Math.floor(Math.random()*tone.intro.length)];
+  const ending=tone.ending[Math.floor(Math.random()*tone.ending.length)];
+
+  const text=`${title}
+
+${intro}
+
+${situation}で、ちょっと${mood}。
+
+${customer}どうする？
+
+${ending}`;
 
   const result=document.getElementById("result");
   result.innerText=text;
   result.style.display="block";
-
 }
 
 </script>
