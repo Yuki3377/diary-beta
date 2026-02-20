@@ -17,7 +17,7 @@
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   background: var(--bg);
   color: var(--text);
 }
@@ -28,243 +28,180 @@ body {
   padding: 20px;
 }
 
-h1 {
-  text-align: center;
-  font-size: 22px;
-  margin-bottom: 20px;
-}
-
-/* ===== Tabs ===== */
+h1 { text-align:center; margin-bottom:20px; }
 
 .tabs {
-  display: flex;
-  background: white;
-  border-radius: 30px;
-  overflow: hidden;
-  margin-bottom: 25px;
-  box-shadow: 0 6px 20px rgba(255,95,162,0.1);
+  display:flex;
+  background:white;
+  border-radius:30px;
+  overflow:hidden;
+  margin-bottom:25px;
+  box-shadow:0 6px 20px rgba(255,95,162,0.1);
 }
 
 .tabs button {
-  flex: 1;
-  padding: 12px;
-  border: none;
-  background: none;
-  cursor: pointer;
-  font-size: 14px;
+  flex:1;
+  padding:12px;
+  border:none;
+  background:none;
+  cursor:pointer;
 }
 
 .tabs button.active {
-  background: var(--accent);
-  color: white;
+  background:var(--accent);
+  color:white;
 }
-
-/* ===== Card ===== */
 
 .card {
-  background: var(--card);
-  padding: 20px;
-  border-radius: var(--radius);
-  margin-bottom: 18px;
-  box-shadow: 0 8px 20px rgba(255,95,162,0.08);
+  background:var(--card);
+  padding:20px;
+  border-radius:var(--radius);
+  margin-bottom:18px;
+  box-shadow:0 8px 20px rgba(255,95,162,0.08);
 }
 
-label {
-  font-size: 13px;
-  font-weight: 600;
+label { font-size:13px; font-weight:600; }
+
+select,input {
+  width:100%;
+  padding:14px;
+  border-radius:14px;
+  border:1px solid #eee;
+  margin-top:8px;
+  font-size:14px;
 }
 
-select, input, textarea {
-  width: 100%;
-  padding: 14px;
-  border-radius: 14px;
-  border: 1px solid #eee;
-  margin-top: 8px;
-  font-size: 14px;
-}
-
-button.generate {
-  width: 100%;
-  padding: 16px;
-  border: none;
-  border-radius: 30px;
-  font-size: 16px;
-  background: linear-gradient(135deg, #ff5fa2, #ff85b3);
-  color: white;
-  cursor: pointer;
-  margin-top: 10px;
+button.primary {
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:25px;
+  background:linear-gradient(135deg,#ff5fa2,#ff85b3);
+  color:white;
+  cursor:pointer;
+  margin-top:10px;
 }
 
 .result {
-  margin-top: 25px;
-  padding: 22px;
-  background: var(--accent-soft);
-  border-radius: var(--radius);
-  white-space: pre-wrap;
-  font-size: 14px;
-  line-height: 1.7;
-  display: none;
+  margin-top:25px;
+  padding:22px;
+  background:var(--accent-soft);
+  border-radius:var(--radius);
+  white-space:pre-wrap;
+  display:none;
 }
 
-.copy-btn {
-  margin-top: 12px;
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 20px;
-  padding: 8px 12px;
-  cursor: pointer;
-  font-size: 12px;
-}
-
-/* ===== Loader ===== */
-
-.loader {
-  display: none;
-  text-align: center;
-  margin-top: 15px;
-  font-size: 13px;
-  opacity: 0.6;
-}
 </style>
 </head>
-
 <body>
 
 <div class="wrapper">
-  <h1>写メ日記 AI</h1>
+<h1>写メ日記 AI</h1>
 
-  <div class="tabs">
-    <button class="active" onclick="switchTab('normal')">通常日記</button>
-    <button onclick="switchTab('thanks')">お礼日記</button>
+<div class="tabs">
+  <button class="active" onclick="switchTab('profile')">プロフィール</button>
+  <button onclick="switchTab('normal')">通常日記</button>
+</div>
+
+<!-- PROFILE -->
+<div id="profile">
+  <div class="card">
+    <label>名前</label>
+    <input id="name">
   </div>
 
-  <!-- ===== 通常日記 ===== -->
-  <div id="normal">
-
-    <div class="card">
-      <label>今日の感情</label>
-      <select id="mood">
-        <option>甘えたい</option>
-        <option>ムラムラしている</option>
-        <option>寂しい</option>
-        <option>ご機嫌</option>
-        <option>イチャイチャしたい</option>
-      </select>
-    </div>
-
-    <div class="card">
-      <label>状況</label>
-      <select id="situation">
-        <option>出勤前</option>
-        <option>待機中</option>
-        <option>明日出勤</option>
-        <option>退勤</option>
-      </select>
-    </div>
-
-    <div class="card">
-      <label>題名</label>
-      <input id="title" type="text" placeholder="題名を入力">
-    </div>
-
-    <button class="generate" onclick="generateNormal()">生成する</button>
-    <div class="loader" id="loader1">AIが考えています…</div>
-
+  <div class="card">
+    <label>自分の呼び方</label>
+    <input id="selfCall">
   </div>
 
-  <!-- ===== お礼日記 ===== -->
-  <div id="thanks" style="display:none;">
-
-    <div class="card">
-      <label>場所</label>
-      <input id="place" type="text" placeholder="例：○○ホテル">
-    </div>
-
-    <div class="card">
-      <label>印象に残った出来事</label>
-      <textarea id="memory" rows="3" placeholder="例：耳元で優しく囁いてくれたこと"></textarea>
-    </div>
-
-    <button class="generate" onclick="generateThanks()">生成する</button>
-    <div class="loader" id="loader2">AIが考えています…</div>
-
+  <div class="card">
+    <label>お客様の呼び方</label>
+    <input id="customerCall">
   </div>
+
+  <button class="primary" onclick="saveProfile()">保存する</button>
+</div>
+
+<!-- NORMAL -->
+<div id="normal" style="display:none;">
+
+  <div class="card">
+    <label>今日の感情</label>
+    <select id="mood">
+      <option>甘えたい</option>
+      <option>ムラムラしている</option>
+      <option>寂しい</option>
+      <option>ご機嫌</option>
+    </select>
+  </div>
+
+  <div class="card">
+    <label>題名</label>
+    <input id="title">
+  </div>
+
+  <button class="primary" onclick="generate()">生成する</button>
 
   <div class="result" id="result"></div>
-  <button class="copy-btn" id="copyBtn" onclick="copyText()" style="display:none;">コピーする</button>
+
+</div>
 
 </div>
 
 <script>
 
-function switchTab(tab) {
-  document.getElementById("normal").style.display = tab === "normal" ? "block" : "none";
-  document.getElementById("thanks").style.display = tab === "thanks" ? "block" : "none";
+function switchTab(tab){
+  document.getElementById("profile").style.display = tab==="profile"?"block":"none";
+  document.getElementById("normal").style.display = tab==="normal"?"block":"none";
 
-  document.querySelectorAll(".tabs button").forEach(btn => btn.classList.remove("active"));
+  document.querySelectorAll(".tabs button").forEach(btn=>btn.classList.remove("active"));
   event.target.classList.add("active");
 }
 
-function generateNormal() {
-  const title = document.getElementById("title").value;
-  if (!title) {
-    alert("題名は必須です");
+function saveProfile(){
+  const profile={
+    name:document.getElementById("name").value,
+    selfCall:document.getElementById("selfCall").value,
+    customerCall:document.getElementById("customerCall").value
+  };
+  localStorage.setItem("profile",JSON.stringify(profile));
+  alert("保存しました");
+}
+
+function generate(){
+  const profileRaw=localStorage.getItem("profile");
+  if(!profileRaw){
+    alert("先にプロフィールを保存してください");
     return;
   }
 
-  document.getElementById("loader1").style.display = "block";
-  document.getElementById("result").style.display = "none";
-  document.getElementById("copyBtn").style.display = "none";
+  const profile=JSON.parse(profileRaw);
 
-  setTimeout(() => {
-    const text =
+  const title=document.getElementById("title").value;
+  const mood=document.getElementById("mood").value;
+
+  const text=
 `${title}
 
-ちょっと甘えたい気分。
+${profile.selfCall}、今日はちょっと${mood}気分。
 
-待機中なのに落ち着かなくて。
+${profile.customerCall}、どうする？`;
 
-お兄さん、どうする？`;
-
-    showResult(text);
-    document.getElementById("loader1").style.display = "none";
-  }, 1200);
+  const result=document.getElementById("result");
+  result.innerText=text;
+  result.style.display="block";
 }
 
-function generateThanks() {
-  document.getElementById("loader2").style.display = "block";
-  document.getElementById("result").style.display = "none";
-  document.getElementById("copyBtn").style.display = "none";
-
-  setTimeout(() => {
-    const text =
-`さっき来てくれたお兄さんへ
-
-耳元で優しく囁いてくれたの、まだ覚えてる。
-
-あの距離、ちょっとドキドキした。
-
-今日は本当にありがとう。
-
-また会えたら嬉しいな…`;
-
-    showResult(text);
-    document.getElementById("loader2").style.display = "none";
-  }, 1200);
-}
-
-function showResult(text) {
-  const result = document.getElementById("result");
-  result.innerText = text;
-  result.style.display = "block";
-  document.getElementById("copyBtn").style.display = "block";
-}
-
-function copyText() {
-  const text = document.getElementById("result").innerText;
-  navigator.clipboard.writeText(text);
-  alert("コピーしました");
-}
+window.onload=function(){
+  const saved=localStorage.getItem("profile");
+  if(saved){
+    const profile=JSON.parse(saved);
+    document.getElementById("name").value=profile.name||"";
+    document.getElementById("selfCall").value=profile.selfCall||"";
+    document.getElementById("customerCall").value=profile.customerCall||"";
+  }
+};
 
 </script>
 
