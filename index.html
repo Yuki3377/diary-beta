@@ -3,71 +3,53 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>写メ日記AI</title>
+<title>写メ日記生成</title>
 
 <style>
-:root{
-  --bg:#fff4f8;
-  --card:#ffffff;
-  --accent:#ff5fa2;
-  --accent-soft:#ffd6e8;
-  --text:#444;
-  --radius:18px;
-}
-
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,sans-serif;
-  background:var(--bg);
-  color:var(--text);
+  background:#fff4f8;
 }
-
 .wrapper{
   max-width:520px;
   margin:40px auto;
   padding:20px;
 }
-
-h1{
-  text-align:center;
-  margin-bottom:20px;
-}
-
 .card{
-  background:var(--card);
+  background:#fff;
   padding:18px;
-  border-radius:var(--radius);
+  border-radius:18px;
   margin-bottom:15px;
   box-shadow:0 8px 20px rgba(255,95,162,0.08);
 }
-
 select,input{
   width:100%;
   padding:12px;
   border-radius:12px;
   border:1px solid #eee;
   margin-top:8px;
-  font-size:14px;
 }
-
-button.primary{
+button{
   width:100%;
   padding:14px;
   border:none;
   border-radius:25px;
   background:linear-gradient(135deg,#ff5fa2,#ff85b3);
   color:white;
-  cursor:pointer;
-  font-size:15px;
 }
-
 .result{
   margin-top:20px;
   padding:20px;
-  background:var(--accent-soft);
-  border-radius:var(--radius);
+  background:#ffd6e8;
+  border-radius:18px;
   white-space:pre-wrap;
   display:none;
+}
+.profileInfo{
+  font-size:13px;
+  color:#888;
+  margin-bottom:10px;
 }
 </style>
 </head>
@@ -76,43 +58,9 @@ button.primary{
 
 <div class="wrapper">
 
-<h1>写メ日記 AI</h1>
+<h2>写メ日記生成</h2>
 
-<div class="card">
-<label>名前</label>
-<input id="name">
-</div>
-
-<div class="card">
-<label>自分の呼び方</label>
-<input id="selfCall">
-</div>
-
-<div class="card">
-<label>お客様の呼び方</label>
-<input id="customerCall">
-</div>
-
-<div class="card">
-<label>年齢</label>
-<select id="age">
-<option>20代</option>
-<option>30代</option>
-<option>40代</option>
-<option>50代</option>
-</select>
-</div>
-
-<div class="card">
-<label>キャラクター</label>
-<select id="character">
-<option>妹系</option>
-<option>小悪魔系</option>
-<option>清楚系</option>
-<option>お姉さん系</option>
-<option>人妻系</option>
-</select>
-</div>
+<div class="profileInfo" id="profileInfo"></div>
 
 <div class="card">
 <label>感情</label>
@@ -140,7 +88,7 @@ button.primary{
 <input id="title">
 </div>
 
-<button class="primary" onclick="generate()">生成する</button>
+<button onclick="generate()">生成する</button>
 
 <div class="result" id="result"></div>
 
@@ -148,37 +96,19 @@ button.primary{
 
 <script>
 
-/* ======================
-   保存機能
-====================== */
-
-function saveProfile(){
-  const data={
-    name:document.getElementById("name").value,
-    selfCall:document.getElementById("selfCall").value,
-    customerCall:document.getElementById("customerCall").value,
-    age:document.getElementById("age").value,
-    character:document.getElementById("character").value
-  };
-  localStorage.setItem("diaryProfile",JSON.stringify(data));
-}
+let profile=null;
 
 function loadProfile(){
   const saved=localStorage.getItem("diaryProfile");
-  if(!saved) return;
+  if(!saved){
+    alert("プロフィールが未登録です。先に設定してください。");
+    return;
+  }
+  profile=JSON.parse(saved);
 
-  const data=JSON.parse(saved);
-
-  document.getElementById("name").value=data.name||"";
-  document.getElementById("selfCall").value=data.selfCall||"";
-  document.getElementById("customerCall").value=data.customerCall||"";
-  document.getElementById("age").value=data.age||"20代";
-  document.getElementById("character").value=data.character||"妹系";
+  document.getElementById("profileInfo").innerText=
+    `${profile.name || ""}（${profile.character || ""} / ${profile.age || ""}）`;
 }
-
-/* ======================
-   キャラ別語尾
-====================== */
 
 function characterTone(character){
 
@@ -205,21 +135,18 @@ function characterTone(character){
     }
   };
 
-  return toneMap[character];
+  return toneMap[character] || toneMap["妹系"];
 }
-
-/* ======================
-   生成
-====================== */
 
 function generate(){
 
-  saveProfile();
+  if(!profile){
+    alert("プロフィール未登録");
+    return;
+  }
 
-  const customer=document.getElementById("customerCall").value || "お兄さん";
   const mood=document.getElementById("mood").value;
   const situation=document.getElementById("situation").value;
-  const character=document.getElementById("character").value;
   const title=document.getElementById("title").value;
 
   if(!title){
@@ -227,7 +154,8 @@ function generate(){
     return;
   }
 
-  const tone=characterTone(character);
+  const customer=profile.customerCall || "お兄さん";
+  const tone=characterTone(profile.character);
 
   const intro=tone.intro[Math.floor(Math.random()*tone.intro.length)];
   const ending=tone.ending[Math.floor(Math.random()*tone.ending.length)];
@@ -247,17 +175,7 @@ ${ending}`;
   result.style.display="block";
 }
 
-/* ======================
-   初期読み込み
-====================== */
-
-window.onload=function(){
-  loadProfile();
-
-  ["name","selfCall","customerCall","age","character"].forEach(id=>{
-    document.getElementById(id).addEventListener("change",saveProfile);
-  });
-};
+window.onload=loadProfile;
 
 </script>
 
