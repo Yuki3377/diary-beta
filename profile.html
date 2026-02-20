@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>プロフィール設定</title>
+<title>売れるキャラを作る</title>
 
 <style>
 body {
@@ -14,11 +14,25 @@ body {
 
 .container {
   padding: 20px;
+  animation: fadeUp 0.3s ease;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 20px;
 }
 
 h2 {
-  font-size: 18px;
+  font-size: 16px;
   margin-top: 30px;
+  margin-bottom: 10px;
 }
 
 input {
@@ -27,7 +41,8 @@ input {
   margin-bottom: 10px;
   font-size: 16px;
   border: 1px solid #ddd;
-  border-radius: 8px;
+  border-radius: 10px;
+  box-sizing: border-box;
 }
 
 .button-group {
@@ -42,6 +57,7 @@ input {
   border: 1px solid #ccc;
   cursor: pointer;
   font-size: 14px;
+  transition: all 0.15s ease;
 }
 
 .btn.active {
@@ -49,12 +65,44 @@ input {
   color: #fff;
   border-color: #111;
 }
+
+.btn:active {
+  transform: scale(0.95);
+}
+
+.save-toast {
+  position: fixed;
+  top: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #111;
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 </style>
 </head>
 
 <body>
 
 <div class="container">
+
+<h1 class="title">売れるキャラを作る</h1>
+<p class="subtitle">あなたの魅力をAIに覚えさせましょう</p>
 
 <h2>基本情報</h2>
 <input type="text" id="name" placeholder="源氏名">
@@ -92,9 +140,10 @@ input {
 
 </div>
 
+<div id="saveToast" class="save-toast">✓ 保存しました</div>
+
 <script>
 
-// 初期ロード
 window.onload = function () {
   const profile = JSON.parse(localStorage.getItem("profile")) || {};
   
@@ -107,7 +156,6 @@ window.onload = function () {
   restoreMulti("traitGroup", profile.traits || []);
 };
 
-// 保存関数
 function saveProfile() {
   const profile = {
     name: name.value,
@@ -118,14 +166,13 @@ function saveProfile() {
     traits: getMulti("traitGroup")
   };
   localStorage.setItem("profile", JSON.stringify(profile));
+  showToast();
 }
 
-// テキスト自動保存
 document.querySelectorAll("input").forEach(input => {
   input.addEventListener("input", saveProfile);
 });
 
-// 単一選択処理
 function setupSingle(groupId) {
   const group = document.getElementById(groupId);
   group.querySelectorAll(".btn").forEach(btn => {
@@ -137,7 +184,6 @@ function setupSingle(groupId) {
   });
 }
 
-// 複数選択処理
 function setupMulti(groupId, max) {
   const group = document.getElementById(groupId);
   group.querySelectorAll(".btn").forEach(btn => {
@@ -153,7 +199,6 @@ function setupMulti(groupId, max) {
   });
 }
 
-// 取得関数
 function getSingle(groupId) {
   const active = document.querySelector(`#${groupId} .active`);
   return active ? active.textContent : "";
@@ -164,7 +209,6 @@ function getMulti(groupId) {
               .map(b => b.textContent);
 }
 
-// 復元
 function restoreSingle(groupId, value) {
   if (!value) return;
   document.querySelectorAll(`#${groupId} .btn`).forEach(btn => {
@@ -176,6 +220,14 @@ function restoreMulti(groupId, values) {
   document.querySelectorAll(`#${groupId} .btn`).forEach(btn => {
     if (values.includes(btn.textContent)) btn.classList.add("active");
   });
+}
+
+function showToast() {
+  const toast = document.getElementById("saveToast");
+  toast.style.opacity = "1";
+  setTimeout(() => {
+    toast.style.opacity = "0";
+  }, 1000);
 }
 
 setupSingle("ageGroup");
