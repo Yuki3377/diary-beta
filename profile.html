@@ -2,141 +2,178 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>売れるキャラを作る</title>
 
 <style>
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Noto Sans JP", sans-serif;
-  background: #ffffff;
+:root{
+  --bg1:#FFF7FB;        /* 淡いピンク */
+  --bg2:#F3F0FF;        /* 淡いラベンダー */
+  --card:#FFFFFF;
+  --accent:#FF9ECF;     /* パステルピンク */
+  --accent2:#C8B6FF;    /* パステルラベンダー */
+  --text:#333;
+  --sub:#777;
+  --border:#EEE;
 }
 
-.container {
-  padding: 20px;
-  animation: fadeUp 0.3s ease;
+*{ box-sizing:border-box; }
+
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif;
+  color:var(--text);
+  background:linear-gradient(180deg,var(--bg1),var(--bg2));
 }
 
-.title {
-  font-size: 22px;
-  font-weight: 700;
-  margin-bottom: 6px;
+.wrapper{
+  max-width:480px;
+  margin:0 auto;
+  padding:18px 16px 40px;
+  animation:fadeUp .35s ease;
 }
 
-.subtitle {
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 20px;
+.header{
+  margin-bottom:18px;
 }
 
-h2 {
-  font-size: 16px;
-  margin-top: 30px;
-  margin-bottom: 10px;
+.title{
+  font-size:20px;
+  font-weight:700;
+  margin:0 0 6px;
 }
 
-input {
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 10px;
-  font-size: 16px;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  box-sizing: border-box;
+.subtitle{
+  font-size:13px;
+  color:var(--sub);
+  margin:0;
 }
 
-.button-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+.card{
+  background:var(--card);
+  border-radius:16px;
+  padding:16px;
+  margin-top:14px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.04);
 }
 
-.btn {
-  padding: 10px 16px;
-  border-radius: 20px;
-  border: 1px solid #ccc;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.15s ease;
+.card h2{
+  font-size:14px;
+  margin:0 0 12px;
 }
 
-.btn.active {
-  background: #111;
-  color: #fff;
-  border-color: #111;
+input{
+  width:100%;
+  padding:12px;
+  font-size:15px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  margin-bottom:10px;
+  outline:none;
 }
 
-.btn:active {
-  transform: scale(0.95);
+input:focus{
+  border-color:var(--accent);
 }
 
-.save-toast {
-  position: fixed;
-  top: 15px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #111;
-  color: #fff;
-  padding: 8px 14px;
-  border-radius: 20px;
-  font-size: 13px;
-  opacity: 0;
-  transition: opacity 0.3s ease;
+.button-group{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
 }
 
-@keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.btn{
+  padding:9px 14px;
+  border-radius:20px;
+  border:1px solid var(--border);
+  font-size:13px;
+  background:#fff;
+  transition:.15s ease;
+  cursor:pointer;
+}
+
+.btn.active{
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  color:#fff;
+  border-color:transparent;
+}
+
+.btn:active{
+  transform:scale(.95);
+}
+
+.save-toast{
+  position:fixed;
+  top:16px;
+  left:50%;
+  transform:translateX(-50%);
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  color:#fff;
+  padding:7px 14px;
+  border-radius:20px;
+  font-size:12px;
+  opacity:0;
+  transition:.3s ease;
+  z-index:100;
+}
+
+@keyframes fadeUp{
+  from{ opacity:0; transform:translateY(8px); }
+  to{ opacity:1; transform:translateY(0); }
 }
 </style>
 </head>
 
 <body>
 
-<div class="container">
+<div class="wrapper">
 
-<h1 class="title">売れるキャラを作る</h1>
-<p class="subtitle">あなたの魅力をAIに覚えさせましょう</p>
+  <div class="header">
+    <h1 class="title">売れるキャラを作る</h1>
+    <p class="subtitle">あなたの魅力をAIに覚えさせましょう</p>
+  </div>
 
-<h2>基本情報</h2>
-<input type="text" id="name" placeholder="源氏名">
-<input type="text" id="selfCall" placeholder="自分の呼び方（例：私・あたし）">
-<input type="text" id="customerCall" placeholder="お客様の呼び方（例：あなた・○○さん）">
+  <div class="card">
+    <h2>基本情報</h2>
+    <input type="text" id="name" placeholder="源氏名">
+    <input type="text" id="selfCall" placeholder="自分の呼び方（例：私・あたし）">
+    <input type="text" id="customerCall" placeholder="お客様の呼び方（例：あなた・○○さん）">
+  </div>
 
-<h2>年齢</h2>
-<div class="button-group" id="ageGroup">
-  <div class="btn">20代</div>
-  <div class="btn">30代</div>
-  <div class="btn">40代</div>
-  <div class="btn">50代</div>
-</div>
+  <div class="card">
+    <h2>年齢</h2>
+    <div class="button-group" id="ageGroup">
+      <div class="btn">20代</div>
+      <div class="btn">30代</div>
+      <div class="btn">40代</div>
+      <div class="btn">50代</div>
+    </div>
+  </div>
 
-<h2>キャラクター</h2>
-<div class="button-group" id="charGroup">
-  <div class="btn">妹系</div>
-  <div class="btn">小悪魔系</div>
-  <div class="btn">清楚系</div>
-  <div class="btn">お姉さん系</div>
-  <div class="btn">人妻系</div>
-</div>
+  <div class="card">
+    <h2>キャラクター</h2>
+    <div class="button-group" id="charGroup">
+      <div class="btn">妹系</div>
+      <div class="btn">小悪魔系</div>
+      <div class="btn">清楚系</div>
+      <div class="btn">お姉さん系</div>
+      <div class="btn">人妻系</div>
+    </div>
+  </div>
 
-<h2>個性（最大3つ）</h2>
-<div class="button-group" id="traitGroup">
-  <div class="btn">S気質</div>
-  <div class="btn">M気質</div>
-  <div class="btn">甘え体質</div>
-  <div class="btn">寂しがり</div>
-  <div class="btn">痴女</div>
-  <div class="btn">巨乳</div>
-  <div class="btn">グラマー</div>
-  <div class="btn">大人の色気</div>
-</div>
+  <div class="card">
+    <h2>個性（最大3つ）</h2>
+    <div class="button-group" id="traitGroup">
+      <div class="btn">S気質</div>
+      <div class="btn">M気質</div>
+      <div class="btn">甘え体質</div>
+      <div class="btn">寂しがり</div>
+      <div class="btn">痴女</div>
+      <div class="btn">巨乳</div>
+      <div class="btn">グラマー</div>
+      <div class="btn">大人の色気</div>
+    </div>
+  </div>
 
 </div>
 
@@ -144,52 +181,50 @@ input {
 
 <script>
 
-window.onload = function () {
+window.onload = function(){
   const profile = JSON.parse(localStorage.getItem("profile")) || {};
-  
   name.value = profile.name || "";
   selfCall.value = profile.selfCall || "";
   customerCall.value = profile.customerCall || "";
-
   restoreSingle("ageGroup", profile.age);
   restoreSingle("charGroup", profile.character);
   restoreMulti("traitGroup", profile.traits || []);
 };
 
-function saveProfile() {
+function saveProfile(){
   const profile = {
-    name: name.value,
-    selfCall: selfCall.value,
-    customerCall: customerCall.value,
-    age: getSingle("ageGroup"),
-    character: getSingle("charGroup"),
-    traits: getMulti("traitGroup")
+    name:name.value,
+    selfCall:selfCall.value,
+    customerCall:customerCall.value,
+    age:getSingle("ageGroup"),
+    character:getSingle("charGroup"),
+    traits:getMulti("traitGroup")
   };
   localStorage.setItem("profile", JSON.stringify(profile));
   showToast();
 }
 
-document.querySelectorAll("input").forEach(input => {
+document.querySelectorAll("input").forEach(input=>{
   input.addEventListener("input", saveProfile);
 });
 
-function setupSingle(groupId) {
+function setupSingle(groupId){
   const group = document.getElementById(groupId);
-  group.querySelectorAll(".btn").forEach(btn => {
-    btn.onclick = () => {
-      group.querySelectorAll(".btn").forEach(b => b.classList.remove("active"));
+  group.querySelectorAll(".btn").forEach(btn=>{
+    btn.onclick = ()=>{
+      group.querySelectorAll(".btn").forEach(b=>b.classList.remove("active"));
       btn.classList.add("active");
       saveProfile();
     };
   });
 }
 
-function setupMulti(groupId, max) {
+function setupMulti(groupId,max){
   const group = document.getElementById(groupId);
-  group.querySelectorAll(".btn").forEach(btn => {
-    btn.onclick = () => {
+  group.querySelectorAll(".btn").forEach(btn=>{
+    btn.onclick = ()=>{
       const active = group.querySelectorAll(".active");
-      if (!btn.classList.contains("active") && active.length >= max) {
+      if(!btn.classList.contains("active") && active.length>=max){
         alert("最大3つまでです");
         return;
       }
@@ -199,40 +234,38 @@ function setupMulti(groupId, max) {
   });
 }
 
-function getSingle(groupId) {
+function getSingle(groupId){
   const active = document.querySelector(`#${groupId} .active`);
   return active ? active.textContent : "";
 }
 
-function getMulti(groupId) {
+function getMulti(groupId){
   return Array.from(document.querySelectorAll(`#${groupId} .active`))
-              .map(b => b.textContent);
+        .map(b=>b.textContent);
 }
 
-function restoreSingle(groupId, value) {
-  if (!value) return;
-  document.querySelectorAll(`#${groupId} .btn`).forEach(btn => {
-    if (btn.textContent === value) btn.classList.add("active");
+function restoreSingle(groupId,value){
+  if(!value)return;
+  document.querySelectorAll(`#${groupId} .btn`).forEach(btn=>{
+    if(btn.textContent===value) btn.classList.add("active");
   });
 }
 
-function restoreMulti(groupId, values) {
-  document.querySelectorAll(`#${groupId} .btn`).forEach(btn => {
-    if (values.includes(btn.textContent)) btn.classList.add("active");
+function restoreMulti(groupId,values){
+  document.querySelectorAll(`#${groupId} .btn`).forEach(btn=>{
+    if(values.includes(btn.textContent)) btn.classList.add("active");
   });
 }
 
-function showToast() {
+function showToast(){
   const toast = document.getElementById("saveToast");
-  toast.style.opacity = "1";
-  setTimeout(() => {
-    toast.style.opacity = "0";
-  }, 1000);
+  toast.style.opacity="1";
+  setTimeout(()=>{ toast.style.opacity="0"; },1000);
 }
 
 setupSingle("ageGroup");
 setupSingle("charGroup");
-setupMulti("traitGroup", 3);
+setupMulti("traitGroup",3);
 
 </script>
 
