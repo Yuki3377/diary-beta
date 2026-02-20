@@ -6,114 +6,182 @@
 <title>プロフィール設定</title>
 
 <style>
-body{
-  margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
-  background:#fff4f8;
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Noto Sans JP", sans-serif;
+  background: #ffffff;
 }
-.wrapper{
-  max-width:520px;
-  margin:40px auto;
-  padding:20px;
+
+.container {
+  padding: 20px;
 }
-.card{
-  background:#fff;
-  padding:18px;
-  border-radius:18px;
-  margin-bottom:15px;
-  box-shadow:0 8px 20px rgba(255,95,162,0.08);
+
+h2 {
+  font-size: 18px;
+  margin-top: 30px;
 }
-input,select{
-  width:100%;
-  padding:12px;
-  border-radius:12px;
-  border:1px solid #eee;
-  margin-top:8px;
+
+input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 10px;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
 }
-button{
-  width:100%;
-  padding:14px;
-  border:none;
-  border-radius:25px;
-  background:linear-gradient(135deg,#ff5fa2,#ff85b3);
-  color:white;
+
+.button-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.btn {
+  padding: 10px 16px;
+  border-radius: 20px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn.active {
+  background: #111;
+  color: #fff;
+  border-color: #111;
 }
 </style>
 </head>
 
 <body>
 
-<div class="wrapper">
+<div class="container">
 
-<h2>プロフィール設定</h2>
+<h2>基本情報</h2>
+<input type="text" id="name" placeholder="源氏名">
+<input type="text" id="selfCall" placeholder="自分の呼び方（例：私・あたし）">
+<input type="text" id="customerCall" placeholder="お客様の呼び方（例：あなた・○○さん）">
 
-<div class="card">
-<label>名前</label>
-<input id="name">
+<h2>年齢</h2>
+<div class="button-group" id="ageGroup">
+  <div class="btn">20代</div>
+  <div class="btn">30代</div>
+  <div class="btn">40代</div>
+  <div class="btn">50代</div>
 </div>
 
-<div class="card">
-<label>自分の呼び方</label>
-<input id="selfCall">
+<h2>キャラクター</h2>
+<div class="button-group" id="charGroup">
+  <div class="btn">妹系</div>
+  <div class="btn">小悪魔系</div>
+  <div class="btn">清楚系</div>
+  <div class="btn">お姉さん系</div>
+  <div class="btn">人妻系</div>
 </div>
 
-<div class="card">
-<label>お客様の呼び方</label>
-<input id="customerCall">
+<h2>個性（最大3つ）</h2>
+<div class="button-group" id="traitGroup">
+  <div class="btn">S気質</div>
+  <div class="btn">M気質</div>
+  <div class="btn">甘え体質</div>
+  <div class="btn">寂しがり</div>
+  <div class="btn">痴女</div>
+  <div class="btn">巨乳</div>
+  <div class="btn">グラマー</div>
+  <div class="btn">大人の色気</div>
 </div>
-
-<div class="card">
-<label>年齢</label>
-<select id="age">
-<option>20代</option>
-<option>30代</option>
-<option>40代</option>
-<option>50代</option>
-</select>
-</div>
-
-<div class="card">
-<label>キャラクター</label>
-<select id="character">
-<option>妹系</option>
-<option>小悪魔系</option>
-<option>清楚系</option>
-<option>お姉さん系</option>
-<option>人妻系</option>
-</select>
-</div>
-
-<button onclick="saveProfile()">保存する</button>
 
 </div>
 
 <script>
-function saveProfile(){
-  const data={
-    name:document.getElementById("name").value,
-    selfCall:document.getElementById("selfCall").value,
-    customerCall:document.getElementById("customerCall").value,
-    age:document.getElementById("age").value,
-    character:document.getElementById("character").value
+
+// 初期ロード
+window.onload = function () {
+  const profile = JSON.parse(localStorage.getItem("profile")) || {};
+  
+  name.value = profile.name || "";
+  selfCall.value = profile.selfCall || "";
+  customerCall.value = profile.customerCall || "";
+
+  restoreSingle("ageGroup", profile.age);
+  restoreSingle("charGroup", profile.character);
+  restoreMulti("traitGroup", profile.traits || []);
+};
+
+// 保存関数
+function saveProfile() {
+  const profile = {
+    name: name.value,
+    selfCall: selfCall.value,
+    customerCall: customerCall.value,
+    age: getSingle("ageGroup"),
+    character: getSingle("charGroup"),
+    traits: getMulti("traitGroup")
   };
-
-  localStorage.setItem("diaryProfile",JSON.stringify(data));
-  alert("保存しました");
+  localStorage.setItem("profile", JSON.stringify(profile));
 }
 
-function loadProfile(){
-  const saved=localStorage.getItem("diaryProfile");
-  if(!saved) return;
-  const data=JSON.parse(saved);
+// テキスト自動保存
+document.querySelectorAll("input").forEach(input => {
+  input.addEventListener("input", saveProfile);
+});
 
-  document.getElementById("name").value=data.name||"";
-  document.getElementById("selfCall").value=data.selfCall||"";
-  document.getElementById("customerCall").value=data.customerCall||"";
-  document.getElementById("age").value=data.age||"20代";
-  document.getElementById("character").value=data.character||"妹系";
+// 単一選択処理
+function setupSingle(groupId) {
+  const group = document.getElementById(groupId);
+  group.querySelectorAll(".btn").forEach(btn => {
+    btn.onclick = () => {
+      group.querySelectorAll(".btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      saveProfile();
+    };
+  });
 }
 
-window.onload=loadProfile;
+// 複数選択処理
+function setupMulti(groupId, max) {
+  const group = document.getElementById(groupId);
+  group.querySelectorAll(".btn").forEach(btn => {
+    btn.onclick = () => {
+      const active = group.querySelectorAll(".active");
+      if (!btn.classList.contains("active") && active.length >= max) {
+        alert("最大3つまでです");
+        return;
+      }
+      btn.classList.toggle("active");
+      saveProfile();
+    };
+  });
+}
+
+// 取得関数
+function getSingle(groupId) {
+  const active = document.querySelector(`#${groupId} .active`);
+  return active ? active.textContent : "";
+}
+
+function getMulti(groupId) {
+  return Array.from(document.querySelectorAll(`#${groupId} .active`))
+              .map(b => b.textContent);
+}
+
+// 復元
+function restoreSingle(groupId, value) {
+  if (!value) return;
+  document.querySelectorAll(`#${groupId} .btn`).forEach(btn => {
+    if (btn.textContent === value) btn.classList.add("active");
+  });
+}
+
+function restoreMulti(groupId, values) {
+  document.querySelectorAll(`#${groupId} .btn`).forEach(btn => {
+    if (values.includes(btn.textContent)) btn.classList.add("active");
+  });
+}
+
+setupSingle("ageGroup");
+setupSingle("charGroup");
+setupMulti("traitGroup", 3);
+
 </script>
 
 </body>
