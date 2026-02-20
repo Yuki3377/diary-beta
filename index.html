@@ -10,7 +10,7 @@
   --bg:#fff4f8;
   --card:#ffffff;
   --accent:#ff5fa2;
-  --accent-soft:#ffc2da;
+  --accent-soft:#ffd6e8;
   --text:#444;
   --radius:18px;
 }
@@ -28,7 +28,10 @@ body{
   padding:20px;
 }
 
-h1{text-align:center;margin-bottom:20px;}
+h1{
+  text-align:center;
+  margin-bottom:20px;
+}
 
 .card{
   background:var(--card);
@@ -44,6 +47,7 @@ select,input{
   border-radius:12px;
   border:1px solid #eee;
   margin-top:8px;
+  font-size:14px;
 }
 
 button.primary{
@@ -54,6 +58,7 @@ button.primary{
   background:linear-gradient(135deg,#ff5fa2,#ff85b3);
   color:white;
   cursor:pointer;
+  font-size:15px;
 }
 
 .result{
@@ -66,9 +71,11 @@ button.primary{
 }
 </style>
 </head>
+
 <body>
 
 <div class="wrapper">
+
 <h1>写メ日記 AI</h1>
 
 <div class="card">
@@ -142,6 +149,34 @@ button.primary{
 <script>
 
 /* ======================
+   保存機能
+====================== */
+
+function saveProfile(){
+  const data={
+    name:document.getElementById("name").value,
+    selfCall:document.getElementById("selfCall").value,
+    customerCall:document.getElementById("customerCall").value,
+    age:document.getElementById("age").value,
+    character:document.getElementById("character").value
+  };
+  localStorage.setItem("diaryProfile",JSON.stringify(data));
+}
+
+function loadProfile(){
+  const saved=localStorage.getItem("diaryProfile");
+  if(!saved) return;
+
+  const data=JSON.parse(saved);
+
+  document.getElementById("name").value=data.name||"";
+  document.getElementById("selfCall").value=data.selfCall||"";
+  document.getElementById("customerCall").value=data.customerCall||"";
+  document.getElementById("age").value=data.age||"20代";
+  document.getElementById("character").value=data.character||"妹系";
+}
+
+/* ======================
    キャラ別語尾
 ====================== */
 
@@ -179,14 +214,18 @@ function characterTone(character){
 
 function generate(){
 
-  const name=document.getElementById("name").value;
+  saveProfile();
+
   const customer=document.getElementById("customerCall").value || "お兄さん";
   const mood=document.getElementById("mood").value;
   const situation=document.getElementById("situation").value;
   const character=document.getElementById("character").value;
   const title=document.getElementById("title").value;
 
-  if(!title){alert("題名必須");return;}
+  if(!title){
+    alert("題名は必須です");
+    return;
+  }
 
   const tone=characterTone(character);
 
@@ -207,6 +246,18 @@ ${ending}`;
   result.innerText=text;
   result.style.display="block";
 }
+
+/* ======================
+   初期読み込み
+====================== */
+
+window.onload=function(){
+  loadProfile();
+
+  ["name","selfCall","customerCall","age","character"].forEach(id=>{
+    document.getElementById(id).addEventListener("change",saveProfile);
+  });
+};
 
 </script>
 
