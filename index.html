@@ -228,17 +228,6 @@ function createButtons(list, containerId, callback){
   });
 }
 
-function loadProfile(){
-  const saved=localStorage.getItem("profile");
-  if(!saved){
-    showModal("プロフィールが未登録です");
-    return;
-  }
-  profile=JSON.parse(saved);
-  document.getElementById("profileInfo").innerText=
-  `${profile.name || ""}（${profile.character || ""} / ${profile.age || ""}）`;
-}
-
 function characterTone(character){
   const toneMap={
     "妹系":{
@@ -262,7 +251,7 @@ function characterTone(character){
       ending:["ちゃんと時間作ってね。","わかってるわよね？"]
     },
     "熟女":{
-      intro:["大人の余裕で…","ちょっとだけ甘えさせて？"],
+      intro:["大人の余裕で…","ちょっと甘えさせて？"],
       ending:["優しくしてくれる？","待っているわ。"]
     }
   };
@@ -270,6 +259,7 @@ function characterTone(character){
 }
 
 function generate(){
+
   if(!profile){
     showModal("プロフィールが未登録です");
     return;
@@ -336,7 +326,17 @@ function renderHistory(){
 }
 
 window.onload=function(){
-  loadProfile();
+
+  const saved=localStorage.getItem("profile");
+
+  if(!saved){
+    showModal("プロフィールが未登録です");
+  }else{
+    profile=JSON.parse(saved);
+    document.getElementById("profileInfo").innerText=
+    `${profile.name || ""}（${profile.character || ""} / ${profile.age || ""}）`;
+  }
+
   createButtons(moods,"moodButtons",(v)=>selectedMood=v);
   createButtons(situations,"situationButtons",(v)=>selectedSituation=v);
   renderHistory();
