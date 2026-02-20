@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>写メ日記 AI</title>
+<title>写メ日記AI</title>
 
 <style>
 :root {
@@ -12,127 +12,114 @@
   --accent: #ff5fa2;
   --accent-soft: #ffc2da;
   --text: #444;
+  --radius: 18px;
 }
-
-/* ===== 共通 ===== */
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
   background: var(--bg);
   color: var(--text);
-  transition: all .25s ease;
+  -webkit-font-smoothing: antialiased;
 }
 
-.container {
+.wrapper {
   max-width: 520px;
-  margin: 40px auto;
+  margin: 50px auto;
   padding: 20px;
 }
 
 h1 {
   text-align: center;
-  margin-bottom: 20px;
   font-size: 22px;
+  margin-bottom: 6px;
   letter-spacing: 1px;
 }
 
-.theme-switcher {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  margin-bottom: 25px;
-}
-
-.theme-switcher button {
-  padding: 8px 14px;
-  border-radius: 20px;
-  border: none;
-  cursor: pointer;
+.sub {
+  text-align: center;
   font-size: 12px;
-  background: #eee;
+  opacity: 0.6;
+  margin-bottom: 30px;
 }
 
 .card {
   background: var(--card);
-  padding: 18px;
-  border-radius: 16px;
+  padding: 20px;
+  border-radius: var(--radius);
   margin-bottom: 18px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+  box-shadow: 0 10px 25px rgba(255,95,162,0.08);
 }
 
 label {
   font-size: 13px;
   font-weight: 600;
+  display: block;
+  margin-bottom: 8px;
 }
 
 select, input {
   width: 100%;
-  padding: 12px;
-  margin-top: 8px;
-  border-radius: 12px;
+  padding: 14px;
+  border-radius: 14px;
   border: 1px solid #eee;
   font-size: 14px;
+  outline: none;
 }
 
-.generate-btn {
+input:focus, select:focus {
+  border-color: var(--accent);
+}
+
+button {
   width: 100%;
-  padding: 15px;
-  background: var(--accent);
-  color: white;
+  padding: 16px;
   border: none;
-  border-radius: 18px;
+  border-radius: 30px;
   font-size: 16px;
+  background: linear-gradient(135deg, #ff5fa2, #ff85b3);
+  color: white;
   cursor: pointer;
+  box-shadow: 0 8px 20px rgba(255,95,162,0.25);
+  transition: 0.2s ease;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 25px rgba(255,95,162,0.35);
 }
 
 .result {
-  margin-top: 25px;
-  padding: 18px;
+  margin-top: 30px;
+  padding: 22px;
   background: var(--accent-soft);
-  border-radius: 16px;
+  border-radius: var(--radius);
   white-space: pre-wrap;
   font-size: 14px;
+  line-height: 1.7;
 }
 
-/* ===== Theme 1: Pastel Pink ===== */
-
-body.pink {
-  --bg: #fff4f8;
-  --card: #ffffff;
-  --accent: #ff5fa2;
-  --accent-soft: #ffc2da;
-  --text: #444;
+.footer {
+  text-align: center;
+  font-size: 11px;
+  margin-top: 40px;
+  opacity: 0.5;
 }
-
-/* ===== Theme 2: Coral Pastel ===== */
-
-body.coral {
-  --bg: #fff2f2;
-  --card: #ffffff;
-  --accent: #ff6f91;
-  --accent-soft: #ffd3dc;
-  --text: #553840;
-}
-
 </style>
 </head>
 
-<body class="pink">
+<body>
 
-<div class="container">
+<div class="wrapper">
+
   <h1>写メ日記 AI</h1>
-
-  <div class="theme-switcher">
-    <button onclick="setTheme('pink')">Pastel Pink</button>
-    <button onclick="setTheme('coral')">Coral</button>
-  </div>
+  <div class="sub">Pastel Edition</div>
 
   <div class="card">
     <label>今日の感情</label>
     <select>
       <option>甘えたい</option>
-      <option>ムラムラしてる</option>
+      <option>ムラムラしている</option>
       <option>寂しい</option>
       <option>ご機嫌</option>
       <option>イチャイチャしたい</option>
@@ -151,26 +138,29 @@ body.coral {
 
   <div class="card">
     <label>題名</label>
-    <input type="text" placeholder="題名を入力">
+    <input type="text" placeholder="題名を入力（必須）">
   </div>
 
-  <button class="generate-btn" onclick="generate()">生成する</button>
+  <button onclick="generate()">日記を生成する</button>
 
   <div class="result" id="result"></div>
+
+  <div class="footer">
+    Shamenikki AI Prototype
+  </div>
+
 </div>
 
 <script>
-function setTheme(theme) {
-  document.body.className = theme;
-}
-
 function generate() {
-  document.getElementById("result").innerText =
-`ちょっと甘えたい気分。
+  const result = `
+ちょっと甘えたい気分。
 
 待機中なのに落ち着かなくて。
 
-お兄さん、どうする？`;
+お兄さん、どうする？
+`;
+  document.getElementById("result").innerText = result;
 }
 </script>
 
