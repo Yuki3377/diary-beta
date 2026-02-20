@@ -3,14 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shame Diary AI</title>
+<title>写メ日記 AI - Pastel Variations</title>
 
 <style>
 :root {
-  --bg: #ffffff;
-  --text: #111;
-  --accent: #ff6b9d;
+  --bg: #fff4f8;
   --card: #ffffff;
+  --accent: #ff5fa2;
+  --accent-soft: #ffc2da;
+  --text: #444;
 }
 
 /* ===== 共通レイアウト ===== */
@@ -31,13 +32,21 @@ body {
 
 h1 {
   font-size: 22px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
+  text-align: center;
   letter-spacing: 1px;
+}
+
+.sub {
+  text-align:center;
+  font-size:12px;
+  margin-bottom:20px;
+  opacity:0.6;
 }
 
 .theme-switcher {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 8px;
   margin-bottom: 24px;
 }
@@ -45,96 +54,93 @@ h1 {
 .theme-switcher button {
   padding: 8px;
   font-size: 11px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  background: #eee;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  background: #fff;
   cursor: pointer;
 }
 
 .card {
-  margin-bottom: 20px;
-  padding: 15px;
   background: var(--card);
-  border-radius: 12px;
+  padding: 18px;
+  border-radius: 16px;
+  margin-bottom: 18px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+}
+
+label {
+  font-size: 13px;
+  font-weight: 600;
 }
 
 select, input {
   width: 100%;
   padding: 12px;
-  margin-top: 6px;
-  border-radius: 8px;
-  border: none;
+  margin-top: 8px;
+  border-radius: 12px;
+  border: 1px solid #eee;
   font-size: 14px;
+  background: #fff;
 }
 
 .generate-btn {
   width: 100%;
-  padding: 14px;
+  padding: 15px;
   background: var(--accent);
   color: white;
   border: none;
-  border-radius: 12px;
+  border-radius: 18px;
   font-size: 16px;
   margin-top: 20px;
   cursor: pointer;
 }
 
+.generate-btn:hover {
+  opacity:0.9;
+}
+
 .result {
   margin-top: 30px;
-  padding: 15px;
-  background: rgba(0,0,0,0.05);
-  border-radius: 12px;
+  padding: 18px;
+  background: var(--accent-soft);
+  border-radius: 16px;
   white-space: pre-wrap;
+  font-size: 14px;
 }
 
 /* ========================= */
-/* ===== 15テーマ ===== */
+/* ===== 10 PASTEL THEME ===== */
 /* ========================= */
 
-/* 1 Luxury */
-body.t1 { --bg:#0f0f0f; --text:#f5f5f5; --accent:#c9a227; --card:#1a1a1a; }
+/* 1 Classic Pastel Pink */
+body.t1 { --bg:#fff4f8; --card:#ffffff; --accent:#ff5fa2; --accent-soft:#ffc2da; --text:#444; }
 
-/* 2 Soft Pink */
-body.t2 { --bg:#fff6f9; --text:#333; --accent:#ff6b9d; --card:#ffffff; }
+/* 2 Baby Pink */
+body.t2 { --bg:#fff0f5; --card:#ffffff; --accent:#ff85b3; --accent-soft:#ffd6e8; --text:#555; }
 
-/* 3 Minimal */
-body.t3 { --bg:#ffffff; --text:#111; --accent:#000; --card:#f4f4f4; }
+/* 3 Peach Pastel */
+body.t3 { --bg:#fff6ef; --card:#ffffff; --accent:#ff9b6a; --accent-soft:#ffe1d2; --text:#4a3a33; }
 
-/* 4 Rich Purple */
-body.t4 { --bg:#141022; --text:#e6dfff; --accent:#a855f7; --card:#1f1b2e; }
+/* 4 Lavender Pastel */
+body.t4 { --bg:#f7f3ff; --card:#ffffff; --accent:#b88cff; --accent-soft:#e6d9ff; --text:#3a2f50; }
 
-/* 5 Rose Gold */
-body.t5 { --bg:#fff8f9; --text:#3a2a2f; --accent:#b94e79; --card:#ffffff; }
+/* 5 Mint Pastel */
+body.t5 { --bg:#f0fff9; --card:#ffffff; --accent:#47d7ac; --accent-soft:#c8fff0; --text:#2f4f4a; }
 
-/* 6 Neon Pink */
-body.t6 { --bg:#1a0f1a; --text:#ffe6f6; --accent:#ff007f; --card:#241224; }
+/* 6 Sky Pastel */
+body.t6 { --bg:#f0f8ff; --card:#ffffff; --accent:#66b3ff; --accent-soft:#d6ecff; --text:#2f3f55; }
 
-/* 7 Mauve */
-body.t7 { --bg:#f6f0f4; --text:#2a1f2a; --accent:#9d4e91; --card:#ffffff; }
+/* 7 Lemon Pastel */
+body.t7 { --bg:#fffde8; --card:#ffffff; --accent:#ffd84d; --accent-soft:#fff5b8; --text:#55523a; }
 
-/* 8 Pastel */
-body.t8 { --bg:#fff0f5; --text:#444; --accent:#ff5fa2; --card:#ffffff; }
+/* 8 Coral Pastel */
+body.t8 { --bg:#fff2f2; --card:#ffffff; --accent:#ff6f91; --accent-soft:#ffd3dc; --text:#553840; }
 
-/* 9 Dark Pink */
-body.t9 { --bg:#12060f; --text:#f8d9e8; --accent:#d6006b; --card:#1b0b15; }
+/* 9 Rose Beige */
+body.t9 { --bg:#faf3f5; --card:#ffffff; --accent:#d98fa0; --accent-soft:#f2d8df; --text:#4a3a3e; }
 
-/* 10 Champagne */
-body.t10 { --bg:#faf6ef; --text:#4a3f35; --accent:#c7a45c; --card:#ffffff; }
-
-/* 11 Midnight Blue */
-body.t11 { --bg:#0e1a2b; --text:#e3f2ff; --accent:#2f80ed; --card:#152437; }
-
-/* 12 Emerald */
-body.t12 { --bg:#0f1f1c; --text:#d9fff8; --accent:#00c896; --card:#162a26; }
-
-/* 13 Sunset */
-body.t13 { --bg:#2b0f14; --text:#ffe4d9; --accent:#ff6a3d; --card:#3a171c; }
-
-/* 14 Lavender */
-body.t14 { --bg:#f5f3ff; --text:#2d2250; --accent:#8b5cf6; --card:#ffffff; }
-
-/* 15 Graphite */
-body.t15 { --bg:#1c1c1c; --text:#f1f1f1; --accent:#777; --card:#2a2a2a; }
+/* 10 Soft Mauve */
+body.t10 { --bg:#f6f0f4; --card:#ffffff; --accent:#c17ab5; --accent-soft:#e7cde3; --text:#3f2f3c; }
 
 </style>
 </head>
@@ -142,24 +148,20 @@ body.t15 { --bg:#1c1c1c; --text:#f1f1f1; --accent:#777; --card:#2a2a2a; }
 <body>
 
 <div class="container">
-  <h1>Shame Diary AI</h1>
+  <h1>写メ日記 AI</h1>
+  <div class="sub">PASTEL COLLECTION</div>
 
   <div class="theme-switcher">
-    <button onclick="setTheme('t1')">Luxury</button>
-    <button onclick="setTheme('t2')">Soft Pink</button>
-    <button onclick="setTheme('t3')">Minimal</button>
-    <button onclick="setTheme('t4')">Rich Purple</button>
-    <button onclick="setTheme('t5')">Rose Gold</button>
-    <button onclick="setTheme('t6')">Neon Pink</button>
-    <button onclick="setTheme('t7')">Mauve</button>
-    <button onclick="setTheme('t8')">Pastel</button>
-    <button onclick="setTheme('t9')">Dark Pink</button>
-    <button onclick="setTheme('t10')">Champagne</button>
-    <button onclick="setTheme('t11')">Midnight</button>
-    <button onclick="setTheme('t12')">Emerald</button>
-    <button onclick="setTheme('t13')">Sunset</button>
-    <button onclick="setTheme('t14')">Lavender</button>
-    <button onclick="setTheme('t15')">Graphite</button>
+    <button onclick="setTheme('t1')">Classic</button>
+    <button onclick="setTheme('t2')">Baby</button>
+    <button onclick="setTheme('t3')">Peach</button>
+    <button onclick="setTheme('t4')">Lavender</button>
+    <button onclick="setTheme('t5')">Mint</button>
+    <button onclick="setTheme('t6')">Sky</button>
+    <button onclick="setTheme('t7')">Lemon</button>
+    <button onclick="setTheme('t8')">Coral</button>
+    <button onclick="setTheme('t9')">Rose Beige</button>
+    <button onclick="setTheme('t10')">Mauve</button>
   </div>
 
   <div class="card">
@@ -196,7 +198,7 @@ body.t15 { --bg:#1c1c1c; --text:#f1f1f1; --accent:#777; --card:#2a2a2a; }
 <script>
 function generate() {
   document.getElementById("result").innerText =
-`今日はちょっと我慢できないかも。
+`今日はちょっと甘えたい気分。
 
 待機中なのに落ち着かなくて。
 
@@ -211,4 +213,3 @@ function setTheme(theme) {
 
 </body>
 </html>
-
