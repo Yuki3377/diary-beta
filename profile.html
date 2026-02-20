@@ -1,1 +1,120 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>プロフィール設定</title>
 
+<style>
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+  background:#fff4f8;
+}
+.wrapper{
+  max-width:520px;
+  margin:40px auto;
+  padding:20px;
+}
+.card{
+  background:#fff;
+  padding:18px;
+  border-radius:18px;
+  margin-bottom:15px;
+  box-shadow:0 8px 20px rgba(255,95,162,0.08);
+}
+input,select{
+  width:100%;
+  padding:12px;
+  border-radius:12px;
+  border:1px solid #eee;
+  margin-top:8px;
+}
+button{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:25px;
+  background:linear-gradient(135deg,#ff5fa2,#ff85b3);
+  color:white;
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrapper">
+
+<h2>プロフィール設定</h2>
+
+<div class="card">
+<label>名前</label>
+<input id="name">
+</div>
+
+<div class="card">
+<label>自分の呼び方</label>
+<input id="selfCall">
+</div>
+
+<div class="card">
+<label>お客様の呼び方</label>
+<input id="customerCall">
+</div>
+
+<div class="card">
+<label>年齢</label>
+<select id="age">
+<option>20代</option>
+<option>30代</option>
+<option>40代</option>
+<option>50代</option>
+</select>
+</div>
+
+<div class="card">
+<label>キャラクター</label>
+<select id="character">
+<option>妹系</option>
+<option>小悪魔系</option>
+<option>清楚系</option>
+<option>お姉さん系</option>
+<option>人妻系</option>
+</select>
+</div>
+
+<button onclick="saveProfile()">保存する</button>
+
+</div>
+
+<script>
+function saveProfile(){
+  const data={
+    name:document.getElementById("name").value,
+    selfCall:document.getElementById("selfCall").value,
+    customerCall:document.getElementById("customerCall").value,
+    age:document.getElementById("age").value,
+    character:document.getElementById("character").value
+  };
+
+  localStorage.setItem("diaryProfile",JSON.stringify(data));
+  alert("保存しました");
+}
+
+function loadProfile(){
+  const saved=localStorage.getItem("diaryProfile");
+  if(!saved) return;
+  const data=JSON.parse(saved);
+
+  document.getElementById("name").value=data.name||"";
+  document.getElementById("selfCall").value=data.selfCall||"";
+  document.getElementById("customerCall").value=data.customerCall||"";
+  document.getElementById("age").value=data.age||"20代";
+  document.getElementById("character").value=data.character||"妹系";
+}
+
+window.onload=loadProfile;
+</script>
+
+</body>
+</html>
