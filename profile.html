@@ -2,39 +2,30 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>売れるキャラを作る</title>
 
 <style>
-:root{
-  --bg1:#FFF7FB;        /* 淡いピンク */
-  --bg2:#F3F0FF;        /* 淡いラベンダー */
-  --card:#FFFFFF;
-  --accent:#FF9ECF;     /* パステルピンク */
-  --accent2:#C8B6FF;    /* パステルラベンダー */
-  --text:#333;
-  --sub:#777;
-  --border:#EEE;
-}
-
-*{ box-sizing:border-box; }
-
 body{
   margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif;
-  color:var(--text);
-  background:linear-gradient(180deg,var(--bg1),var(--bg2));
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+  background:#fff4f8;
 }
 
 .wrapper{
-  max-width:480px;
-  margin:0 auto;
-  padding:18px 16px 40px;
-  animation:fadeUp .35s ease;
+  max-width:520px;
+  margin:40px auto;
+  padding:20px;
+  animation:fadeUp .4s ease;
+}
+
+@keyframes fadeUp{
+  from{opacity:0; transform:translateY(10px);}
+  to{opacity:1; transform:translateY(0);}
 }
 
 .header{
-  margin-bottom:18px;
+  margin-bottom:20px;
 }
 
 .title{
@@ -45,16 +36,16 @@ body{
 
 .subtitle{
   font-size:13px;
-  color:var(--sub);
+  color:#888;
   margin:0;
 }
 
 .card{
-  background:var(--card);
-  border-radius:16px;
-  padding:16px;
-  margin-top:14px;
-  box-shadow:0 4px 12px rgba(0,0,0,0.04);
+  background:#fff;
+  padding:18px;
+  border-radius:18px;
+  margin-bottom:15px;
+  box-shadow:0 8px 20px rgba(255,95,162,0.08);
 }
 
 .card h2{
@@ -67,13 +58,13 @@ input{
   padding:12px;
   font-size:15px;
   border-radius:12px;
-  border:1px solid var(--border);
+  border:1px solid #eee;
   margin-bottom:10px;
   outline:none;
 }
 
 input:focus{
-  border-color:var(--accent);
+  border-color:#ff85b3;
 }
 
 .button-group{
@@ -83,43 +74,33 @@ input:focus{
 }
 
 .btn{
-  padding:9px 14px;
+  padding:8px 14px;
   border-radius:20px;
-  border:1px solid var(--border);
+  border:1px solid #ffb6d2;
   font-size:13px;
   background:#fff;
-  transition:.15s ease;
   cursor:pointer;
 }
 
+/* 高さを変えない */
 .btn.active{
-  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  background:#ff85b3;
   color:#fff;
-  border-color:transparent;
-}
-
-.btn:active{
-  transform:scale(.95);
+  border:1px solid #ff85b3;
 }
 
 .save-toast{
   position:fixed;
-  top:16px;
+  top:20px;
   left:50%;
   transform:translateX(-50%);
-  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  background:#ff85b3;
   color:#fff;
-  padding:7px 14px;
-  border-radius:20px;
+  padding:8px 16px;
+  border-radius:25px;
   font-size:12px;
   opacity:0;
   transition:.3s ease;
-  z-index:100;
-}
-
-@keyframes fadeUp{
-  from{ opacity:0; transform:translateY(8px); }
-  to{ opacity:1; transform:translateY(0); }
 }
 </style>
 </head>
@@ -181,18 +162,18 @@ input:focus{
 
 <script>
 
-window.onload = function(){
-  const profile = JSON.parse(localStorage.getItem("profile")) || {};
-  name.value = profile.name || "";
-  selfCall.value = profile.selfCall || "";
-  customerCall.value = profile.customerCall || "";
-  restoreSingle("ageGroup", profile.age);
-  restoreSingle("charGroup", profile.character);
-  restoreMulti("traitGroup", profile.traits || []);
+window.onload=function(){
+  const profile=JSON.parse(localStorage.getItem("profile"))||{};
+  name.value=profile.name||"";
+  selfCall.value=profile.selfCall||"";
+  customerCall.value=profile.customerCall||"";
+  restoreSingle("ageGroup",profile.age);
+  restoreSingle("charGroup",profile.character);
+  restoreMulti("traitGroup",profile.traits||[]);
 };
 
 function saveProfile(){
-  const profile = {
+  const profile={
     name:name.value,
     selfCall:selfCall.value,
     customerCall:customerCall.value,
@@ -200,18 +181,18 @@ function saveProfile(){
     character:getSingle("charGroup"),
     traits:getMulti("traitGroup")
   };
-  localStorage.setItem("profile", JSON.stringify(profile));
+  localStorage.setItem("profile",JSON.stringify(profile));
   showToast();
 }
 
 document.querySelectorAll("input").forEach(input=>{
-  input.addEventListener("input", saveProfile);
+  input.addEventListener("input",saveProfile);
 });
 
 function setupSingle(groupId){
-  const group = document.getElementById(groupId);
+  const group=document.getElementById(groupId);
   group.querySelectorAll(".btn").forEach(btn=>{
-    btn.onclick = ()=>{
+    btn.onclick=()=>{
       group.querySelectorAll(".btn").forEach(b=>b.classList.remove("active"));
       btn.classList.add("active");
       saveProfile();
@@ -220,11 +201,11 @@ function setupSingle(groupId){
 }
 
 function setupMulti(groupId,max){
-  const group = document.getElementById(groupId);
+  const group=document.getElementById(groupId);
   group.querySelectorAll(".btn").forEach(btn=>{
-    btn.onclick = ()=>{
-      const active = group.querySelectorAll(".active");
-      if(!btn.classList.contains("active") && active.length>=max){
+    btn.onclick=()=>{
+      const active=group.querySelectorAll(".active");
+      if(!btn.classList.contains("active")&&active.length>=max){
         alert("最大3つまでです");
         return;
       }
@@ -235,32 +216,32 @@ function setupMulti(groupId,max){
 }
 
 function getSingle(groupId){
-  const active = document.querySelector(`#${groupId} .active`);
-  return active ? active.textContent : "";
+  const active=document.querySelector(`#${groupId} .active`);
+  return active?active.textContent:"";
 }
 
 function getMulti(groupId){
   return Array.from(document.querySelectorAll(`#${groupId} .active`))
-        .map(b=>b.textContent);
+    .map(b=>b.textContent);
 }
 
 function restoreSingle(groupId,value){
   if(!value)return;
   document.querySelectorAll(`#${groupId} .btn`).forEach(btn=>{
-    if(btn.textContent===value) btn.classList.add("active");
+    if(btn.textContent===value)btn.classList.add("active");
   });
 }
 
 function restoreMulti(groupId,values){
   document.querySelectorAll(`#${groupId} .btn`).forEach(btn=>{
-    if(values.includes(btn.textContent)) btn.classList.add("active");
+    if(values.includes(btn.textContent))btn.classList.add("active");
   });
 }
 
 function showToast(){
-  const toast = document.getElementById("saveToast");
+  const toast=document.getElementById("saveToast");
   toast.style.opacity="1";
-  setTimeout(()=>{ toast.style.opacity="0"; },1000);
+  setTimeout(()=>{toast.style.opacity="0";},1000);
 }
 
 setupSingle("ageGroup");
