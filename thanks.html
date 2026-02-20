@@ -83,7 +83,7 @@ button.primary{
 <div class="profileInfo" id="profileInfo"></div>
 
 <div class="card">
-<label>場所（ホテル名・部屋番号・スタート時間）</label>
+<label>場所（ホテル名・部屋番号・コース時間など）</label>
 <input id="place">
 </div>
 
@@ -112,6 +112,14 @@ const hints=[
 "久しぶり",
 "新規",
 "指名",
+"仲良し様",
+"長めコース",
+"短めコース",
+"いっぱい褒めてくれた",
+"たくさんイッちゃった",
+"いっぱいせめた",
+"いっぱいせめられた",
+"ぎゅってしてくれた",
 "また誘ってくだい"
 ];
 
@@ -164,7 +172,7 @@ function generateThanks(){
 
   let hintText="";
   if(selectedHints.length>0){
-    hintText=selectedHints.join("・") + "だったね。\n\n";
+    hintText=selectedHints.join("、") + "だったね。\n\n";
   }
 
   const endings=[
