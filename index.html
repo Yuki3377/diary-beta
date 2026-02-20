@@ -30,49 +30,6 @@ body{
 
 h1{text-align:center;margin-bottom:20px;}
 
-.profile-bar{
-  background:white;
-  padding:12px 16px;
-  border-radius:30px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:20px;
-  box-shadow:0 6px 18px rgba(255,95,162,0.1);
-  font-size:12px;
-}
-
-.edit-btn{
-  background:var(--accent);
-  color:white;
-  border:none;
-  border-radius:20px;
-  padding:6px 12px;
-  font-size:11px;
-  cursor:pointer;
-}
-
-.tabs{
-  display:flex;
-  margin-bottom:20px;
-  background:white;
-  border-radius:30px;
-  overflow:hidden;
-}
-
-.tabs button{
-  flex:1;
-  padding:10px;
-  border:none;
-  background:none;
-  cursor:pointer;
-}
-
-.tabs button.active{
-  background:var(--accent);
-  color:white;
-}
-
 .card{
   background:var(--card);
   padding:18px;
@@ -81,7 +38,7 @@ h1{text-align:center;margin-bottom:20px;}
   box-shadow:0 8px 20px rgba(255,95,162,0.08);
 }
 
-select,input,textarea{
+select,input{
   width:100%;
   padding:12px;
   border-radius:12px;
@@ -99,50 +56,12 @@ button.primary{
   cursor:pointer;
 }
 
-button.primary:disabled{
-  opacity:0.5;
-  cursor:not-allowed;
-}
-
 .result{
   margin-top:20px;
   padding:20px;
   background:var(--accent-soft);
   border-radius:var(--radius);
   white-space:pre-wrap;
-  display:none;
-}
-
-.history{
-  margin-top:25px;
-}
-
-.history-item{
-  background:white;
-  padding:10px;
-  border-radius:10px;
-  margin-bottom:8px;
-  font-size:12px;
-  cursor:pointer;
-}
-
-.loader{
-  display:none;
-  font-size:12px;
-  opacity:0.6;
-  margin-top:8px;
-}
-
-.toast{
-  position:fixed;
-  bottom:20px;
-  left:50%;
-  transform:translateX(-50%);
-  background:black;
-  color:white;
-  padding:10px 15px;
-  border-radius:20px;
-  font-size:12px;
   display:none;
 }
 </style>
@@ -152,168 +71,172 @@ button.primary:disabled{
 <div class="wrapper">
 <h1>写メ日記 AI</h1>
 
-<div class="profile-bar">
-  <div id="profileDisplay">プロフィール未設定</div>
-  <button class="edit-btn" onclick="openModal()">編集</button>
+<div class="card">
+<label>名前</label>
+<input id="name">
 </div>
 
-<div class="tabs">
-  <button class="active" onclick="switchTab('normal')">通常</button>
-  <button onclick="switchTab('thanks')">お礼</button>
+<div class="card">
+<label>自分の呼び方</label>
+<input id="selfCall">
 </div>
 
-<div id="normal">
-  <div class="card">
-    <label>感情</label>
-    <select id="mood">
-      <option>甘えたい</option>
-      <option>ムラムラしている</option>
-      <option>寂しい</option>
-      <option>ご機嫌</option>
-    </select>
-  </div>
-
-  <div class="card">
-    <label>題名</label>
-    <input id="title">
-  </div>
-
-  <button class="primary" id="generateBtn" onclick="generateNormal()">生成する</button>
-  <div class="loader" id="loader">AIが考えています…</div>
+<div class="card">
+<label>お客様の呼び方</label>
+<input id="customerCall">
 </div>
 
-<div id="thanks" style="display:none;">
-  <div class="card">
-    <label>場所</label>
-    <input id="place">
-  </div>
-
-  <div class="card">
-    <label>出来事</label>
-    <textarea id="memory"></textarea>
-  </div>
-
-  <button class="primary" onclick="generateThanks()">生成する</button>
+<div class="card">
+<label>年齢</label>
+<select id="age">
+<option>20代</option>
+<option>30代</option>
+<option>40代</option>
+<option>50代</option>
+</select>
 </div>
+
+<div class="card">
+<label>キャラクター</label>
+<select id="character">
+<option>妹系</option>
+<option>小悪魔系</option>
+<option>清楚系</option>
+<option>お姉さん系</option>
+<option>人妻系</option>
+</select>
+</div>
+
+<div class="card">
+<label>感情</label>
+<select id="mood">
+<option>甘えたい</option>
+<option>ムラムラしている</option>
+<option>寂しい</option>
+<option>ご機嫌</option>
+<option>イチャイチャしたい</option>
+</select>
+</div>
+
+<div class="card">
+<label>日記の状況</label>
+<select id="situation">
+<option>出勤前（当日）</option>
+<option>待機中</option>
+<option>明日出勤</option>
+<option>退勤</option>
+</select>
+</div>
+
+<div class="card">
+<label>題名</label>
+<input id="title">
+</div>
+
+<button class="primary" onclick="generate()">生成する</button>
 
 <div class="result" id="result"></div>
 
-<div class="history">
-  <h3>生成履歴</h3>
-  <div id="historyList"></div>
 </div>
-
-</div>
-
-<div class="toast" id="toast">コピーしました</div>
 
 <script>
 
-/* ===== 自動保存 ===== */
+/* ================================
+   Prompt Builder
+================================ */
 
-function autoSave(){
-  localStorage.setItem("draft",JSON.stringify({
+function buildPrompt(data){
+
+  return {
+    profile:{
+      name:data.name,
+      selfCall:data.selfCall,
+      customerCall:data.customerCall,
+      age:data.age,
+      character:data.character
+    },
+    condition:{
+      mood:data.mood,
+      situation:data.situation,
+      title:data.title
+    }
+  };
+
+}
+
+/* ================================
+   ローカル生成ロジック（AI代替）
+================================ */
+
+function generateText(prompt){
+
+  const {profile,condition}=prompt;
+
+  const introMap={
+    "出勤前（当日）":["そろそろ準備しよっかなって。","今日ちゃんと来てくれる？"],
+    "待機中":["いまお部屋で待ってる。","静かすぎてちょっと寂しい。"],
+    "明日出勤":["明日いるよ。","予定あけといてくれる？"],
+    "退勤":["今日はそろそろ帰るね。","ちょっと名残惜しい。"]
+  };
+
+  const moodMap={
+    "甘えたい":["今日は甘えたい気分。","優しくされたい日かも。"],
+    "ムラムラしている":["変なスイッチ入ってる。","触れられたらすぐ反応しそう。"],
+    "寂しい":["ひとりだと考えちゃう。","会いたくなるよね。"],
+    "ご機嫌":["今日は機嫌いいよ。","ちょっとテンション高め。"],
+    "イチャイチャしたい":["くっつきたい。","距離近いの嫌いじゃない。"]
+  };
+
+  const endings=[
+    "お誘い待ってます。",
+    "一緒にイチャイチャしましょう。",
+    `${profile.customerCall || "お兄さん"}来てくれる？`
+  ];
+
+  const intro=introMap[condition.situation][Math.floor(Math.random()*2)];
+  const moodLine=moodMap[condition.mood][Math.floor(Math.random()*2)];
+  const ending=endings[Math.floor(Math.random()*endings.length)];
+
+  return `${condition.title}
+
+${intro}
+
+${moodLine}
+
+${ending}`;
+
+}
+
+/* ================================
+   生成実行
+================================ */
+
+function generate(){
+
+  const data={
+    name:document.getElementById("name").value,
+    selfCall:document.getElementById("selfCall").value,
+    customerCall:document.getElementById("customerCall").value,
+    age:document.getElementById("age").value,
+    character:document.getElementById("character").value,
     mood:document.getElementById("mood").value,
-    title:document.getElementById("title").value,
-    place:document.getElementById("place").value,
-    memory:document.getElementById("memory").value
-  }));
-}
+    situation:document.getElementById("situation").value,
+    title:document.getElementById("title").value
+  };
 
-function loadDraft(){
-  const draft=localStorage.getItem("draft");
-  if(!draft) return;
-  const d=JSON.parse(draft);
-  document.getElementById("mood").value=d.mood||"甘えたい";
-  document.getElementById("title").value=d.title||"";
-  document.getElementById("place").value=d.place||"";
-  document.getElementById("memory").value=d.memory||"";
-}
+  if(!data.title){
+    alert("題名必須");
+    return;
+  }
 
-document.addEventListener("input",autoSave);
+  const prompt=buildPrompt(data);
+  const text=generateText(prompt);
 
-/* ===== 履歴 ===== */
-
-function saveHistory(text){
-  let history=JSON.parse(localStorage.getItem("history")||"[]");
-  history.unshift(text);
-  history=history.slice(0,10);
-  localStorage.setItem("history",JSON.stringify(history));
-  renderHistory();
-}
-
-function renderHistory(){
-  const history=JSON.parse(localStorage.getItem("history")||"[]");
-  const list=document.getElementById("historyList");
-  list.innerHTML="";
-  history.forEach(item=>{
-    const div=document.createElement("div");
-    div.className="history-item";
-    div.innerText=item.slice(0,40)+"...";
-    div.onclick=()=>showResult(item);
-    list.appendChild(div);
-  });
-}
-
-/* ===== 生成 ===== */
-
-function generateNormal(){
-  const title=document.getElementById("title").value;
-  if(!title){alert("題名必須");return;}
-
-  const btn=document.getElementById("generateBtn");
-  btn.disabled=true;
-  document.getElementById("loader").style.display="block";
-
-  setTimeout(()=>{
-    const text=`${title}
-
-今日はちょっと甘えたい気分。
-
-どうする？`;
-
-    showResult(text);
-    saveHistory(text);
-
-    btn.disabled=false;
-    document.getElementById("loader").style.display="none";
-  },1200);
-}
-
-function generateThanks(){
-  const memory=document.getElementById("memory").value;
-
-  const text=`今日はありがとう。
-
-${memory}
-
-また会えたら嬉しいな。`;
-
-  showResult(text);
-  saveHistory(text);
-}
-
-function showResult(text){
   const result=document.getElementById("result");
   result.innerText=text;
   result.style.display="block";
+
 }
-
-/* ===== トースト ===== */
-
-function copyText(){
-  navigator.clipboard.writeText(document.getElementById("result").innerText);
-  const toast=document.getElementById("toast");
-  toast.style.display="block";
-  setTimeout(()=>toast.style.display="none",1500);
-}
-
-/* ===== 初期化 ===== */
-
-window.onload=function(){
-  loadDraft();
-  renderHistory();
-};
 
 </script>
 
