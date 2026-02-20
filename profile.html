@@ -88,12 +88,6 @@ input:focus{
   cursor:pointer;
 }
 
-.same-btn:active{
-  background:#ff85b3;
-  color:#fff;
-  border:1px solid #ff85b3;
-}
-
 .button-group{
   display:flex;
   flex-wrap:wrap;
@@ -114,20 +108,6 @@ input:focus{
   color:#fff;
   border:1px solid #ff85b3;
 }
-
-.save-toast{
-  position:fixed;
-  top:20px;
-  left:50%;
-  transform:translateX(-50%);
-  background:#ff85b3;
-  color:#fff;
-  padding:8px 16px;
-  border-radius:25px;
-  font-size:12px;
-  opacity:0;
-  transition:.3s ease;
-}
 </style>
 </head>
 
@@ -142,11 +122,12 @@ input:focus{
 
   <div class="card">
     <h2>基本情報</h2>
+
     <input type="text" id="name" placeholder="源氏名">
 
     <div class="short-row">
       <input type="text" id="selfCall" placeholder="自分の呼び方">
-      <button class="same-btn" onclick="copyName()">源氏名と同じ</button>
+      <button type="button" class="same-btn" onclick="copyName()">源氏名と同じ</button>
     </div>
 
     <input type="text" id="customerCall" placeholder="お客様の呼び方（お兄さん・紳士の方）">
@@ -197,22 +178,21 @@ input:focus{
 
 </div>
 
-<div id="saveToast" class="save-toast">✓ 保存しました</div>
-
 <script>
 
 window.onload=function(){
   const profile=JSON.parse(localStorage.getItem("profile"))||{};
-  name.value=profile.name||"";
-  selfCall.value=profile.selfCall||"";
-  customerCall.value=profile.customerCall||"";
+  document.getElementById("name").value=profile.name||"";
+  document.getElementById("selfCall").value=profile.selfCall||"";
+  document.getElementById("customerCall").value=profile.customerCall||"";
   restoreSingle("ageGroup",profile.age);
   restoreSingle("charGroup",profile.character);
   restoreMulti("traitGroup",profile.traits||[]);
 };
 
 function copyName(){
-  selfCall.value=name.value;
+  const nameValue=document.getElementById("name").value;
+  document.getElementById("selfCall").value=nameValue;
   saveProfile();
 }
 
@@ -222,15 +202,14 @@ document.querySelectorAll("input").forEach(input=>{
 
 function saveProfile(){
   const profile={
-    name:name.value,
-    selfCall:selfCall.value,
-    customerCall:customerCall.value,
+    name:document.getElementById("name").value,
+    selfCall:document.getElementById("selfCall").value,
+    customerCall:document.getElementById("customerCall").value,
     age:getSingle("ageGroup"),
     character:getSingle("charGroup"),
     traits:getMulti("traitGroup")
   };
   localStorage.setItem("profile",JSON.stringify(profile));
-  showToast();
 }
 
 function setupSingle(groupId){
@@ -280,12 +259,6 @@ function restoreMulti(groupId,values){
   document.querySelectorAll(`#${groupId} .btn`).forEach(btn=>{
     if(values.includes(btn.textContent))btn.classList.add("active");
   });
-}
-
-function showToast(){
-  const toast=document.getElementById("saveToast");
-  toast.style.opacity="1";
-  setTimeout(()=>{toast.style.opacity="0";},1000);
 }
 
 setupSingle("ageGroup");
