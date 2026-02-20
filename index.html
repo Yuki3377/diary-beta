@@ -11,11 +11,19 @@ body{
   font-family:-apple-system,BlinkMacSystemFont,sans-serif;
   background:#fff4f8;
 }
+
 .wrapper{
   max-width:520px;
   margin:40px auto;
   padding:20px;
+  animation:fadeUp .4s ease;
 }
+
+@keyframes fadeUp{
+  from{opacity:0; transform:translateY(10px);}
+  to{opacity:1; transform:translateY(0);}
+}
+
 .card{
   background:#fff;
   padding:18px;
@@ -23,6 +31,7 @@ body{
   margin-bottom:15px;
   box-shadow:0 8px 20px rgba(255,95,162,0.08);
 }
+
 input{
   width:100%;
   padding:12px;
@@ -45,12 +54,17 @@ input{
   background:#fff;
   cursor:pointer;
   font-size:13px;
+  transition:.15s ease;
 }
 
 .choice-btn.active{
   background:#ff85b3;
   color:#fff;
   border:none;
+}
+
+.choice-btn:active{
+  transform:scale(.92);
 }
 
 button.primary{
@@ -61,6 +75,11 @@ button.primary{
   background:linear-gradient(135deg,#ff5fa2,#ff85b3);
   color:white;
   margin-top:10px;
+  transition:.15s ease;
+}
+
+button.primary:active{
+  transform:scale(.95);
 }
 
 .result{
@@ -70,6 +89,12 @@ button.primary{
   border-radius:18px;
   white-space:pre-wrap;
   display:none;
+  animation:fadeResult .35s ease;
+}
+
+@keyframes fadeResult{
+  from{opacity:0; transform:translateY(8px);}
+  to{opacity:1; transform:translateY(0);}
 }
 
 .history{
@@ -84,10 +109,15 @@ button.primary{
   font-size:12px;
   cursor:pointer;
   border:1px solid #eee;
+  transition:.15s ease;
 }
 
 .history-item:hover{
   background:#ffeaf4;
+}
+
+.history-item:active{
+  transform:scale(.97);
 }
 
 .profileInfo{
@@ -234,8 +264,11 @@ ${customer}どうする？
 ${ending}`;
 
   const result=document.getElementById("result");
-  result.innerText=text;
   result.style.display="block";
+  result.style.animation="none";
+  result.offsetHeight;
+  result.style.animation="fadeResult .35s ease";
+  result.innerText=text;
 
   saveHistory(text);
 }
@@ -257,8 +290,12 @@ function renderHistory(){
     div.className="history-item";
     div.innerText=item.split("\n")[0];
     div.onclick=()=>{
-      document.getElementById("result").innerText=item;
-      document.getElementById("result").style.display="block";
+      const result=document.getElementById("result");
+      result.style.display="block";
+      result.style.animation="none";
+      result.offsetHeight;
+      result.style.animation="fadeResult .35s ease";
+      result.innerText=item;
     };
     list.appendChild(div);
   });
