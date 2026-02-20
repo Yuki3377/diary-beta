@@ -2,56 +2,98 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>写メ日記をつくる</title>
 
 <style>
-:root{
-  --bg1:#FFF7FB;
-  --bg2:#F3F0FF;
-  --accent:#FF9ECF;
-  --accent2:#C8B6FF;
-  --text:#333;
-}
-
 body{
   margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif;
-  background:linear-gradient(180deg,var(--bg1),var(--bg2));
-  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+  background:#fff4f8;
 }
-
 .wrapper{
-  max-width:480px;
-  margin:0 auto;
-  padding:24px 16px 40px;
-  animation:fadeUp .35s ease;
+  max-width:520px;
+  margin:40px auto;
+  padding:20px;
+}
+.card{
+  background:#fff;
+  padding:18px;
+  border-radius:18px;
+  margin-bottom:15px;
+  box-shadow:0 8px 20px rgba(255,95,162,0.08);
+}
+input{
+  width:100%;
+  padding:12px;
+  border-radius:12px;
+  border:1px solid #eee;
+  margin-top:8px;
 }
 
-h1{
-  font-size:20px;
-  margin-bottom:24px;
+.button-group{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:10px;
 }
 
-.button{
+.choice-btn{
+  padding:8px 14px;
+  border-radius:20px;
+  border:1px solid #ffb6d2;
+  background:#fff;
+  cursor:pointer;
+  font-size:13px;
+}
+
+.choice-btn.active{
+  background:#ff85b3;
+  color:#fff;
+  border:none;
+}
+
+button.primary{
   width:100%;
   padding:14px;
-  border-radius:24px;
   border:none;
-  font-size:15px;
-  color:#fff;
-  background:linear-gradient(90deg,var(--accent),var(--accent2));
-  margin-bottom:14px;
-  transition:.15s ease;
+  border-radius:25px;
+  background:linear-gradient(135deg,#ff5fa2,#ff85b3);
+  color:white;
+  margin-top:10px;
 }
 
-.button:active{
-  transform:scale(.95);
+.result{
+  margin-top:20px;
+  padding:20px;
+  background:#ffd6e8;
+  border-radius:18px;
+  white-space:pre-wrap;
+  display:none;
 }
 
-@keyframes fadeUp{
-  from{opacity:0;transform:translateY(8px);}
-  to{opacity:1;transform:translateY(0);}
+.history{
+  margin-top:30px;
+}
+
+.history-item{
+  background:#fff;
+  padding:10px;
+  border-radius:12px;
+  margin-bottom:8px;
+  font-size:12px;
+  cursor:pointer;
+  border:1px solid #eee;
+}
+
+.history-item:hover{
+  background:#ffeaf4;
+}
+
+.profileInfo{
+  font-size:13px;
+  color:#888;
+  margin-bottom:10px;
 }
 </style>
 </head>
@@ -59,17 +101,177 @@ h1{
 <body>
 
 <div class="wrapper">
-  <h1>写メ日記をつくる</h1>
 
-  <button class="button" onclick="location.href='profile.html'">
-    プロフィールを編集
-  </button>
+<h2>写メ日記をつくる</h2>
 
-  <button class="button" onclick="location.href='thanks.html'">
-    お礼日記をつくる
-  </button>
+<div class="profileInfo" id="profileInfo"></div>
+
+<div class="card">
+<label>感情</label>
+<div class="button-group" id="moodButtons"></div>
+</div>
+
+<div class="card">
+<label>日記の状況</label>
+<div class="button-group" id="situationButtons"></div>
+</div>
+
+<div class="card">
+<label>題名</label>
+<input id="title">
+</div>
+
+<button class="primary" onclick="generate()">つくる</button>
+
+<div class="result" id="result"></div>
+
+<div class="history">
+<h3>過去につくった日記</h3>
+<div id="historyList"></div>
+</div>
 
 </div>
+
+<script>
+
+let profile=null;
+let selectedMood=null;
+let selectedSituation=null;
+
+const moods=[
+"甘えたい",
+"ムラムラしている",
+"寂しい",
+"ご機嫌",
+"イチャイチャしたい"
+];
+
+const situations=[
+"出勤前（当日）",
+"待機中",
+"明日出勤",
+"退勤"
+];
+
+function createButtons(list, containerId, callback){
+  const container=document.getElementById(containerId);
+  list.forEach(item=>{
+    const btn=document.createElement("button");
+    btn.className="choice-btn";
+    btn.innerText=item;
+    btn.onclick=()=>{
+      [...container.children].forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      callback(item);
+    };
+    container.appendChild(btn);
+  });
+}
+
+function loadProfile(){
+  const saved=localStorage.getItem("diaryProfile");
+  if(!saved){
+    alert("プロフィールが未登録です。先に設定してください。");
+    return;
+  }
+  profile=JSON.parse(saved);
+  document.getElementById("profileInfo").innerText=
+  `${profile.name || ""}（${profile.character || ""} / ${profile.age || ""}）`;
+}
+
+function characterTone(character){
+  const toneMap={
+    "妹系":{
+      intro:["ねえねえ…","ちょっと聞いて？"],
+      ending:["待ってるね？","来てくれるよね？"]
+    },
+    "小悪魔系":{
+      intro:["ふーん…","どうする？"],
+      ending:["来ないと後悔するかもよ？","ちゃんと来てね？"]
+    },
+    "清楚系":{
+      intro:["少しだけ…","今日はちょっと…"],
+      ending:["お誘いお待ちしています。","お時間あればぜひ。"]
+    },
+    "お姉さん系":{
+      intro:["ほら、","今日はね、"],
+      ending:["癒してあげる。","待ってるわ。"]
+    },
+    "人妻系":{
+      intro:["内緒だけど、","ちょっとだけ…"],
+      ending:["ちゃんと時間作ってね。","わかってるわよね？"]
+    }
+  };
+  return toneMap[character] || toneMap["妹系"];
+}
+
+function generate(){
+  if(!profile){
+    alert("プロフィール未登録");
+    return;
+  }
+
+  const title=document.getElementById("title").value;
+
+  if(!title || !selectedMood || !selectedSituation){
+    alert("題名・感情・状況を選択してください");
+    return;
+  }
+
+  const tone=characterTone(profile.character);
+  const intro=tone.intro[Math.floor(Math.random()*tone.intro.length)];
+  const ending=tone.ending[Math.floor(Math.random()*tone.ending.length)];
+  const customer=profile.customerCall || "お兄さん";
+
+  const text=`${title}
+
+${intro}
+
+${selectedSituation}で、ちょっと${selectedMood}。
+
+${customer}どうする？
+
+${ending}`;
+
+  const result=document.getElementById("result");
+  result.innerText=text;
+  result.style.display="block";
+
+  saveHistory(text);
+}
+
+function saveHistory(text){
+  let history=JSON.parse(localStorage.getItem("diaryHistory") || "[]");
+  history.unshift(text);
+  history=history.slice(0,5);
+  localStorage.setItem("diaryHistory",JSON.stringify(history));
+  renderHistory();
+}
+
+function renderHistory(){
+  const history=JSON.parse(localStorage.getItem("diaryHistory") || "[]");
+  const list=document.getElementById("historyList");
+  list.innerHTML="";
+  history.forEach(item=>{
+    const div=document.createElement("div");
+    div.className="history-item";
+    div.innerText=item.split("\n")[0];
+    div.onclick=()=>{
+      document.getElementById("result").innerText=item;
+      document.getElementById("result").style.display="block";
+    };
+    list.appendChild(div);
+  });
+}
+
+window.onload=function(){
+  loadProfile();
+  createButtons(moods,"moodButtons",(v)=>selectedMood=v);
+  createButtons(situations,"situationButtons",(v)=>selectedSituation=v);
+  renderHistory();
+};
+
+</script>
 
 </body>
 </html>
