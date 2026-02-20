@@ -76,15 +76,22 @@ input:focus{
 
 .short-row input{
   flex:1;
-  max-width:180px;
+  max-width:200px;
 }
 
-.checkbox-wrap{
+.same-btn{
+  padding:8px 14px;
+  border-radius:20px;
+  border:1px solid #ffb6d2;
+  background:#fff;
   font-size:12px;
-  color:#666;
-  display:flex;
-  align-items:center;
-  gap:4px;
+  cursor:pointer;
+}
+
+.same-btn:active{
+  background:#ff85b3;
+  color:#fff;
+  border:1px solid #ff85b3;
 }
 
 .button-group{
@@ -130,7 +137,7 @@ input:focus{
 
   <div class="header">
     <h1 class="title">プロフィール登録</h1>
-    <p class="subtitle">変更はいつでも可能です</p>
+    <p class="subtitle">変更はいつでも出来ます。</p>
   </div>
 
   <div class="card">
@@ -138,14 +145,11 @@ input:focus{
     <input type="text" id="name" placeholder="源氏名">
 
     <div class="short-row">
-      <input type="text" id="selfCall" placeholder="自分の呼び方（僕・わたし）">
-      <label class="checkbox-wrap">
-        <input type="checkbox" id="sameAsName">
-        源氏名と同じ
-      </label>
+      <input type="text" id="selfCall" placeholder="自分の呼び方">
+      <button class="same-btn" onclick="copyName()">源氏名と同じ</button>
     </div>
 
-    <input type="text" id="customerCall" placeholder="お客様の呼び方（例：あなた・○○さん）">
+    <input type="text" id="customerCall" placeholder="お客様の呼び方（お兄さん・紳士の方）">
   </div>
 
   <div class="card">
@@ -207,13 +211,10 @@ window.onload=function(){
   restoreMulti("traitGroup",profile.traits||[]);
 };
 
-document.getElementById("sameAsName").addEventListener("change",function(){
-  if(this.checked){
-    document.getElementById("selfCall").value=
-      document.getElementById("name").value;
-    saveProfile();
-  }
-});
+function copyName(){
+  selfCall.value=name.value;
+  saveProfile();
+}
 
 document.querySelectorAll("input").forEach(input=>{
   input.addEventListener("input",saveProfile);
