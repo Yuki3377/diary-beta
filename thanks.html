@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>お礼日記生成</title>
+<title>お礼日記をつくる</title>
 
 <style>
 body{
@@ -31,13 +31,32 @@ input,textarea{
   margin-top:8px;
   font-size:14px;
 }
-button{
+button.primary{
   width:100%;
   padding:14px;
   border:none;
   border-radius:25px;
   background:linear-gradient(135deg,#ff5fa2,#ff85b3);
   color:white;
+}
+.button-group{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:10px;
+}
+.choice-btn{
+  padding:6px 12px;
+  border-radius:20px;
+  border:1px solid #ffb6d2;
+  background:#fff;
+  font-size:12px;
+  cursor:pointer;
+}
+.choice-btn.active{
+  background:#ff85b3;
+  color:#fff;
+  border:none;
 }
 .result{
   margin-top:20px;
@@ -59,21 +78,26 @@ button{
 
 <div class="wrapper">
 
-<h2>お礼日記生成</h2>
+<h2>お礼日記をつくる</h2>
 
 <div class="profileInfo" id="profileInfo"></div>
 
 <div class="card">
-<label>場所（必須）</label>
+<label>場所（ホテル名・部屋番号・スタート時間）</label>
 <input id="place">
 </div>
 
 <div class="card">
-<label>今日いちばん印象に残った出来事</label>
+<label>文章に追加するヒントを選択して下さい（複数可）</label>
+<div class="button-group" id="hintButtons"></div>
+</div>
+
+<div class="card">
+<label>印象や出来事（お客様とあなたにしか分からない内容）</label>
 <textarea id="memory" rows="3"></textarea>
 </div>
 
-<button onclick="generateThanks()">生成する</button>
+<button class="primary" onclick="generateThanks()">つくる</button>
 
 <div class="result" id="result"></div>
 
@@ -82,6 +106,32 @@ button{
 <script>
 
 let profile=null;
+let selectedHints=[];
+
+const hints=[
+"久しぶり",
+"新規",
+"指名",
+"また誘ってくだい"
+];
+
+function createHintButtons(){
+  const container=document.getElementById("hintButtons");
+  hints.forEach(h=>{
+    const btn=document.createElement("button");
+    btn.className="choice-btn";
+    btn.innerText=h;
+    btn.onclick=()=>{
+      btn.classList.toggle("active");
+      if(selectedHints.includes(h)){
+        selectedHints=selectedHints.filter(x=>x!==h);
+      }else{
+        selectedHints.push(h);
+      }
+    };
+    container.appendChild(btn);
+  });
+}
 
 function loadProfile(){
   const saved=localStorage.getItem("diaryProfile");
@@ -112,6 +162,11 @@ function generateThanks(){
 
   const customer=profile.customerCall || "お兄さん";
 
+  let hintText="";
+  if(selectedHints.length>0){
+    hintText=selectedHints.join("・") + "だったね。\n\n";
+  }
+
   const endings=[
     "またちゃんと時間つくってね。",
     "次も楽しみにしてる。",
@@ -124,7 +179,7 @@ function generateThanks(){
 
 ${place}で一緒に過ごせて嬉しかった。
 
-${memory || "あの距離感、ちゃんと覚えてるよ。"}
+${hintText}${memory || "あの距離感、ちゃんと覚えてるよ。"}
 
 今日はありがとう。
 
@@ -135,7 +190,10 @@ ${ending}`;
   result.style.display="block";
 }
 
-window.onload=loadProfile;
+window.onload=function(){
+  loadProfile();
+  createHintButtons();
+};
 
 </script>
 
