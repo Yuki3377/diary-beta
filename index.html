@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>写メ日記をつくる</title>
 
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
 <style>
 body{
   margin:0;
@@ -52,8 +54,8 @@ input{
   border-radius:20px;
   border:1px solid #ffb6d2;
   background:#fff;
-  cursor:pointer;
   font-size:13px;
+  cursor:pointer;
 }
 
 .choice-btn.active{
@@ -79,26 +81,6 @@ button.primary{
   border-radius:18px;
   white-space:pre-wrap;
   display:none;
-  animation:fadeResult .35s ease;
-}
-
-@keyframes fadeResult{
-  from{opacity:0; transform:translateY(8px);}
-  to{opacity:1; transform:translateY(0);}
-}
-
-.history{
-  margin-top:30px;
-}
-
-.history-item{
-  background:#fff;
-  padding:10px;
-  border-radius:12px;
-  margin-bottom:8px;
-  font-size:12px;
-  cursor:pointer;
-  border:1px solid #eee;
 }
 
 .profileInfo{
@@ -107,50 +89,31 @@ button.primary{
   margin-bottom:10px;
 }
 
-/* ===== モーダル ===== */
-
 .modal{
   position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.35);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  opacity:0;
-  pointer-events:none;
-  transition:.2s ease;
-  z-index:999;
-}
-
-.modal.active{
-  opacity:1;
-  pointer-events:auto;
-}
-
-.modal-box{
-  background:#fff;
-  padding:28px 40px;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  background:#ff85b3;
+  color:#fff;
+  padding:20px 30px;
   border-radius:20px;
   font-size:18px;
-  font-weight:600;
-  color:#ff5fa2;
-  box-shadow:0 20px 40px rgba(0,0,0,0.2);
-  animation:pop .2s ease;
-}
-
-@keyframes pop{
-  from{transform:scale(.9); opacity:0;}
-  to{transform:scale(1); opacity:1;}
+  display:none;
+  z-index:999;
 }
 </style>
 </head>
 
 <body>
 
+<div class="modal" id="modal">
+プロフィール登録をしてください
+</div>
+
 <div class="wrapper">
 
 <h2>写メ日記をつくる</h2>
-
 <div class="profileInfo" id="profileInfo"></div>
 
 <div class="card">
@@ -172,45 +135,46 @@ button.primary{
 
 <div class="result" id="result"></div>
 
-<div class="history">
-<h3>過去につくった日記</h3>
-<div id="historyList"></div>
-</div>
-
-</div>
-
-<!-- モーダル -->
-<div id="modal" class="modal">
-  <div class="modal-box" id="modalText"></div>
 </div>
 
 <script>
+
+const LIFF_ID = "2009019646-C6qMfHN2";
 
 let profile=null;
 let selectedMood=null;
 let selectedSituation=null;
 
-const moods=[
-"甘えたい",
-"ムラムラしている",
-"寂しい",
-"ご機嫌",
-"イチャイチャしたい"
-];
+const moods=["甘えたい","ムラムラしている","寂しい","ご機嫌","イチャイチャしたい"];
+const situations=["出勤前（当日）","待機中","明日出勤","退勤"];
 
-const situations=[
-"出勤前（当日）",
-"待機中",
-"明日出勤",
-"退勤"
-];
+async function initLiff(){
+  await liff.init({ liffId: LIFF_ID });
+
+  if(!liff.isLoggedIn()){
+    liff.login();
+    return;
+  }
+
+  loadProfile();
+}
 
 function showModal(message){
   const modal=document.getElementById("modal");
-  const text=document.getElementById("modalText");
-  text.innerText=message;
-  modal.classList.add("active");
-  setTimeout(()=>{ modal.classList.remove("active"); },1500);
+  modal.innerText=message;
+  modal.style.display="block";
+  setTimeout(()=>{ modal.style.display="none"; },1500);
+}
+
+function loadProfile(){
+  const saved=localStorage.getItem("profile");
+  if(!saved){
+    showModal("プロフィール登録をしてください");
+    return;
+  }
+  profile=JSON.parse(saved);
+  document.getElementById("profileInfo").innerText=
+  `${profile.name || ""}（${profile.character || ""} / ${profile.age || ""}）`;
 }
 
 function createButtons(list, containerId, callback){
@@ -228,118 +192,35 @@ function createButtons(list, containerId, callback){
   });
 }
 
-function characterTone(character){
-  const toneMap={
-    "妹系":{
-      intro:["ねえねえ…","ちょっと聞いて？"],
-      ending:["待ってるね？","来てくれるよね？"]
-    },
-    "小悪魔系":{
-      intro:["ふーん…","どうする？"],
-      ending:["来ないと後悔するかもよ？","ちゃんと来てね？"]
-    },
-    "清楚系":{
-      intro:["少しだけ…","今日はちょっと…"],
-      ending:["お誘いお待ちしています。","お時間あればぜひ。"]
-    },
-    "お姉さん系":{
-      intro:["ほら、","今日はね、"],
-      ending:["癒してあげる。","待ってるわ。"]
-    },
-    "人妻系":{
-      intro:["内緒だけど、","ちょっとだけ…"],
-      ending:["ちゃんと時間作ってね。","わかってるわよね？"]
-    },
-    "熟女":{
-      intro:["大人の余裕で…","ちょっと甘えさせて？"],
-      ending:["優しくしてくれる？","待っているわ。"]
-    }
-  };
-  return toneMap[character] || toneMap["妹系"];
-}
-
 function generate(){
-
   if(!profile){
-    showModal("プロフィールが未登録です");
+    showModal("プロフィール登録をしてください");
     return;
   }
 
   const title=document.getElementById("title").value;
-
   if(!title || !selectedMood || !selectedSituation){
-    showModal("題名・感情・状況を選択してください");
+    showModal("項目をすべて選択してください");
     return;
   }
 
-  const tone=characterTone(profile.character);
-  const intro=tone.intro[Math.floor(Math.random()*tone.intro.length)];
-  const ending=tone.ending[Math.floor(Math.random()*tone.ending.length)];
   const customer=profile.customerCall || "お兄さん";
 
   const text=`${title}
 
-${intro}
-
 ${selectedSituation}で、ちょっと${selectedMood}。
 
-${customer}どうする？
-
-${ending}`;
+${customer}どうする？`;
 
   const result=document.getElementById("result");
-  result.style.display="block";
-  result.style.animation="none";
-  result.offsetHeight;
-  result.style.animation="fadeResult .35s ease";
   result.innerText=text;
-
-  saveHistory(text);
-}
-
-function saveHistory(text){
-  let history=JSON.parse(localStorage.getItem("diaryHistory") || "[]");
-  history.unshift(text);
-  history=history.slice(0,5);
-  localStorage.setItem("diaryHistory",JSON.stringify(history));
-  renderHistory();
-}
-
-function renderHistory(){
-  const history=JSON.parse(localStorage.getItem("diaryHistory") || "[]");
-  const list=document.getElementById("historyList");
-  list.innerHTML="";
-  history.forEach(item=>{
-    const div=document.createElement("div");
-    div.className="history-item";
-    div.innerText=item.split("\n")[0];
-    div.onclick=()=>{
-      const result=document.getElementById("result");
-      result.style.display="block";
-      result.style.animation="none";
-      result.offsetHeight;
-      result.style.animation="fadeResult .35s ease";
-      result.innerText=item;
-    };
-    list.appendChild(div);
-  });
+  result.style.display="block";
 }
 
 window.onload=function(){
-
-  const saved=localStorage.getItem("profile");
-
-  if(!saved){
-    showModal("プロフィールが未登録です");
-  }else{
-    profile=JSON.parse(saved);
-    document.getElementById("profileInfo").innerText=
-    `${profile.name || ""}（${profile.character || ""} / ${profile.age || ""}）`;
-  }
-
   createButtons(moods,"moodButtons",(v)=>selectedMood=v);
   createButtons(situations,"situationButtons",(v)=>selectedSituation=v);
-  renderHistory();
+  initLiff();
 };
 
 </script>
