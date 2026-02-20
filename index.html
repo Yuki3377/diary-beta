@@ -19,7 +19,7 @@ body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,sans-serif;
   background:var(--bg);
-  color:var(--text);
+  color:var(--text;
 }
 
 .wrapper{
@@ -28,12 +28,7 @@ body{
   padding:20px;
 }
 
-h1{
-  text-align:center;
-  margin-bottom:20px;
-}
-
-/* ===== プロフィールバー ===== */
+h1{text-align:center;margin-bottom:20px;}
 
 .profile-bar{
   background:white;
@@ -47,10 +42,6 @@ h1{
   font-size:12px;
 }
 
-.profile-info{
-  opacity:0.8;
-}
-
 .edit-btn{
   background:var(--accent);
   color:white;
@@ -61,50 +52,78 @@ h1{
   cursor:pointer;
 }
 
-/* ===== カード ===== */
+.tabs{
+  display:flex;
+  margin-bottom:20px;
+  background:white;
+  border-radius:30px;
+  overflow:hidden;
+}
+
+.tabs button{
+  flex:1;
+  padding:10px;
+  border:none;
+  background:none;
+  cursor:pointer;
+}
+
+.tabs button.active{
+  background:var(--accent);
+  color:white;
+}
 
 .card{
   background:var(--card);
-  padding:20px;
+  padding:18px;
   border-radius:var(--radius);
-  margin-bottom:18px;
+  margin-bottom:15px;
   box-shadow:0 8px 20px rgba(255,95,162,0.08);
 }
 
-label{
-  font-size:13px;
-  font-weight:600;
-}
-
-select,input{
+select,input,textarea{
   width:100%;
-  padding:14px;
-  border-radius:14px;
+  padding:12px;
+  border-radius:12px;
   border:1px solid #eee;
   margin-top:8px;
 }
 
 button.primary{
   width:100%;
-  padding:15px;
+  padding:14px;
   border:none;
   border-radius:25px;
   background:linear-gradient(135deg,#ff5fa2,#ff85b3);
   color:white;
-  font-size:15px;
   cursor:pointer;
 }
 
 .result{
-  margin-top:25px;
-  padding:22px;
+  margin-top:20px;
+  padding:20px;
   background:var(--accent-soft);
   border-radius:var(--radius);
   white-space:pre-wrap;
   display:none;
 }
 
-/* ===== モーダル ===== */
+.copy-btn{
+  margin-top:10px;
+  padding:8px;
+  font-size:12px;
+  border:none;
+  border-radius:15px;
+  background:white;
+  cursor:pointer;
+}
+
+.loader{
+  display:none;
+  font-size:12px;
+  opacity:0.6;
+  margin-top:8px;
+}
 
 .modal{
   position:fixed;
@@ -122,143 +141,241 @@ button.primary{
   padding:20px;
   border-radius:20px;
 }
-
 </style>
 </head>
-<body>
 
+<body>
 <div class="wrapper">
+
 <h1>写メ日記 AI</h1>
 
 <div class="profile-bar">
-  <div class="profile-info" id="profileDisplay">プロフィール未設定</div>
+  <div id="profileDisplay">プロフィール未設定</div>
   <button class="edit-btn" onclick="openModal()">編集</button>
 </div>
 
-<div class="card">
-  <label>今日の感情</label>
-  <select id="mood">
-    <option>甘えたい</option>
-    <option>ムラムラしている</option>
-    <option>寂しい</option>
-    <option>ご機嫌</option>
-  </select>
+<div class="tabs">
+  <button class="active" onclick="switchTab('normal')">通常</button>
+  <button onclick="switchTab('thanks')">お礼</button>
 </div>
 
-<div class="card">
-  <label>題名</label>
-  <input id="title">
+<div id="normal">
+  <div class="card">
+    <label>感情</label>
+    <select id="mood">
+      <option>甘えたい</option>
+      <option>ムラムラしている</option>
+      <option>寂しい</option>
+      <option>ご機嫌</option>
+    </select>
+  </div>
+
+  <div class="card">
+    <label>題名</label>
+    <input id="title">
+  </div>
+
+  <button class="primary" onclick="generateNormal()">生成する</button>
+  <div class="loader" id="loader1">AIが考えています…</div>
 </div>
 
-<button class="primary" onclick="generate()">生成する</button>
+<div id="thanks" style="display:none;">
+  <div class="card">
+    <label>場所</label>
+    <input id="place">
+  </div>
+
+  <div class="card">
+    <label>印象に残った出来事</label>
+    <textarea id="memory"></textarea>
+  </div>
+
+  <button class="primary" onclick="generateThanks()">生成する</button>
+  <div class="loader" id="loader2">AIが考えています…</div>
+</div>
 
 <div class="result" id="result"></div>
+<button class="copy-btn" id="copyBtn" style="display:none;" onclick="copyText()">コピー</button>
 
 </div>
 
 <!-- ===== プロフィールモーダル ===== -->
 
 <div class="modal" id="profileModal">
-  <div class="modal-content">
-    <h3>プロフィール編集</h3>
+<div class="modal-content">
+<h3>プロフィール編集</h3>
 
-    <label>名前</label>
-    <input id="name">
+<input id="name" placeholder="名前">
+<input id="selfCall" placeholder="自分の呼び方">
+<input id="customerCall" placeholder="お客様の呼び方">
 
-    <label>自分の呼び方</label>
-    <input id="selfCall">
+<select id="age">
+<option>20代</option>
+<option>30代</option>
+<option>40代</option>
+<option>50代</option>
+</select>
 
-    <label>お客様の呼び方</label>
-    <input id="customerCall">
+<select id="character">
+<option>妹系</option>
+<option>小悪魔系</option>
+<option>清楚系</option>
+<option>お姉さん系</option>
+<option>人妻系</option>
+</select>
 
-    <label>年齢</label>
-    <select id="age">
-      <option>20代</option>
-      <option>30代</option>
-      <option>40代</option>
-      <option>50代</option>
-    </select>
+<label>個性（複数）</label>
+<div>
+<input type="checkbox" value="甘え体質" class="trait">甘え体質
+<input type="checkbox" value="S気質" class="trait">S気質
+<input type="checkbox" value="M気質" class="trait">M気質
+<input type="checkbox" value="寂しがり" class="trait">寂しがり
+</div>
 
-    <label>キャラクター</label>
-    <select id="character">
-      <option>妹系</option>
-      <option>小悪魔系</option>
-      <option>清楚系</option>
-      <option>お姉さん系</option>
-      <option>人妻系</option>
-    </select>
-
-    <button class="primary" onclick="saveProfile()">保存する</button>
-  </div>
+<button class="primary" onclick="saveProfile()">保存</button>
+</div>
 </div>
 
 <script>
 
-/* ===== プロフィール表示更新 ===== */
+/* ===== Prompt Builder ===== */
 
-function updateProfileBar(){
-  const saved=localStorage.getItem("profile");
-  const display=document.getElementById("profileDisplay");
+function buildPrompt(profile, type, data){
 
-  if(!saved){
-    display.innerText="プロフィール未設定";
-    return;
-  }
-
-  const p=JSON.parse(saved);
-  display.innerText=
-`${p.name}｜${p.age}｜${p.character}`;
+if(type==="normal"){
+return {
+system:"写メ日記生成AI",
+profile:profile,
+input:data
+};
 }
 
-/* ===== モーダル ===== */
-
-function openModal(){
-  document.getElementById("profileModal").style.display="flex";
+if(type==="thanks"){
+return {
+system:"お礼日記生成AI",
+profile:profile,
+input:data
+};
 }
 
-function saveProfile(){
-  const profile={
-    name:document.getElementById("name").value,
-    selfCall:document.getElementById("selfCall").value,
-    customerCall:document.getElementById("customerCall").value,
-    age:document.getElementById("age").value,
-    character:document.getElementById("character").value
-  };
+}
 
-  localStorage.setItem("profile",JSON.stringify(profile));
-  document.getElementById("profileModal").style.display="none";
-  updateProfileBar();
+/* ===== 疑似AI生成 ===== */
+
+function fakeAI(prompt){
+
+const p=prompt.profile;
+
+if(prompt.system==="写メ日記生成AI"){
+return `${prompt.input.title}
+
+${p.selfCall}、今日は${prompt.input.mood}気分。
+
+${p.customerCall}、どうする？`;
+}
+
+if(prompt.system==="お礼日記生成AI"){
+return `さっき来てくれた${p.customerCall}へ
+
+${prompt.input.memory}
+
+また会えたら嬉しいな。`;
+}
+
 }
 
 /* ===== 生成 ===== */
 
-function generate(){
+function generateNormal(){
 
-  const saved=localStorage.getItem("profile");
-  if(!saved){
-    alert("プロフィールを設定してください");
-    return;
-  }
+const saved=localStorage.getItem("profile");
+if(!saved){alert("プロフィール未設定");return;}
 
-  const p=JSON.parse(saved);
-  const mood=document.getElementById("mood").value;
-  const title=document.getElementById("title").value;
+document.getElementById("loader1").style.display="block";
 
-  const text=
-`${title}
+setTimeout(()=>{
+const profile=JSON.parse(saved);
+const prompt=buildPrompt(profile,"normal",{
+title:document.getElementById("title").value,
+mood:document.getElementById("mood").value
+});
+const result=fakeAI(prompt);
+showResult(result);
+document.getElementById("loader1").style.display="none";
+},1200);
+}
 
-${p.selfCall}、今日は${mood}気分。
+function generateThanks(){
 
-${p.customerCall}、どうする？`;
+const saved=localStorage.getItem("profile");
+if(!saved){alert("プロフィール未設定");return;}
 
-  const result=document.getElementById("result");
-  result.innerText=text;
-  result.style.display="block";
+document.getElementById("loader2").style.display="block";
+
+setTimeout(()=>{
+const profile=JSON.parse(saved);
+const prompt=buildPrompt(profile,"thanks",{
+memory:document.getElementById("memory").value
+});
+const result=fakeAI(prompt);
+showResult(result);
+document.getElementById("loader2").style.display="none";
+},1200);
+}
+
+function showResult(text){
+document.getElementById("result").innerText=text;
+document.getElementById("result").style.display="block";
+document.getElementById("copyBtn").style.display="block";
+}
+
+function copyText(){
+navigator.clipboard.writeText(document.getElementById("result").innerText);
+alert("コピーしました");
+}
+
+/* ===== プロフィール ===== */
+
+function updateProfileBar(){
+const saved=localStorage.getItem("profile");
+if(!saved){return;}
+const p=JSON.parse(saved);
+document.getElementById("profileDisplay").innerText=
+`${p.name}｜${p.age}｜${p.character}`;
+}
+
+function openModal(){
+document.getElementById("profileModal").style.display="flex";
+}
+
+function saveProfile(){
+
+const traits=[];
+document.querySelectorAll(".trait:checked").forEach(cb=>traits.push(cb.value));
+
+const profile={
+name:document.getElementById("name").value,
+selfCall:document.getElementById("selfCall").value,
+customerCall:document.getElementById("customerCall").value,
+age:document.getElementById("age").value,
+character:document.getElementById("character").value,
+traits:traits
+};
+
+localStorage.setItem("profile",JSON.stringify(profile));
+document.getElementById("profileModal").style.display="none";
+updateProfileBar();
+}
+
+function switchTab(tab){
+document.getElementById("normal").style.display=tab==="normal"?"block":"none";
+document.getElementById("thanks").style.display=tab==="thanks"?"block":"none";
+document.querySelectorAll(".tabs button").forEach(btn=>btn.classList.remove("active"));
+event.target.classList.add("active");
 }
 
 window.onload=updateProfileBar;
 
 </script>
-
 </body>
 </html>
