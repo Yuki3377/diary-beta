@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>写メ日記 AI - Pastel Variations</title>
+<title>写メ日記 AI</title>
 
 <style>
 :root {
@@ -14,7 +14,7 @@
   --text: #444;
 }
 
-/* ===== 共通レイアウト ===== */
+/* ===== 共通 ===== */
 
 body {
   margin: 0;
@@ -31,33 +31,26 @@ body {
 }
 
 h1 {
-  font-size: 22px;
-  margin-bottom: 12px;
   text-align: center;
+  margin-bottom: 20px;
+  font-size: 22px;
   letter-spacing: 1px;
 }
 
-.sub {
-  text-align:center;
-  font-size:12px;
-  margin-bottom:20px;
-  opacity:0.6;
-}
-
 .theme-switcher {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  margin-bottom: 24px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 25px;
 }
 
 .theme-switcher button {
-  padding: 8px;
-  font-size: 11px;
-  border-radius: 10px;
-  border: 1px solid #ddd;
-  background: #fff;
+  padding: 8px 14px;
+  border-radius: 20px;
+  border: none;
   cursor: pointer;
+  font-size: 12px;
+  background: #eee;
 }
 
 .card {
@@ -80,7 +73,6 @@ select, input {
   border-radius: 12px;
   border: 1px solid #eee;
   font-size: 14px;
-  background: #fff;
 }
 
 .generate-btn {
@@ -91,16 +83,11 @@ select, input {
   border: none;
   border-radius: 18px;
   font-size: 16px;
-  margin-top: 20px;
   cursor: pointer;
 }
 
-.generate-btn:hover {
-  opacity:0.9;
-}
-
 .result {
-  margin-top: 30px;
+  margin-top: 25px;
   padding: 18px;
   background: var(--accent-soft);
   border-radius: 16px;
@@ -108,60 +95,37 @@ select, input {
   font-size: 14px;
 }
 
-/* ========================= */
-/* ===== 10 PASTEL THEME ===== */
-/* ========================= */
+/* ===== Theme 1: Pastel Pink ===== */
 
-/* 1 Classic Pastel Pink */
-body.t1 { --bg:#fff4f8; --card:#ffffff; --accent:#ff5fa2; --accent-soft:#ffc2da; --text:#444; }
+body.pink {
+  --bg: #fff4f8;
+  --card: #ffffff;
+  --accent: #ff5fa2;
+  --accent-soft: #ffc2da;
+  --text: #444;
+}
 
-/* 2 Baby Pink */
-body.t2 { --bg:#fff0f5; --card:#ffffff; --accent:#ff85b3; --accent-soft:#ffd6e8; --text:#555; }
+/* ===== Theme 2: Coral Pastel ===== */
 
-/* 3 Peach Pastel */
-body.t3 { --bg:#fff6ef; --card:#ffffff; --accent:#ff9b6a; --accent-soft:#ffe1d2; --text:#4a3a33; }
-
-/* 4 Lavender Pastel */
-body.t4 { --bg:#f7f3ff; --card:#ffffff; --accent:#b88cff; --accent-soft:#e6d9ff; --text:#3a2f50; }
-
-/* 5 Mint Pastel */
-body.t5 { --bg:#f0fff9; --card:#ffffff; --accent:#47d7ac; --accent-soft:#c8fff0; --text:#2f4f4a; }
-
-/* 6 Sky Pastel */
-body.t6 { --bg:#f0f8ff; --card:#ffffff; --accent:#66b3ff; --accent-soft:#d6ecff; --text:#2f3f55; }
-
-/* 7 Lemon Pastel */
-body.t7 { --bg:#fffde8; --card:#ffffff; --accent:#ffd84d; --accent-soft:#fff5b8; --text:#55523a; }
-
-/* 8 Coral Pastel */
-body.t8 { --bg:#fff2f2; --card:#ffffff; --accent:#ff6f91; --accent-soft:#ffd3dc; --text:#553840; }
-
-/* 9 Rose Beige */
-body.t9 { --bg:#faf3f5; --card:#ffffff; --accent:#d98fa0; --accent-soft:#f2d8df; --text:#4a3a3e; }
-
-/* 10 Soft Mauve */
-body.t10 { --bg:#f6f0f4; --card:#ffffff; --accent:#c17ab5; --accent-soft:#e7cde3; --text:#3f2f3c; }
+body.coral {
+  --bg: #fff2f2;
+  --card: #ffffff;
+  --accent: #ff6f91;
+  --accent-soft: #ffd3dc;
+  --text: #553840;
+}
 
 </style>
 </head>
 
-<body>
+<body class="pink">
 
 <div class="container">
   <h1>写メ日記 AI</h1>
-  <div class="sub">PASTEL COLLECTION</div>
 
   <div class="theme-switcher">
-    <button onclick="setTheme('t1')">Classic</button>
-    <button onclick="setTheme('t2')">Baby</button>
-    <button onclick="setTheme('t3')">Peach</button>
-    <button onclick="setTheme('t4')">Lavender</button>
-    <button onclick="setTheme('t5')">Mint</button>
-    <button onclick="setTheme('t6')">Sky</button>
-    <button onclick="setTheme('t7')">Lemon</button>
-    <button onclick="setTheme('t8')">Coral</button>
-    <button onclick="setTheme('t9')">Rose Beige</button>
-    <button onclick="setTheme('t10')">Mauve</button>
+    <button onclick="setTheme('pink')">Pastel Pink</button>
+    <button onclick="setTheme('coral')">Coral</button>
   </div>
 
   <div class="card">
@@ -196,18 +160,17 @@ body.t10 { --bg:#f6f0f4; --card:#ffffff; --accent:#c17ab5; --accent-soft:#e7cde3
 </div>
 
 <script>
+function setTheme(theme) {
+  document.body.className = theme;
+}
+
 function generate() {
   document.getElementById("result").innerText =
-`今日はちょっと甘えたい気分。
+`ちょっと甘えたい気分。
 
 待機中なのに落ち着かなくて。
 
 お兄さん、どうする？`;
-}
-
-function setTheme(theme) {
-  document.body.className = '';
-  document.body.classList.add(theme);
 }
 </script>
 
