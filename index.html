@@ -51,6 +51,25 @@ button{
   color:#888;
   margin-bottom:10px;
 }
+.history{
+  margin-top:30px;
+}
+.history h3{
+  font-size:14px;
+  margin-bottom:10px;
+}
+.history-item{
+  background:#fff;
+  padding:10px;
+  border-radius:12px;
+  margin-bottom:8px;
+  font-size:12px;
+  cursor:pointer;
+  border:1px solid #eee;
+}
+.history-item:hover{
+  background:#ffeaf4;
+}
 </style>
 </head>
 
@@ -92,12 +111,18 @@ button{
 
 <div class="result" id="result"></div>
 
+<div class="history">
+<h3>生成履歴</h3>
+<div id="historyList"></div>
+</div>
+
 </div>
 
 <script>
 
 let profile=null;
 
+/* ===== プロフィール読み込み ===== */
 function loadProfile(){
   const saved=localStorage.getItem("diaryProfile");
   if(!saved){
@@ -110,8 +135,8 @@ function loadProfile(){
     `${profile.name || ""}（${profile.character || ""} / ${profile.age || ""}）`;
 }
 
+/* ===== キャラ別語尾 ===== */
 function characterTone(character){
-
   const toneMap={
     "妹系":{
       intro:["ねえねえ…","ちょっと聞いて？"],
@@ -134,10 +159,10 @@ function characterTone(character){
       ending:["ちゃんと時間作ってね。","わかってるわよね？"]
     }
   };
-
   return toneMap[character] || toneMap["妹系"];
 }
 
+/* ===== 生成 ===== */
 function generate(){
 
   if(!profile){
@@ -173,9 +198,44 @@ ${ending}`;
   const result=document.getElementById("result");
   result.innerText=text;
   result.style.display="block";
+
+  saveHistory(text);
 }
 
-window.onload=loadProfile;
+/* ===== 履歴保存 ===== */
+function saveHistory(text){
+  let history=JSON.parse(localStorage.getItem("diaryHistory") || "[]");
+
+  history.unshift(text);
+  history = history.slice(0,5);
+
+  localStorage.setItem("diaryHistory", JSON.stringify(history));
+
+  renderHistory();
+}
+
+/* ===== 履歴表示 ===== */
+function renderHistory(){
+  const history=JSON.parse(localStorage.getItem("diaryHistory") || "[]");
+  const list=document.getElementById("historyList");
+  list.innerHTML="";
+
+  history.forEach(item=>{
+    const div=document.createElement("div");
+    div.className="history-item";
+    div.innerText=item.split("\n")[0]; // 題名だけ表示
+    div.onclick=()=>{
+      document.getElementById("result").innerText=item;
+      document.getElementById("result").style.display="block";
+    };
+    list.appendChild(div);
+  });
+}
+
+window.onload=function(){
+  loadProfile();
+  renderHistory();
+};
 
 </script>
 
