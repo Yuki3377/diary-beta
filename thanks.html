@@ -2,106 +2,247 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
 <title>お礼日記をつくる</title>
 
 <style>
-body{margin:0;font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#fff4f8;}
-.wrapper{max-width:520px;margin:40px auto;padding:20px;}
-.card{background:#fff;padding:18px;border-radius:18px;margin-bottom:15px;box-shadow:0 8px 20px rgba(255,95,162,0.08);}
-input,textarea{width:100%;padding:12px;border-radius:12px;border:1px solid #eee;margin-top:8px;font-size:16px;}
-button.primary{width:100%;padding:14px;border:none;border-radius:25px;background:linear-gradient(135deg,#ff5fa2,#ff85b3);color:white;}
-.profileInfo{font-size:13px;color:#555;margin-bottom:15px;line-height:1.6;}
-.history-item{background:#fff;padding:10px;border-radius:12px;margin-bottom:8px;font-size:12px;border:1px solid #eee;cursor:pointer;}
-.result{margin-top:20px;padding:20px;background:#ffd6e8;border-radius:18px;white-space:pre-wrap;display:none;}
+html{
+  touch-action: manipulation;
+}
+
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+  background:#f3e9ee;
+  -webkit-text-size-adjust:100%;
+}
+
+.wrapper{
+  max-width:520px;
+  margin:40px auto;
+  padding:20px;
+}
+
+h2{
+  text-align:center;
+  margin-bottom:6px;
+}
+
+.profileInfo{
+  text-align:center;
+  font-size:13px;
+  color:#777;
+  margin-bottom:25px;
+}
+
+.card{
+  background:#fff;
+  padding:18px;
+  border-radius:20px;
+  margin-bottom:20px;
+  box-shadow:0 10px 25px rgba(255,95,162,0.08);
+}
+
+input,textarea{
+  width:100%;
+  padding:14px;
+  border-radius:14px;
+  border:1px solid #eee;
+  font-size:16px;
+}
+
+.button-group{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:10px;
+}
+
+.choice-btn{
+  border:1px solid #ff9fc3;
+  background:#fff;
+  padding:8px 16px;
+  border-radius:999px;
+  font-size:13px;
+  cursor:pointer;
+  user-select:none;
+}
+
+.choice-btn.active{
+  background:#ff5fa2;
+  color:#fff;
+  border:1px solid #ff5fa2;
+}
+
+.primary{
+  width:100%;
+  padding:16px;
+  border:none;
+  border-radius:999px;
+  background:linear-gradient(135deg,#ff5fa2,#ff85b3);
+  color:#fff;
+  font-size:15px;
+  cursor:pointer;
+}
+
+.result{
+  margin-top:25px;
+  padding:20px;
+  background:#ffd6e8;
+  border-radius:20px;
+  white-space:pre-wrap;
+  display:none;
+}
+
+.history{
+  margin-top:30px;
+}
+
+.history-item{
+  background:#fff;
+  padding:12px;
+  border-radius:14px;
+  margin-bottom:8px;
+  font-size:12px;
+  border:1px solid #eee;
+  cursor:pointer;
+}
+
+.modal{
+  position:fixed;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  background:#ff5fa2;
+  color:#fff;
+  padding:22px 45px;
+  border-radius:30px;
+  font-size:18px;
+  opacity:0;
+  transition:0.3s;
+  z-index:1000;
+}
 </style>
 </head>
 
 <body>
+
 <div class="wrapper">
 
 <h2>お礼日記をつくる</h2>
 <div class="profileInfo" id="profileInfo"></div>
 
 <div class="card">
-<label>場所</label>
+<label>場所（ホテル名・部屋番号・コース時間など）</label>
 <input id="place">
 </div>
 
 <div class="card">
-<label>印象や出来事</label>
+<label>文章に追加するヒントを選択して下さい（複数可）</label>
+<div class="button-group" id="hintButtons"></div>
+</div>
+
+<div class="card">
+<label>印象や出来事（お客様とあなたにしか分からない内容）</label>
 <textarea id="memory" rows="3"></textarea>
 </div>
 
-<button class="primary" onclick="generate()">つくる</button>
+<button type="button" class="primary" onclick="generateThanks()">つくる</button>
 
 <div class="result" id="result"></div>
 
+<div class="history">
 <h3>過去につくった日記</h3>
 <div id="historyList"></div>
+</div>
 
 </div>
 
+<div id="modal" class="modal">プロフィール未登録です</div>
+
 <script>
+
 let profile=null;
+let selectedHints=[];
+
+const hints=[
+"久しぶり","新規","指名","仲良し様","長めコース","短めコース",
+"いっぱい褒めてくれた","たくさんイッちゃった",
+"いっぱいせめた","いっぱいせめられた","ぎゅってしてくれた","また誘ってください"
+];
+
+function createHintButtons(){
+  const container=document.getElementById("hintButtons");
+  hints.forEach(h=>{
+    const btn=document.createElement("button");
+    btn.type="button";
+    btn.className="choice-btn";
+    btn.innerText=h;
+    btn.addEventListener("click",()=>{
+      btn.classList.toggle("active");
+      if(selectedHints.includes(h)){
+        selectedHints=selectedHints.filter(x=>x!==h);
+      }else{
+        selectedHints.push(h);
+      }
+    });
+    container.appendChild(btn);
+  });
+}
 
 function loadProfile(){
   const saved=localStorage.getItem("profile");
-  if(!saved)return;
+  if(!saved){
+    showModal();
+    return;
+  }
   profile=JSON.parse(saved);
 
+  const traits=profile.traits?.join(" / ") || "";
   document.getElementById("profileInfo").innerText=
-`源氏名：${profile.name || ""}
-自分の呼び方：${profile.selfCall || ""}
-お客様の呼び方：${profile.customerCall || ""}
-年齢：${profile.age || ""}
-キャラ：${profile.character || ""}
-個性：${(profile.traits || []).join(" / ")}`;
+    `（${profile.character || ""} / ${profile.age || ""}）`;
 }
 
-function generate(){
-  if(!profile)return;
+function showModal(){
+  const modal=document.getElementById("modal");
+  modal.style.opacity="1";
+  setTimeout(()=>{ modal.style.opacity="0"; },1500);
+}
+
+function generateThanks(){
+  if(!profile){
+    showModal();
+    return;
+  }
+
   const place=document.getElementById("place").value;
-  const memory=document.getElementById("memory").value;
-  if(!place)return;
+  if(!place){
+    showModal();
+    return;
+  }
 
-  const text=`${place}でありがとう。
+  const customer=profile.customerCall || "お兄さん";
 
-${memory || ""}`;
+  const text=`${customer}へ
 
-  document.getElementById("result").innerText=text;
-  document.getElementById("result").style.display="block";
-  saveHistory(text);
-}
+${place}で一緒に過ごせて嬉しかった。
 
-function saveHistory(text){
-  let history=JSON.parse(localStorage.getItem("diaryHistory")||"[]");
-  history.unshift(text);
-  history=history.slice(0,5);
-  localStorage.setItem("diaryHistory",JSON.stringify(history));
-  renderHistory();
-}
+また会えるよね？`;
 
-function renderHistory(){
-  const history=JSON.parse(localStorage.getItem("diaryHistory")||"[]");
-  const list=document.getElementById("historyList");
-  list.innerHTML="";
-  history.forEach(item=>{
-    const div=document.createElement("div");
-    div.className="history-item";
-    div.innerText=item.split("\n")[0];
-    div.onclick=()=>{
-      document.getElementById("result").innerText=item;
-      document.getElementById("result").style.display="block";
-    };
-    list.appendChild(div);
-  });
+  const result=document.getElementById("result");
+  result.innerText=text;
+  result.style.display="block";
 }
 
 window.onload=function(){
   loadProfile();
-  renderHistory();
+  createHintButtons();
 };
+
 </script>
+
 </body>
 </html>
