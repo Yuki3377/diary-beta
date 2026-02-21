@@ -2,250 +2,163 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport"
-content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>お礼日記をつくる</title>
 
 <style>
-html{
-  touch-action: manipulation;
-}
+/* index.html / profile.html と共通のデザイン */
+html,body{ touch-action: manipulation; -webkit-text-size-adjust:100%; }
+*{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,sans-serif; background:#f4f9ff; } /* お礼は少し爽やかなブルー系 */
 
-body{
-  margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
-  background:#f3e9ee;
-  -webkit-text-size-adjust:100%;
-}
+.wrapper{ max-width:520px; margin:40px auto; padding:20px; animation:fadeUp .4s ease; }
+@keyframes fadeUp{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
 
-.wrapper{
-  max-width:520px;
-  margin:40px auto;
-  padding:20px;
-}
+h2{ margin-bottom:6px; color: #4a90e2; }
+.profileInfo{ font-size:13px; color:#888; margin-bottom:18px; }
 
-h2{
-  text-align:center;
-  margin-bottom:6px;
-}
+.card{ background:#fff; padding:18px; border-radius:18px; margin-bottom:15px; box-shadow:0 8px 20px rgba(74,144,226,0.08); }
 
-.profileInfo{
-  text-align:center;
-  font-size:13px;
-  color:#777;
-  margin-bottom:25px;
-}
+.button-group{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+.choice-btn{ padding:8px 14px; border-radius:20px; border:1px solid #b6d4ff; background:#fff; cursor:pointer; font-size:13px; }
+.choice-btn.active{ background:#4a90e2; color:#fff; border:1px solid #4a90e2; }
 
-.card{
-  background:#fff;
-  padding:18px;
-  border-radius:20px;
-  margin-bottom:20px;
-  box-shadow:0 10px 25px rgba(255,95,162,0.08);
-}
+button.primary{ width:100%; padding:14px; border:none; border-radius:25px; background:linear-gradient(135deg,#4a90e2,#7eb6ff); color:white; margin-top:10px; font-size:14px; font-weight:bold; }
+button.primary:disabled { background: #ccc; }
 
-/* 入力はカード内に完全収まる */
-input,textarea{
-  width:100%;
-  max-width:100%;
-  padding:14px;
-  border-radius:14px;
-  border:1px solid #eee;
-  font-size:16px;
-  box-sizing:border-box;
-}
+.result{ margin-top:20px; padding:20px; background:#e3f2ff; border-radius:18px; white-space:pre-wrap; display:none; animation:fadeResult .35s ease; }
 
-.button-group{
-  display:flex;
-  flex-wrap:wrap;
-  gap:10px;
-  margin-top:10px;
-}
+.modal{ position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(74, 144, 226, 0.95); color:#fff; padding:20px 30px; border-radius:25px; font-size:16px; opacity:0; transition:0.3s; pointer-events:none; z-index:1000; text-align:center; width: 80%; }
 
-.choice-btn{
-  border:1px solid #ff9fc3;
-  background:#fff;
-  padding:8px 16px;
-  border-radius:999px;
-  font-size:13px;
-  cursor:pointer;
-  user-select:none;
-  transition:transform 0.05s ease; /* 微振動の元 */
-}
-
-/* 押したときの軽い縮小（微振動感） */
-.choice-btn:active{
-  transform:scale(0.97);
-}
-
-.choice-btn.active{
-  background:#ff5fa2;
-  color:#fff;
-  border:1px solid #ff5fa2;
-}
-
-.primary{
-  width:100%;
-  padding:16px;
-  border:none;
-  border-radius:999px;
-  background:linear-gradient(135deg,#ff5fa2,#ff85b3);
-  color:#fff;
-  font-size:15px;
-  cursor:pointer;
-  transition:transform 0.05s ease;
-}
-
-.primary:active{
-  transform:scale(0.97);
-}
-
-.result{
-  margin-top:25px;
-  padding:20px;
-  background:#ffd6e8;
-  border-radius:20px;
-  white-space:pre-wrap;
-  display:none;
-}
-
-.modal{
-  position:fixed;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  background:#ff5fa2;
-  color:#fff;
-  padding:22px 45px;
-  border-radius:30px;
-  font-size:18px;
-  opacity:0;
-  transition:0.3s;
-  z-index:1000;
-}
+.nav-links { text-align: center; margin-top: 20px; }
+.nav-links a { color: #4a90e2; text-decoration: none; font-size: 13px; margin: 0 10px; }
 </style>
 </head>
 
 <body>
 
 <div class="wrapper">
+  <h2>お礼日記をつくる</h2>
+  <div class="profileInfo" id="profileInfo">プロフィール読み込み中...</div>
 
-<h2>お礼日記をつくる</h2>
-<div class="profileInfo" id="profileInfo"></div>
+  <div class="card">
+    <label>何のお礼？</label>
+    <div class="button-group" id="thanksTypeButtons"></div>
+  </div>
 
-<div class="card">
-<label>場所（ホテル名・部屋番号・コース時間など）</label>
-<input id="place">
+  <div class="card">
+    <label>今の気持ち</label>
+    <div class="button-group" id="moodButtons"></div>
+  </div>
+
+  <button class="primary" id="generateBtn" onclick="generate()">お礼メッセージをつくる</button>
+  
+  <div class="result" id="result"></div>
+
+  <div class="nav-links">
+    <a href="index.html">← 日記作成へ</a>
+    <a href="profile.html">プロフィール設定</a>
+  </div>
 </div>
 
-<div class="card">
-<label>文章に追加するヒントを選択（複数可）</label>
-<div class="button-group" id="hintButtons"></div>
-</div>
-
-<div class="card">
-<label>サービスの時の印象や出来事を文章に生成</label>
-<textarea id="memory" rows="3"></textarea>
-</div>
-
-<button type="button" class="primary" id="createBtn">つくる</button>
-
-<div class="result" id="result"></div>
-
-</div>
-
-<div id="modal" class="modal">プロフィール未登録です</div>
+<div id="modal" class="modal"></div>
 
 <script>
+let profile = null;
+let selectedType = null;
+let selectedMood = null;
 
-let profile=null;
-let selectedHints=[];
+// 設定項目
+const thanksTypes = ["接客後のお礼", "ドリンクのお礼", "シャンパンのお礼", "予約のお礼", "久しぶりの連絡"];
+const moods = ["感謝いっぱい", "ドキドキした", "楽しかった", "また会いたい", "少し寂しい"];
 
-const hints=[
-"久しぶり","新規","指名","仲良し様",
-"長めコース","短めコース",
-"いっぱい褒めてくれた","たくさんイッちゃった",
-"いっぱいせめた","いっぱいせめられた",
-"ぎゅってしてくれた","また誘ってください"
-];
+function loadProfile() {
+  const saved = localStorage.getItem("profile");
+  const infoDiv = document.getElementById("profileInfo");
+  if (!saved) {
+    profile = null;
+    infoDiv.innerHTML = '<b style="color:#d0021b;">⚠️プロフィール未登録です</b>';
+    return;
+  }
+  profile = JSON.parse(saved);
+  infoDiv.innerText = `${profile.name}さんとして作成します`;
+}
 
-function createHintButtons(){
-  const container=document.getElementById("hintButtons");
+function showModal(msg) {
+  const modal = document.getElementById("modal");
+  modal.innerText = msg;
+  modal.style.opacity = "1";
+  setTimeout(() => { modal.style.opacity = "0"; }, 2500);
+}
 
-  hints.forEach(h=>{
-    const btn=document.createElement("button");
-    btn.type="button";
-    btn.className="choice-btn";
-    btn.innerText=h;
+async function generate() {
+  if (!profile) {
+    showModal("プロフィールを先に登録してね");
+    return;
+  }
+  if (!selectedType || !selectedMood) {
+    showModal("項目をえらんでね");
+    return;
+  }
 
-    btn.addEventListener("click",function(){
+  const btn = document.getElementById("generateBtn");
+  btn.innerText = "AIがお礼を考えています...";
+  btn.disabled = true;
 
-      if(btn.classList.contains("active")){
-        btn.classList.remove("active");
-        selectedHints=selectedHints.filter(x=>x!==h);
-      }else{
-        btn.classList.add("active");
-        selectedHints.push(h);
-      }
-
+  try {
+    const workerUrl = "https://lucky-bush-6437diary-api.doropbox-kyoto.workers.dev";
+    const response = await fetch(workerUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        promptType: "thanks", // ここでWorker側に「お礼用」だと伝える
+        context: {
+          name: profile.name,
+          mood: selectedMood,
+          situation: selectedType, // お礼の種類を状況として送る
+          customer: profile.customerCall || "お兄さん",
+          character: profile.character
+        }
+      })
     });
 
+    const data = await response.json();
+    if (data.text) {
+      const resultArea = document.getElementById("result");
+      resultArea.style.display = "block";
+      resultArea.innerText = data.text;
+    } else {
+      throw new Error("生成失敗");
+    }
+  } catch (error) {
+    showModal("エラーが発生しました");
+  } finally {
+    btn.innerText = "お礼メッセージをつくる";
+    btn.disabled = false;
+  }
+}
+
+// ボタン生成
+function createButtons(list, containerId, callback) {
+  const container = document.getElementById(containerId);
+  list.forEach(item => {
+    const btn = document.createElement("button");
+    btn.className = "choice-btn";
+    btn.innerText = item;
+    btn.onclick = () => {
+      [...container.children].forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      callback(item);
+    };
     container.appendChild(btn);
   });
 }
 
-function loadProfile(){
-  const saved=localStorage.getItem("profile");
-  if(!saved){
-    showModal();
-    return;
-  }
-  profile=JSON.parse(saved);
-
-  document.getElementById("profileInfo").innerText=
-    `（${profile.character || ""} / ${profile.age || ""}）`;
-}
-
-function showModal(){
-  const modal=document.getElementById("modal");
-  modal.style.opacity="1";
-  setTimeout(()=>{ modal.style.opacity="0"; },1500);
-}
-
-document.getElementById("createBtn").addEventListener("click",generateThanks);
-
-function generateThanks(){
-
-  if(!profile){
-    showModal();
-    return;
-  }
-
-  const place=document.getElementById("place").value;
-  if(!place){
-    showModal();
-    return;
-  }
-
-  const customer=profile.customerCall || "お兄さん";
-
-  const text=`${customer}へ
-
-${place}で一緒に過ごせて嬉しかった。
-
-また会えるよね？`;
-
-  const result=document.getElementById("result");
-  result.innerText=text;
-  result.style.display="block";
-}
-
-window.onload=function(){
+window.onload = function() {
   loadProfile();
-  createHintButtons();
+  createButtons(thanksTypes, "thanksTypeButtons", (v) => selectedType = v);
+  createButtons(moods, "moodButtons", (v) => selectedMood = v);
 };
-
 </script>
-
 </body>
 </html>
