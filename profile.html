@@ -2,14 +2,21 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>プロフィール登録</title>
 
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
 <style>
+
+html,body{
+  touch-action: manipulation;
+  -webkit-text-size-adjust:100%;
+}
+
 *{
   box-sizing:border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body{
@@ -58,7 +65,7 @@ input{
   background:#fff;
   font-size:12px;
   white-space:nowrap;
-  touch-action:manipulation;
+  cursor:pointer;
 }
 
 .button-group{
@@ -75,7 +82,7 @@ input{
   background:#fff;
   font-size:13px;
   cursor:pointer;
-  touch-action:manipulation;
+  user-select:none;
 }
 
 .btn.active{
@@ -93,10 +100,9 @@ input{
   color:#fff;
   font-size:14px;
   margin-top:20px;
-  touch-action:manipulation;
+  cursor:pointer;
+  user-select:none;
 }
-
-/* ===== 改善ここ ===== */
 
 .toast{
   position:fixed;
@@ -110,7 +116,7 @@ input{
   font-size:20px;
   min-width:240px;
   text-align:center;
-  white-space:nowrap; /* 改行禁止 */
+  white-space:nowrap;
   opacity:0;
   transition:0.3s;
   z-index:1000;
@@ -128,13 +134,11 @@ input{
   font-size:18px;
   min-width:220px;
   text-align:center;
-  white-space:nowrap; /* 改行禁止 */
+  white-space:nowrap;
   opacity:0;
   transition:0.3s;
   z-index:1000;
 }
-
-/* ===== ここまで ===== */
 
 </style>
 </head>
@@ -192,6 +196,22 @@ const traits=[
 "ちょっぴり挑発的","ツンデレ","恥ずかしがり",
 "密着好き","聞き上手","かまってちゃん"
 ];
+
+let lastTap = 0;
+
+document.addEventListener("touchend", function(e){
+  const now = new Date().getTime();
+  if (now - lastTap < 300) {
+    e.preventDefault();
+  }
+  lastTap = now;
+});
+
+document.addEventListener("touchend", function(e){
+  if(e.target.classList.contains("btn")){
+    e.target.blur();
+  }
+});
 
 async function init(){
   await liff.init({ liffId:LIFF_ID });
