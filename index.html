@@ -18,12 +18,6 @@ body{
   max-width:520px;
   margin:40px auto;
   padding:20px;
-  animation:fadeUp .4s ease;
-}
-
-@keyframes fadeUp{
-  from{opacity:0; transform:translateY(10px);}
-  to{opacity:1; transform:translateY(0);}
 }
 
 .card{
@@ -40,6 +34,7 @@ input{
   border-radius:12px;
   border:1px solid #eee;
   margin-top:8px;
+  font-size:16px;
 }
 
 .button-group{
@@ -55,7 +50,6 @@ input{
   border:1px solid #ffb6d2;
   background:#fff;
   font-size:13px;
-  cursor:pointer;
 }
 
 .choice-btn.active{
@@ -83,33 +77,26 @@ button.primary{
   display:none;
 }
 
-.profileInfo{
-  font-size:13px;
-  color:#888;
-  margin-bottom:10px;
+.history-item{
+  background:#fff;
+  padding:10px;
+  border-radius:12px;
+  margin-bottom:8px;
+  font-size:12px;
+  border:1px solid #eee;
+  cursor:pointer;
 }
 
-.modal{
-  position:fixed;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  background:#ff85b3;
-  color:#fff;
-  padding:20px 30px;
-  border-radius:20px;
-  font-size:18px;
-  display:none;
-  z-index:999;
+.profileInfo{
+  font-size:13px;
+  color:#555;
+  margin-bottom:15px;
+  line-height:1.6;
 }
 </style>
 </head>
 
 <body>
-
-<div class="modal" id="modal">
-プロフィール登録をしてください
-</div>
 
 <div class="wrapper">
 
@@ -135,12 +122,13 @@ button.primary{
 
 <div class="result" id="result"></div>
 
+<h3>過去につくった日記</h3>
+<div id="historyList"></div>
+
 </div>
 
 <script>
-
-const LIFF_ID = "2009019646-C6qMfHN2";
-
+const LIFF_ID="2009019646-C6qMfHN2";
 let profile=null;
 let selectedMood=null;
 let selectedSituation=null;
@@ -148,37 +136,28 @@ let selectedSituation=null;
 const moods=["甘えたい","ムラムラしている","寂しい","ご機嫌","イチャイチャしたい"];
 const situations=["出勤前（当日）","待機中","明日出勤","退勤"];
 
-async function initLiff(){
-  await liff.init({ liffId: LIFF_ID });
-
-  if(!liff.isLoggedIn()){
-    liff.login();
-    return;
-  }
-
+async function init(){
+  await liff.init({ liffId:LIFF_ID });
+  if(!liff.isLoggedIn()){ liff.login(); return; }
   loadProfile();
-}
-
-function showModal(message){
-  const modal=document.getElementById("modal");
-  modal.innerText=message;
-  modal.style.display="block";
-  setTimeout(()=>{ modal.style.display="none"; },1500);
 }
 
 function loadProfile(){
   const saved=localStorage.getItem("profile");
-  if(!saved){
-    showModal("プロフィール登録をしてください");
-    return;
-  }
+  if(!saved)return;
   profile=JSON.parse(saved);
+
   document.getElementById("profileInfo").innerText=
-  `${profile.name || ""}（${profile.character || ""} / ${profile.age || ""}）`;
+`源氏名：${profile.name || ""}
+自分の呼び方：${profile.selfCall || ""}
+お客様の呼び方：${profile.customerCall || ""}
+年齢：${profile.age || ""}
+キャラ：${profile.character || ""}
+個性：${(profile.traits || []).join(" / ")}`;
 }
 
-function createButtons(list, containerId, callback){
-  const container=document.getElementById(containerId);
+function createButtons(list,id,callback){
+  const container=document.getElementById(id);
   list.forEach(item=>{
     const btn=document.createElement("button");
     btn.className="choice-btn";
@@ -193,37 +172,50 @@ function createButtons(list, containerId, callback){
 }
 
 function generate(){
-  if(!profile){
-    showModal("プロフィール登録をしてください");
-    return;
-  }
+  if(!profile)return;
 
   const title=document.getElementById("title").value;
-  if(!title || !selectedMood || !selectedSituation){
-    showModal("項目をすべて選択してください");
-    return;
-  }
-
-  const customer=profile.customerCall || "お兄さん";
+  if(!title||!selectedMood||!selectedSituation)return;
 
   const text=`${title}
 
-${selectedSituation}で、ちょっと${selectedMood}。
+${selectedSituation}で、ちょっと${selectedMood}。`;
 
-${customer}どうする？`;
+  document.getElementById("result").innerText=text;
+  document.getElementById("result").style.display="block";
+  saveHistory(text);
+}
 
-  const result=document.getElementById("result");
-  result.innerText=text;
-  result.style.display="block";
+function saveHistory(text){
+  let history=JSON.parse(localStorage.getItem("diaryHistory")||"[]");
+  history.unshift(text);
+  history=history.slice(0,5);
+  localStorage.setItem("diaryHistory",JSON.stringify(history));
+  renderHistory();
+}
+
+function renderHistory(){
+  const history=JSON.parse(localStorage.getItem("diaryHistory")||"[]");
+  const list=document.getElementById("historyList");
+  list.innerHTML="";
+  history.forEach(item=>{
+    const div=document.createElement("div");
+    div.className="history-item";
+    div.innerText=item.split("\n")[0];
+    div.onclick=()=>{
+      document.getElementById("result").innerText=item;
+      document.getElementById("result").style.display="block";
+    };
+    list.appendChild(div);
+  });
 }
 
 window.onload=function(){
-  createButtons(moods,"moodButtons",(v)=>selectedMood=v);
-  createButtons(situations,"situationButtons",(v)=>selectedSituation=v);
-  initLiff();
+  createButtons(moods,"moodButtons",v=>selectedMood=v);
+  createButtons(situations,"situationButtons",v=>selectedSituation=v);
+  renderHistory();
+  init();
 };
-
 </script>
-
 </body>
 </html>
