@@ -6,7 +6,7 @@
 <title>写メ日記をつくる</title>
 
 <style>
-/* --- 既存のデザイン（CSS）は一切変更していません --- */
+/* --- 既存のデザイン（CSS） --- */
 html,body{
   touch-action: manipulation;
   -webkit-text-size-adjust:100%;
@@ -59,12 +59,6 @@ input{
   border-radius:12px;
   border:1px solid #eee;
   font-size:16px;
-}
-
-/* 写真アップロード用のスタイルを少し調整 */
-input[type="file"] {
-  padding: 8px;
-  font-size: 14px;
 }
 
 .button-group{
@@ -180,11 +174,6 @@ button.primary:disabled {
 <input id="title" placeholder="今日の日記のタイトル">
 </div>
 
-<div class="card">
-<label>写真（写メ）</label>
-<input type="file" id="photoInput" accept="image/*">
-</div>
-
 <button class="primary" id="generateBtn" onclick="generate()">つくる</button>
 
 <div class="result" id="result"></div>
@@ -258,7 +247,7 @@ function showModal(msg){
   setTimeout(()=>{ modal.style.opacity="0"; },1500);
 }
 
-// ★ここがAI通信用に進化しました★
+// AI通信処理（画像なし・テキスト情報のみを送信）
 async function generate(){
   if(!profile){
     showModal("プロフィール未登録です");
@@ -266,10 +255,9 @@ async function generate(){
   }
 
   const title=document.getElementById("title").value;
-  const photoFile = document.getElementById("photoInput").files[0];
 
-  if(!title || !selectedMood || !selectedSituation || !photoFile){
-    showModal("項目と写真をすべて選んでね");
+  if(!title || !selectedMood || !selectedSituation){
+    showModal("項目をすべて選んでね");
     return;
   }
 
@@ -280,10 +268,6 @@ async function generate(){
   btn.disabled = true;
 
   try {
-    // 画像をBase64に変換
-    const base64Image = await toBase64(photoFile);
-    const pureBase64 = base64Image.split(',')[1]; // ヘッダー除去
-
     // Cloudflare Workerへ送信
     const workerUrl = "https://lucky-bush-6437diary-api.doropbox-kyoto.workers.dev";
     
@@ -291,8 +275,15 @@ async function generate(){
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        image: pureBase64,
-        promptType: "index"
+        promptType: "index",
+        // 選んだ項目をAIへ渡すためのデータ
+        context: {
+          name: profile.name,
+          mood: selectedMood,
+          situation: selectedSituation,
+          title: title,
+          customer: profile.customerCall || "お兄さん"
+        }
       })
     });
 
@@ -318,14 +309,6 @@ async function generate(){
     btn.disabled = false;
   }
 }
-
-// 画像をBase64に変換する関数
-const toBase64 = file => new Promise((resolve, reject) => {
-  const reader = new FileReader();
-  reader.readAsDataURL(file);
-  reader.onload = () => resolve(reader.result);
-  reader.onerror = error => reject(error);
-});
 
 function saveHistory(text){
   let history=JSON.parse(localStorage.getItem("diaryHistory")||"[]");
