@@ -6,6 +6,7 @@
 <title>写メ日記をつくる</title>
 
 <style>
+/* --- 既存のデザイン（CSS）は一切変更していません --- */
 html,body{
   touch-action: manipulation;
   -webkit-text-size-adjust:100%;
@@ -60,6 +61,12 @@ input{
   font-size:16px;
 }
 
+/* 写真アップロード用のスタイルを少し調整 */
+input[type="file"] {
+  padding: 8px;
+  font-size: 14px;
+}
+
 .button-group{
   display:flex;
   flex-wrap:wrap;
@@ -93,6 +100,11 @@ button.primary{
   margin-top:10px;
   font-size:14px;
   user-select:none;
+}
+
+button.primary:disabled {
+  background: #ccc;
+  cursor: not-allowed;
 }
 
 .result{
@@ -140,6 +152,7 @@ button.primary{
   font-size:18px;
   opacity:0;
   transition:0.3s;
+  pointer-events:none;
   z-index:1000;
 }
 </style>
@@ -164,10 +177,15 @@ button.primary{
 
 <div class="card">
 <label>題名</label>
-<input id="title">
+<input id="title" placeholder="今日の日記のタイトル">
 </div>
 
-<button class="primary" onclick="generate()">つくる</button>
+<div class="card">
+<label>写真（写メ）</label>
+<input type="file" id="photoInput" accept="image/*">
+</div>
+
+<button class="primary" id="generateBtn" onclick="generate()">つくる</button>
 
 <div class="result" id="result"></div>
 
@@ -178,15 +196,15 @@ button.primary{
 
 </div>
 
-<div id="modal" class="modal">プロフィール未登録です</div>
+<div id="modal" class="modal">エラーが発生しました</div>
 
 <script>
-
 let profile=null;
 let selectedMood=null;
 let selectedSituation=null;
 let lastTap=0;
 
+// ダブルタップズーム防止
 document.addEventListener("touchend",function(e){
   const now=new Date().getTime();
   if(now-lastTap<300){
@@ -195,6 +213,7 @@ document.addEventListener("touchend",function(e){
   lastTap=now;
 });
 
+// フォーカス外し
 document.addEventListener("touchend",function(e){
   if(e.target.classList.contains("choice-btn")){
     e.target.blur();
@@ -222,7 +241,7 @@ function createButtons(list,containerId,callback){
 function loadProfile(){
   const saved=localStorage.getItem("profile");
   if(!saved){
-    showModal();
+    showModal("プロフィール未登録です");
     return;
   }
   profile=JSON.parse(saved);
@@ -232,39 +251,81 @@ function loadProfile(){
     `${profile.name || ""}（${profile.age || ""} / ${profile.character || ""} / ${traits}）`;
 }
 
-function showModal(){
+function showModal(msg){
   const modal=document.getElementById("modal");
+  modal.innerText = msg || "プロフィール未登録です";
   modal.style.opacity="1";
   setTimeout(()=>{ modal.style.opacity="0"; },1500);
 }
 
-function generate(){
+// ★ここがAI通信用に進化しました★
+async function generate(){
   if(!profile){
-    showModal();
+    showModal("プロフィール未登録です");
     return;
   }
 
   const title=document.getElementById("title").value;
+  const photoFile = document.getElementById("photoInput").files[0];
 
-  if(!title || !selectedMood || !selectedSituation){
-    showModal();
+  if(!title || !selectedMood || !selectedSituation || !photoFile){
+    showModal("項目と写真をすべて選んでね");
     return;
   }
 
-  const customer=profile.customerCall || "お兄さん";
+  // ボタンを「作成中」にする
+  const btn = document.getElementById("generateBtn");
+  const originalText = btn.innerText;
+  btn.innerText = "AIが日記を作成中...";
+  btn.disabled = true;
 
-  const text=`${title}
+  try {
+    // 画像をBase64に変換
+    const base64Image = await toBase64(photoFile);
+    const pureBase64 = base64Image.split(',')[1]; // ヘッダー除去
 
-${selectedSituation}で、ちょっと${selectedMood}。
+    // Cloudflare Workerへ送信
+    const workerUrl = "https://lucky-bush-6437diary-api.doropbox-kyoto.workers.dev";
+    
+    const response = await fetch(workerUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        image: pureBase64,
+        promptType: "index"
+      })
+    });
 
-${customer}どうする？`;
+    const data = await response.json();
+    
+    if (data.text) {
+      // 成功した場合
+      const fullText = `【${title}】\n\n${data.text}`;
+      const resultArea = document.getElementById("result");
+      resultArea.style.display="block";
+      resultArea.innerText = fullText;
+      saveHistory(fullText);
+    } else {
+      throw new Error(data.error || "生成失敗");
+    }
 
-  const result=document.getElementById("result");
-  result.style.display="block";
-  result.innerText=text;
-
-  saveHistory(text);
+  } catch (error) {
+    console.error("通信エラー:", error);
+    showModal("エラーが発生しました");
+  } finally {
+    // ボタンを元に戻す
+    btn.innerText = originalText;
+    btn.disabled = false;
+  }
 }
+
+// 画像をBase64に変換する関数
+const toBase64 = file => new Promise((resolve, reject) => {
+  const reader = new FileReader();
+  reader.readAsDataURL(file);
+  reader.onload = () => resolve(reader.result);
+  reader.onerror = error => reject(error);
+});
 
 function saveHistory(text){
   let history=JSON.parse(localStorage.getItem("diaryHistory")||"[]");
