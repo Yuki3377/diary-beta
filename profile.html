@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>プロフィール登録</title>
 
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
 <style>
 *{
   box-sizing:border-box;
@@ -42,6 +44,7 @@ input{
   display:flex;
   gap:8px;
   align-items:center;
+  margin-top:10px;
 }
 
 .row input{
@@ -55,6 +58,7 @@ input{
   background:#fff;
   font-size:12px;
   white-space:nowrap;
+  touch-action: manipulation;
 }
 
 .button-group{
@@ -71,6 +75,7 @@ input{
   background:#fff;
   font-size:13px;
   cursor:pointer;
+  touch-action: manipulation;
 }
 
 .btn.active{
@@ -88,20 +93,22 @@ input{
   color:#fff;
   font-size:14px;
   margin-top:20px;
+  touch-action: manipulation;
 }
 
 .toast{
   position:fixed;
-  bottom:40px;
+  top:50%;
   left:50%;
-  transform:translateX(-50%);
-  background:#ff85b3;
+  transform:translate(-50%,-50%);
+  background:#ff5fa2;
   color:#fff;
-  padding:14px 25px;
+  padding:30px 45px;
   border-radius:25px;
-  font-size:16px;
+  font-size:20px;
   opacity:0;
   transition:0.3s;
+  z-index:1000;
 }
 
 .limitAlert{
@@ -131,7 +138,7 @@ input{
 
 <input id="name" placeholder="源氏名">
 
-<div class="row" style="margin-top:10px;">
+<div class="row">
   <input id="selfCall" placeholder="自分の呼び方">
   <button class="sameBtn" onclick="copyName()">源氏名と同じ</button>
 </div>
@@ -164,6 +171,8 @@ input{
 
 <script>
 
+const LIFF_ID="2009019646-C6qMfHN2";
+
 const ages=["10代","20代","30代","40代","50代"];
 const characters=["妹系","小悪魔系","清楚系","お姉さん系","人妻系","熟女"];
 const traits=[
@@ -173,6 +182,10 @@ const traits=[
 "密着好き","聞き上手","かまってちゃん"
 ];
 
+async function init(){
+  await liff.init({ liffId:LIFF_ID });
+}
+
 function createSingle(list,id){
   const group=document.getElementById(id);
   list.forEach(item=>{
@@ -180,12 +193,8 @@ function createSingle(list,id){
     btn.className="btn";
     btn.innerText=item;
     btn.onclick=()=>{
-      if(btn.classList.contains("active")){
-        btn.classList.remove("active");
-      }else{
-        [...group.children].forEach(b=>b.classList.remove("active"));
-        btn.classList.add("active");
-      }
+      [...group.children].forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
     };
     group.appendChild(btn);
   });
@@ -238,21 +247,28 @@ function saveProfile(){
 
   localStorage.setItem("profile",JSON.stringify(profile));
   showToast();
+
+  setTimeout(()=>{
+    if(liff.isInClient()){
+      liff.closeWindow();
+    }
+  },1200);
 }
 
 function showToast(){
   const toast=document.getElementById("toast");
   toast.style.opacity="1";
-  setTimeout(()=>{ toast.style.opacity="0"; },1500);
+  setTimeout(()=>{ toast.style.opacity="0"; },1000);
 }
 
 function showLimitAlert(){
   const alert=document.getElementById("limitAlert");
   alert.style.opacity="1";
-  setTimeout(()=>{ alert.style.opacity="0"; },1500);
+  setTimeout(()=>{ alert.style.opacity="0"; },1200);
 }
 
 window.onload=function(){
+  init();
   createSingle(ages,"ageGroup");
   createSingle(characters,"charGroup");
   createMulti(traits,"traitGroup",3);
