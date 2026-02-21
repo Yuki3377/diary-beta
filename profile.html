@@ -6,7 +6,6 @@
 <title>プロフィール設定</title>
 
 <style>
-/* デザインをindex.htmlと統一 */
 html,body{ touch-action: manipulation; -webkit-text-size-adjust:100%; }
 *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
 body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,sans-serif; background:#fff4f8; }
@@ -39,18 +38,26 @@ input:focus { border-color: #ff85b3; background: #fff; }
 }
 
 .trait-btn {
-  padding: 8px 15px;
+  padding: 8px 14px;
   border-radius: 20px;
   border: 1px solid #eee;
   background: #fff;
   font-size: 13px;
   cursor: pointer;
+  transition: 0.2s;
 }
 
 .trait-btn.active {
   background: #ff85b3;
   color: #fff;
   border-color: #ff85b3;
+}
+
+.limit-info {
+  font-size: 11px;
+  color: #ff85b3;
+  margin-top: 5px;
+  font-weight: normal;
 }
 
 button.save-btn {
@@ -94,12 +101,12 @@ button.save-btn {
 
   <div class="card">
     <label>源氏名（AIが名乗る名前）</label>
-    <input type="text" id="name" placeholder="例：あみ">
+    <input type="text" id="name" placeholder="あみ">
   </div>
 
   <div class="card">
-    <label>年齢（非表示・AIの口調用）</label>
-    <input type="number" id="age" placeholder="例：22">
+    <label>年齢（AIの口調に反映されます）</label>
+    <input type="number" id="age" placeholder="22">
   </div>
 
   <div class="card">
@@ -110,6 +117,8 @@ button.save-btn {
       <option value="清楚系">清楚系</option>
       <option value="ギャル系">ギャル系</option>
       <option value="小悪魔系">小悪魔系</option>
+      <option value="ドS系">ドS系</option>
+      <option value="ドM系">ドM系</option>
     </select>
   </div>
 
@@ -119,38 +128,54 @@ button.save-btn {
   </div>
 
   <div class="card">
-    <label>あなたの特徴（複数選択）</label>
+    <label>あなたの特徴 <span class="limit-info">※最大4つまで</span></label>
     <div class="trait-group" id="traitGroup">
-      <button class="trait-btn" onclick="toggleTrait(this)">聞き上手</button>
-      <button class="trait-btn" onclick="toggleTrait(this)">お酒好き</button>
-      <button class="trait-btn" onclick="toggleTrait(this)">甘えん坊</button>
-      <button class="trait-btn" onclick="toggleTrait(this)">人見知り</button>
-      <button class="trait-btn" onclick="toggleTrait(this)">癒やし系</button>
-    </div>
+      </div>
   </div>
 
-  <button class="save-btn" onclick="saveProfile()">保存する</button>
+  <button class="save-btn" onclick="saveProfile()">保存して戻る</button>
   <div id="statusMsg"></div>
 
-  <a href="index.html" class="back-link">← 日記作成に戻る</a>
+  <a href="index.html" class="back-link">← キャンセルして戻る</a>
 </div>
 
 <script>
 let selectedTraits = [];
 
-// 特徴ボタンの切り替え
-function toggleTrait(btn) {
-  const trait = btn.innerText;
-  if (btn.classList.contains('active')) {
-    btn.classList.remove('active');
-    selectedTraits = selectedTraits.filter(t => t !== trait);
-  } else {
-    btn.classList.add('active');
-    selectedTraits.push(trait);
-  }
+// ご指定のリストを反映
+const traitsList = [
+  "S気質", "M気質", "甘え体質", "寂しがり", "痴女", 
+  "巨乳", "グラマー", "大人の色気", "ちょっぴり挑発的", 
+  "ツンデレ", "恥ずかしがり", "密着好き", "聞き上手", "かまってちゃん",
+  "優しい", "天然", "癒やし系", "お酒好き", "美脚"
+];
+
+function renderTraits() {
+  const container = document.getElementById("traitGroup");
+  container.innerHTML = "";
+  traitsList.forEach(trait => {
+    const btn = document.createElement("button");
+    btn.className = "trait-btn";
+    btn.innerText = trait;
+    if (selectedTraits.includes(trait)) btn.classList.add("active");
+    
+    btn.onclick = () => {
+      if (selectedTraits.includes(trait)) {
+        selectedTraits = selectedTraits.filter(t => t !== trait);
+        btn.classList.remove("active");
+      } else {
+        if (selectedTraits.length >= 4) {
+          alert("選べるのは4つまでだよ！");
+          return;
+        }
+        selectedTraits.push(trait);
+        btn.classList.add("active");
+      }
+    };
+    container.appendChild(btn);
+  });
 }
 
-// 既存データの読み込み
 function loadProfile() {
   const saved = localStorage.getItem("profile");
   if (saved) {
@@ -159,42 +184,33 @@ function loadProfile() {
     document.getElementById("age").value = p.age || "";
     document.getElementById("character").value = p.character || "お姉さん系";
     document.getElementById("customerCall").value = p.customerCall || "";
-    
-    // 特徴ボタンの状態復元
     selectedTraits = p.traits || [];
-    const buttons = document.querySelectorAll('.trait-btn');
-    buttons.forEach(btn => {
-      if (selectedTraits.includes(btn.innerText)) {
-        btn.classList.add('active');
-      }
-    });
   }
+  renderTraits();
 }
 
-// データの保存
 function saveProfile() {
+  const name = document.getElementById("name").value;
+  if (!name) {
+    alert("名前を入力してね！");
+    return;
+  }
+
   const profileData = {
-    name: document.getElementById("name").value,
+    name: name,
     age: document.getElementById("age").value,
     character: document.getElementById("character").value,
     customerCall: document.getElementById("customerCall").value,
     traits: selectedTraits
   };
 
-  if (!profileData.name) {
-    alert("名前は入力してね！");
-    return;
-  }
-
   localStorage.setItem("profile", JSON.stringify(profileData));
   
   const msg = document.getElementById("statusMsg");
   msg.innerText = "保存しました！";
   setTimeout(() => { 
-    msg.innerText = "";
-    // 保存後、少ししてからメイン画面へ戻る
     location.href = "index.html";
-  }, 1000);
+  }, 800);
 }
 
 window.onload = loadProfile;
