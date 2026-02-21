@@ -6,26 +6,44 @@
 <title>写メ日記をつくる</title>
 
 <style>
-/* CSSは変更なし（前回と同様） */
 html,body{ touch-action: manipulation; -webkit-text-size-adjust:100%; }
 *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
 body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,sans-serif; background:#fff4f8; }
+
 .wrapper{ max-width:520px; margin:40px auto; padding:20px; animation:fadeUp .4s ease; }
 @keyframes fadeUp{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
-h2{ margin-bottom:6px; }
+
+h2{ margin-bottom:6px; color: #ff5fa2; }
 .profileInfo{ font-size:13px; color:#888; margin-bottom:18px; min-height: 1.2em; }
+
 .card{ background:#fff; padding:18px; border-radius:18px; margin-bottom:15px; box-shadow:0 8px 20px rgba(255,95,162,0.08); }
-input{ width:100%; padding:12px; border-radius:12px; border:1px solid #eee; font-size:16px; }
+
+label{ font-size: 14px; font-weight: bold; color: #555; display: block; margin-bottom: 8px; }
+
+input, textarea {
+  width:100%;
+  padding:12px;
+  border-radius:12px;
+  border:1px solid #eee;
+  font-size:16px;
+  background: #fdfdfd;
+}
+
 .button-group{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
 .choice-btn{ padding:8px 14px; border-radius:20px; border:1px solid #ffb6d2; background:#fff; cursor:pointer; font-size:13px; user-select:none; }
 .choice-btn.active{ background:#ff85b3; color:#fff; border:1px solid #ff85b3; }
-button.primary{ width:100%; padding:14px; border:none; border-radius:25px; background:linear-gradient(135deg,#ff5fa2,#ff85b3); color:white; margin-top:10px; font-size:14px; user-select:none; font-weight:bold; }
-button.primary:disabled { background: #ccc; }
-.result{ margin-top:20px; padding:20px; background:#ffd6e8; border-radius:18px; white-space:pre-wrap; display:none; animation:fadeResult .35s ease; }
+
+button.primary{ width:100%; padding:14px; border:none; border-radius:25px; background:linear-gradient(135deg,#ff5fa2,#ff85b3); color:white; margin-top:10px; font-size:14px; font-weight:bold; cursor:pointer; }
+button.primary:disabled { background: #ccc; cursor: not-allowed; }
+
+/* 編集エリア専用スタイル */
+.result-container { display:none; margin-top:20px; animation:fadeResult .35s ease; }
 @keyframes fadeResult{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
+
 .history{ margin-top:30px; }
 .history-item{ background:#fff; padding:10px; border-radius:12px; margin-bottom:8px; font-size:12px; cursor:pointer; border:1px solid #eee; }
-.modal{ position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(255, 95, 162, 0.95); color:#fff; padding:20px 30px; border-radius:25px; font-size:16px; opacity:0; transition:0.3s; pointer-events:none; z-index:1000; text-align:center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); width: 80%; }
+
+.modal{ position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(255, 95, 162, 0.95); color:#fff; padding:20px 30px; border-radius:25px; font-size:16px; opacity:0; transition:0.3s; pointer-events:none; z-index:1000; text-align:center; width: 80%; }
 </style>
 </head>
 
@@ -33,10 +51,10 @@ button.primary:disabled { background: #ccc; }
 
 <div class="wrapper">
   <h2>写メ日記をつくる</h2>
-  <div class="profileInfo" id="profileInfo">プロフィール読み込み中...</div>
+  <div class="profileInfo" id="profileInfo">読み込み中...</div>
 
   <div class="card">
-    <label>感情</label>
+    <label>今の気分</label>
     <div class="button-group" id="moodButtons"></div>
   </div>
 
@@ -51,10 +69,19 @@ button.primary:disabled { background: #ccc; }
   </div>
 
   <button class="primary" id="generateBtn" onclick="generate()">日記をつくる</button>
-  <div class="result" id="result"></div>
+
+  <div class="result-container" id="resultContainer">
+    <div class="card" style="background:#fff0f6; border: 1px solid #ffb6d2;">
+      <label>AIが書いた日記（自由に修正OK）</label>
+      <textarea id="resultTextarea" rows="8" placeholder="ここに日記が生成されます"></textarea>
+      <div class="button-group">
+        <button class="choice-btn" onclick="copyText()">📋 文章をコピー</button>
+      </div>
+    </div>
+  </div>
 
   <div class="history">
-    <h3>過去の履歴</h3>
+    <h3>過去の履歴（5件）</h3>
     <div id="historyList"></div>
   </div>
 </div>
@@ -66,48 +93,33 @@ let profile = null;
 let selectedMood = null;
 let selectedSituation = null;
 
-// プロフィール読み込み
 function loadProfile() {
   const saved = localStorage.getItem("profile");
   const infoDiv = document.getElementById("profileInfo");
-  
   if (!saved) {
-    profile = null;
-    infoDiv.innerHTML = '<b style="color:#ff5fa2;">⚠️プロフィールが未登録です。設定してください。</b>';
-    return false;
+    infoDiv.innerHTML = '<b style="color:#ff5fa2;">⚠️プロフィール未登録です。設定してください。</b>';
+    return;
   }
-  
-  try {
-    profile = JSON.parse(saved);
-    const traits = profile.traits?.join(" / ") || "";
-    infoDiv.innerText = `${profile.name || "未設定"}（${profile.age || "?"} / ${profile.character || "?"} / ${traits}）`;
-    return true;
-  } catch(e) {
-    profile = null;
-    return false;
-  }
+  profile = JSON.parse(saved);
+  const traits = profile.traits?.join(" / ") || "";
+  infoDiv.innerText = `${profile.name || "未設定"}（${profile.age || "?"}歳 / ${profile.character || "?"} / ${traits}）`;
 }
 
 function showModal(msg) {
   const modal = document.getElementById("modal");
   modal.innerText = msg;
   modal.style.opacity = "1";
-  setTimeout(() => { modal.style.opacity = "0"; }, 2500);
+  setTimeout(() => { modal.style.opacity = "0"; }, 2000);
 }
 
-// AI生成
 async function generate() {
-  // 1. プロフィール未登録ならエラー
   if (!profile || !profile.name) {
-    showModal("【エラー】プロフィールが設定されていません。プロフィール画面で登録してください。");
+    showModal("プロフィールを先に登録してください");
     return;
   }
-
   const title = document.getElementById("title").value;
-
-  // 2. 入力チェック
   if (!title || !selectedMood || !selectedSituation) {
-    showModal("すべての項目を選択・入力してください");
+    showModal("すべての項目を入力してください");
     return;
   }
 
@@ -128,7 +140,7 @@ async function generate() {
           situation: selectedSituation,
           title: title,
           customer: profile.customerCall || "お兄さん",
-          character: profile.character || "おまかせ"
+          character: profile.character
         }
       })
     });
@@ -136,23 +148,37 @@ async function generate() {
     const data = await response.json();
     if (data.text) {
       const fullText = `【${title}】\n\n${data.text}`;
-      const resultArea = document.getElementById("result");
-      resultArea.style.display = "block";
-      resultArea.innerText = fullText;
+      document.getElementById("resultContainer").style.display = "block";
+      document.getElementById("resultTextarea").value = fullText;
       saveHistory(fullText);
+      
+      // 生成された場所にスクロール
+      document.getElementById("resultContainer").scrollIntoView({ behavior: 'smooth' });
     } else {
-      throw new Error(data.error || "生成失敗");
+      throw new Error("生成失敗");
     }
   } catch (error) {
-    console.error(error);
-    showModal("エラーが発生しました。時間を置いて試してください。");
+    showModal("エラーが発生しました");
   } finally {
     btn.innerText = "日記をつくる";
     btn.disabled = false;
   }
 }
 
-// 履歴保存など（省略なし）
+function copyText() {
+  const textarea = document.getElementById("resultTextarea");
+  textarea.select();
+  textarea.setSelectionRange(0, 99999); // スマホ対応
+  
+  navigator.clipboard.writeText(textarea.value).then(() => {
+    showModal("コピーしました！SNS等に貼ってね");
+  }).catch(() => {
+    // 古いブラウザ向け
+    document.execCommand("copy");
+    showModal("コピーしました！");
+  });
+}
+
 function saveHistory(text){
   let history=JSON.parse(localStorage.getItem("diaryHistory")||"[]");
   history.unshift(text);
@@ -168,28 +194,27 @@ function renderHistory(){
   history.forEach(item=>{
     const div=document.createElement("div");
     div.className="history-item";
-    div.innerText=item.split("\n")[0];
+    div.innerText = item.split("\n")[0];
     div.onclick=()=>{
-      const result=document.getElementById("result");
-      result.style.display="block";
-      result.innerText=item;
+      document.getElementById("resultContainer").style.display = "block";
+      document.getElementById("resultTextarea").value = item;
+      document.getElementById("resultContainer").scrollIntoView({ behavior: 'smooth' });
     };
     list.appendChild(div);
   });
 }
 
-// 起動時
 const moods=["甘えたい","ムラムラしている","寂しい","ご機嫌","イチャイチャしたい"];
 const situations=["出勤前（当日）","待機中","明日出勤","退勤"];
 
-function createButtons(list,containerId,callback){
-  const container=document.getElementById(containerId);
-  list.forEach(item=>{
-    const btn=document.createElement("button");
-    btn.className="choice-btn";
-    btn.innerText=item;
-    btn.onclick=()=>{
-      [...container.children].forEach(b=>b.classList.remove("active"));
+function createButtons(list, containerId, callback) {
+  const container = document.getElementById(containerId);
+  list.forEach(item => {
+    const btn = document.createElement("button");
+    btn.className = "choice-btn";
+    btn.innerText = item;
+    btn.onclick = () => {
+      [...container.children].forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
       callback(item);
     };
@@ -197,10 +222,10 @@ function createButtons(list,containerId,callback){
   });
 }
 
-window.onload=function(){
+window.onload = function() {
   loadProfile();
-  createButtons(moods,"moodButtons",(v)=>selectedMood=v);
-  createButtons(situations,"situationButtons",(v)=>selectedSituation=v);
+  createButtons(moods, "moodButtons", (v) => selectedMood = v);
+  createButtons(situations, "situationButtons", (v) => selectedSituation = v);
   renderHistory();
 };
 </script>
