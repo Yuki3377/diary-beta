@@ -34,7 +34,7 @@ input{
   border-radius:12px;
   border:1px solid #eee;
   margin-top:8px;
-  font-size:16px;
+  font-size:16px; /* 自動ズーム防止 */
 }
 
 .button-group{
@@ -89,9 +89,8 @@ button.primary{
 
 .profileInfo{
   font-size:13px;
-  color:#555;
+  color:#666;
   margin-bottom:15px;
-  line-height:1.6;
 }
 </style>
 </head>
@@ -129,6 +128,7 @@ button.primary{
 
 <script>
 const LIFF_ID="2009019646-C6qMfHN2";
+
 let profile=null;
 let selectedMood=null;
 let selectedSituation=null;
@@ -147,13 +147,12 @@ function loadProfile(){
   if(!saved)return;
   profile=JSON.parse(saved);
 
-  document.getElementById("profileInfo").innerText=
-`源氏名：${profile.name || ""}
-自分の呼び方：${profile.selfCall || ""}
-お客様の呼び方：${profile.customerCall || ""}
-年齢：${profile.age || ""}
-キャラ：${profile.character || ""}
-個性：${(profile.traits || []).join(" / ")}`;
+  const age = profile.age || "";
+  const character = profile.character || "";
+  const traits = (profile.traits || []).join(" / ");
+
+  document.getElementById("profileInfo").innerText =
+    `${profile.name || ""}（${age} / ${character}${traits ? " / " + traits : ""}）`;
 }
 
 function createButtons(list,id,callback){
@@ -217,5 +216,6 @@ window.onload=function(){
   init();
 };
 </script>
+
 </body>
 </html>
