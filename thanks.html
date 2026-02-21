@@ -18,24 +18,6 @@ body{
   -webkit-text-size-adjust:100%;
 }
 
-/* ===== GPU安定化 ===== */
-button,
-.choice-btn{
-  transform: translateZ(0);
-  will-change: transform;
-}
-
-/* 押下フィードバック（微振動吸収） */
-button:active,
-.choice-btn:active{
-  transform: scale(0.97);
-}
-
-/* 軽いトランジション */
-.choice-btn{
-  transition: transform 0.05s ease;
-}
-
 .wrapper{
   max-width:520px;
   margin:40px auto;
@@ -62,7 +44,7 @@ h2{
   box-shadow:0 10px 25px rgba(255,95,162,0.08);
 }
 
-/* はみ出し完全防止 */
+/* 入力はカード内に完全収まる */
 input,textarea{
   width:100%;
   max-width:100%;
@@ -86,8 +68,14 @@ input,textarea{
   padding:8px 16px;
   border-radius:999px;
   font-size:13px;
-  user-select:none;
   cursor:pointer;
+  user-select:none;
+  transition:transform 0.05s ease; /* 微振動の元 */
+}
+
+/* 押したときの軽い縮小（微振動感） */
+.choice-btn:active{
+  transform:scale(0.97);
 }
 
 .choice-btn.active{
@@ -105,6 +93,11 @@ input,textarea{
   color:#fff;
   font-size:15px;
   cursor:pointer;
+  transition:transform 0.05s ease;
+}
+
+.primary:active{
+  transform:scale(0.97);
 }
 
 .result{
@@ -185,14 +178,16 @@ function createHintButtons(){
     btn.className="choice-btn";
     btn.innerText=h;
 
-    btn.addEventListener("pointerdown",()=>{
-      btn.classList.toggle("active");
+    btn.addEventListener("click",function(){
 
-      if(selectedHints.includes(h)){
+      if(btn.classList.contains("active")){
+        btn.classList.remove("active");
         selectedHints=selectedHints.filter(x=>x!==h);
       }else{
+        btn.classList.add("active");
         selectedHints.push(h);
       }
+
     });
 
     container.appendChild(btn);
@@ -205,7 +200,6 @@ function loadProfile(){
     showModal();
     return;
   }
-
   profile=JSON.parse(saved);
 
   document.getElementById("profileInfo").innerText=
@@ -218,7 +212,7 @@ function showModal(){
   setTimeout(()=>{ modal.style.opacity="0"; },1500);
 }
 
-document.getElementById("createBtn").addEventListener("pointerdown",generateThanks);
+document.getElementById("createBtn").addEventListener("click",generateThanks);
 
 function generateThanks(){
 
