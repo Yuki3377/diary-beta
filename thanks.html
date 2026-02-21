@@ -46,12 +46,15 @@ h2{
   box-shadow:0 10px 25px rgba(255,95,162,0.08);
 }
 
+/* ★ はみ出し完全防止 */
 input,textarea{
   width:100%;
+  max-width:100%;
   padding:14px;
   border-radius:14px;
   border:1px solid #eee;
   font-size:16px;
+  box-sizing:border-box;
 }
 
 .button-group{
@@ -69,6 +72,7 @@ input,textarea{
   font-size:13px;
   cursor:pointer;
   user-select:none;
+  touch-action: manipulation;
 }
 
 .choice-btn.active{
@@ -86,6 +90,7 @@ input,textarea{
   color:#fff;
   font-size:15px;
   cursor:pointer;
+  touch-action: manipulation;
 }
 
 .result{
@@ -141,12 +146,12 @@ input,textarea{
 </div>
 
 <div class="card">
-<label>文章に追加するヒントを選択して下さい（複数可）</label>
+<label>文章に追加するヒントを選択（複数可）</label>
 <div class="button-group" id="hintButtons"></div>
 </div>
 
 <div class="card">
-<label>印象や出来事（お客様とあなたにしか分からない内容）</label>
+<label>サービスの時の印象や出来事を文章に生成</label>
 <textarea id="memory" rows="3"></textarea>
 </div>
 
@@ -181,6 +186,7 @@ function createHintButtons(){
     btn.type="button";
     btn.className="choice-btn";
     btn.innerText=h;
+
     btn.addEventListener("click",()=>{
       btn.classList.toggle("active");
       if(selectedHints.includes(h)){
@@ -189,6 +195,7 @@ function createHintButtons(){
         selectedHints.push(h);
       }
     });
+
     container.appendChild(btn);
   });
 }
