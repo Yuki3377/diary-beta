@@ -5,11 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>写メ日記をつくる</title>
 
-<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-
 <style>
+html,body{
+  touch-action: manipulation;
+  -webkit-text-size-adjust:100%;
+}
+
 *{
   box-sizing:border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body{
@@ -22,6 +26,22 @@ body{
   max-width:520px;
   margin:40px auto;
   padding:20px;
+  animation:fadeUp .4s ease;
+}
+
+@keyframes fadeUp{
+  from{opacity:0; transform:translateY(10px);}
+  to{opacity:1; transform:translateY(0);}
+}
+
+h2{
+  margin-bottom:6px;
+}
+
+.profileInfo{
+  font-size:13px;
+  color:#888;
+  margin-bottom:18px;
 }
 
 .card{
@@ -37,7 +57,6 @@ input{
   padding:12px;
   border-radius:12px;
   border:1px solid #eee;
-  margin-top:8px;
   font-size:16px;
 }
 
@@ -53,8 +72,9 @@ input{
   border-radius:20px;
   border:1px solid #ffb6d2;
   background:#fff;
-  font-size:13px;
   cursor:pointer;
+  font-size:13px;
+  user-select:none;
 }
 
 .choice-btn.active{
@@ -71,6 +91,8 @@ button.primary{
   background:linear-gradient(135deg,#ff5fa2,#ff85b3);
   color:white;
   margin-top:10px;
+  font-size:14px;
+  user-select:none;
 }
 
 .result{
@@ -80,6 +102,16 @@ button.primary{
   border-radius:18px;
   white-space:pre-wrap;
   display:none;
+  animation:fadeResult .35s ease;
+}
+
+@keyframes fadeResult{
+  from{opacity:0; transform:translateY(8px);}
+  to{opacity:1; transform:translateY(0);}
+}
+
+.history{
+  margin-top:30px;
 }
 
 .history-item{
@@ -88,14 +120,27 @@ button.primary{
   border-radius:12px;
   margin-bottom:8px;
   font-size:12px;
-  border:1px solid #eee;
   cursor:pointer;
+  border:1px solid #eee;
 }
 
-.profileInfo{
-  font-size:13px;
-  color:#666;
-  margin-bottom:15px;
+.history-item:hover{
+  background:#ffeaf4;
+}
+
+.modal{
+  position:fixed;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  background:#ff5fa2;
+  color:#fff;
+  padding:20px 35px;
+  border-radius:25px;
+  font-size:18px;
+  opacity:0;
+  transition:0.3s;
+  z-index:1000;
 }
 </style>
 </head>
@@ -126,43 +171,41 @@ button.primary{
 
 <div class="result" id="result"></div>
 
+<div class="history">
 <h3>過去につくった日記</h3>
 <div id="historyList"></div>
+</div>
 
 </div>
 
-<script>
+<div id="modal" class="modal">プロフィール未登録です</div>
 
-const LIFF_ID="2009019646-C6qMfHN2";
+<script>
 
 let profile=null;
 let selectedMood=null;
 let selectedSituation=null;
+let lastTap=0;
+
+document.addEventListener("touchend",function(e){
+  const now=new Date().getTime();
+  if(now-lastTap<300){
+    e.preventDefault();
+  }
+  lastTap=now;
+});
+
+document.addEventListener("touchend",function(e){
+  if(e.target.classList.contains("choice-btn")){
+    e.target.blur();
+  }
+});
 
 const moods=["甘えたい","ムラムラしている","寂しい","ご機嫌","イチャイチャしたい"];
 const situations=["出勤前（当日）","待機中","明日出勤","退勤"];
 
-async function init(){
-  await liff.init({ liffId:LIFF_ID });
-  if(!liff.isLoggedIn()){ liff.login(); return; }
-  loadProfile();
-}
-
-function loadProfile(){
-  const saved=localStorage.getItem("profile");
-  if(!saved)return;
-  profile=JSON.parse(saved);
-
-  const age = profile.age || "";
-  const character = profile.character || "";
-  const traits = (profile.traits || []).join(" / ");
-
-  document.getElementById("profileInfo").innerText =
-    `${profile.name || ""}（${age} / ${character}${traits ? " / " + traits : ""}）`;
-}
-
-function createButtons(list,id,callback){
-  const container=document.getElementById(id);
+function createButtons(list,containerId,callback){
+  const container=document.getElementById(containerId);
   list.forEach(item=>{
     const btn=document.createElement("button");
     btn.className="choice-btn";
@@ -176,19 +219,49 @@ function createButtons(list,id,callback){
   });
 }
 
+function loadProfile(){
+  const saved=localStorage.getItem("profile");
+  if(!saved){
+    showModal();
+    return;
+  }
+  profile=JSON.parse(saved);
+
+  const traits=profile.traits?.join(" / ") || "";
+  document.getElementById("profileInfo").innerText=
+    `${profile.name || ""}（${profile.age || ""} / ${profile.character || ""} / ${traits}）`;
+}
+
+function showModal(){
+  const modal=document.getElementById("modal");
+  modal.style.opacity="1";
+  setTimeout(()=>{ modal.style.opacity="0"; },1500);
+}
+
 function generate(){
-  if(!profile)return;
+  if(!profile){
+    showModal();
+    return;
+  }
 
   const title=document.getElementById("title").value;
-  if(!title||!selectedMood||!selectedSituation)return;
+
+  if(!title || !selectedMood || !selectedSituation){
+    showModal();
+    return;
+  }
+
+  const customer=profile.customerCall || "お兄さん";
 
   const text=`${title}
 
-${selectedSituation}で、ちょっと${selectedMood}。`;
+${selectedSituation}で、ちょっと${selectedMood}。
+
+${customer}どうする？`;
 
   const result=document.getElementById("result");
-  result.innerText=text;
   result.style.display="block";
+  result.innerText=text;
 
   saveHistory(text);
 }
@@ -210,18 +283,19 @@ function renderHistory(){
     div.className="history-item";
     div.innerText=item.split("\n")[0];
     div.onclick=()=>{
-      document.getElementById("result").innerText=item;
-      document.getElementById("result").style.display="block";
+      const result=document.getElementById("result");
+      result.style.display="block";
+      result.innerText=item;
     };
     list.appendChild(div);
   });
 }
 
 window.onload=function(){
-  createButtons(moods,"moodButtons",v=>selectedMood=v);
-  createButtons(situations,"situationButtons",v=>selectedSituation=v);
+  loadProfile();
+  createButtons(moods,"moodButtons",(v)=>selectedMood=v);
+  createButtons(situations,"situationButtons",(v)=>selectedSituation=v);
   renderHistory();
-  init();
 };
 
 </script>
