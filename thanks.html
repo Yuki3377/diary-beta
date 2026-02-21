@@ -2,10 +2,20 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>お礼日記をつくる</title>
 
 <style>
+html,body{
+  touch-action: manipulation;
+  -webkit-text-size-adjust:100%;
+}
+
+*{
+  box-sizing:border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,sans-serif;
@@ -24,36 +34,30 @@ body{
   to{opacity:1; transform:translateY(0);}
 }
 
+h2{
+  margin-bottom:6px;
+}
+
+.profileInfo{
+  font-size:13px;
+  color:#888;
+  margin-bottom:18px;
+}
+
 .card{
   background:#fff;
-  padding:16px;
+  padding:18px;
   border-radius:18px;
-  margin-bottom:14px;
+  margin-bottom:15px;
   box-shadow:0 8px 20px rgba(255,95,162,0.08);
 }
 
 input,textarea{
   width:100%;
-  padding:10px 12px;
+  padding:12px;
   border-radius:12px;
   border:1px solid #eee;
-  margin-top:8px;
-  font-size:14px;
-  box-sizing:border-box;
-}
-
-textarea{
-  resize:none;
-  min-height:80px;
-}
-
-button.primary{
-  width:100%;
-  padding:14px;
-  border:none;
-  border-radius:25px;
-  background:linear-gradient(135deg,#ff5fa2,#ff85b3);
-  color:white;
+  font-size:16px;
 }
 
 .button-group{
@@ -64,12 +68,13 @@ button.primary{
 }
 
 .choice-btn{
-  padding:6px 12px;
+  padding:8px 14px;
   border-radius:20px;
   border:1px solid #ffb6d2;
   background:#fff;
-  font-size:12px;
   cursor:pointer;
+  font-size:13px;
+  user-select:none;
 }
 
 .choice-btn.active{
@@ -78,55 +83,58 @@ button.primary{
   border:1px solid #ff85b3;
 }
 
+button.primary{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:25px;
+  background:linear-gradient(135deg,#ff5fa2,#ff85b3);
+  color:white;
+  margin-top:10px;
+  font-size:14px;
+  user-select:none;
+}
+
 .result{
   margin-top:20px;
-  padding:18px;
+  padding:20px;
   background:#ffd6e8;
   border-radius:18px;
   white-space:pre-wrap;
   display:none;
 }
 
-.profileInfo{
-  font-size:13px;
-  color:#888;
-  margin-bottom:10px;
+.history{
+  margin-top:30px;
 }
 
-/* ===== モーダル ===== */
+.history-item{
+  background:#fff;
+  padding:10px;
+  border-radius:12px;
+  margin-bottom:8px;
+  font-size:12px;
+  cursor:pointer;
+  border:1px solid #eee;
+}
+
+.history-item:hover{
+  background:#ffeaf4;
+}
 
 .modal{
   position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.35);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  opacity:0;
-  pointer-events:none;
-  transition:.2s ease;
-  z-index:999;
-}
-
-.modal.active{
-  opacity:1;
-  pointer-events:auto;
-}
-
-.modal-box{
-  background:#fff;
-  padding:28px 40px;
-  border-radius:20px;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  background:#ff5fa2;
+  color:#fff;
+  padding:20px 35px;
+  border-radius:25px;
   font-size:18px;
-  font-weight:600;
-  color:#ff5fa2;
-  box-shadow:0 20px 40px rgba(0,0,0,0.2);
-  animation:pop .2s ease;
-}
-
-@keyframes pop{
-  from{transform:scale(.9); opacity:0;}
-  to{transform:scale(1); opacity:1;}
+  opacity:0;
+  transition:0.3s;
+  z-index:1000;
 }
 </style>
 </head>
@@ -136,7 +144,6 @@ button.primary{
 <div class="wrapper">
 
 <h2>お礼日記をつくる</h2>
-
 <div class="profileInfo" id="profileInfo"></div>
 
 <div class="card">
@@ -145,53 +152,54 @@ button.primary{
 </div>
 
 <div class="card">
-<label>文章に追加するヒントを選択して下さい（複数可）</label>
+<label>ヒント（複数可）</label>
 <div class="button-group" id="hintButtons"></div>
 </div>
 
 <div class="card">
-<label>印象や出来事（お客様とあなたにしか分からない内容）</label>
-<textarea id="memory"></textarea>
+<label>印象や出来事</label>
+<textarea id="memory" rows="3"></textarea>
 </div>
 
 <button class="primary" onclick="generateThanks()">つくる</button>
 
 <div class="result" id="result"></div>
 
+<div class="history">
+<h3>過去につくった日記</h3>
+<div id="historyList"></div>
 </div>
 
-<!-- モーダル -->
-<div id="modal" class="modal">
-  <div class="modal-box" id="modalText"></div>
 </div>
+
+<div id="modal" class="modal">プロフィール未登録です</div>
 
 <script>
 
 let profile=null;
 let selectedHints=[];
+let lastTap=0;
+
+document.addEventListener("touchend",function(e){
+  const now=new Date().getTime();
+  if(now-lastTap<300){
+    e.preventDefault();
+  }
+  lastTap=now;
+});
+
+document.addEventListener("touchend",function(e){
+  if(e.target.classList.contains("choice-btn")){
+    e.target.blur();
+  }
+});
 
 const hints=[
-"久しぶり",
-"新規",
-"指名",
-"仲良し様",
-"長めコース",
-"短めコース",
-"いっぱい褒めてくれた",
-"たくさんイッちゃった",
-"いっぱいせめた",
-"いっぱいせめられた",
-"ぎゅってしてくれた",
-"また誘ってくだい"
+"久しぶり","新規","指名","仲良し様","長めコース",
+"短めコース","いっぱい褒めてくれた",
+"たくさんイッちゃった","いっぱいせめた",
+"いっぱいせめられた","ぎゅってしてくれた"
 ];
-
-function showModal(message){
-  const modal=document.getElementById("modal");
-  const text=document.getElementById("modalText");
-  text.innerText=message;
-  modal.classList.add("active");
-  setTimeout(()=>{ modal.classList.remove("active"); },1500);
-}
 
 function createHintButtons(){
   const container=document.getElementById("hintButtons");
@@ -214,19 +222,26 @@ function createHintButtons(){
 function loadProfile(){
   const saved=localStorage.getItem("profile");
   if(!saved){
-    showModal("プロフィールが未登録です");
+    showModal();
     return;
   }
   profile=JSON.parse(saved);
 
+  const traits=profile.traits?.join(" / ") || "";
   document.getElementById("profileInfo").innerText=
-    `${profile.name || ""}（${profile.character || ""} / ${profile.age || ""}）`;
+    `${profile.name || ""}（${profile.age || ""} / ${profile.character || ""} / ${traits}）`;
+}
+
+function showModal(){
+  const modal=document.getElementById("modal");
+  modal.style.opacity="1";
+  setTimeout(()=>{ modal.style.opacity="0"; },1500);
 }
 
 function generateThanks(){
 
   if(!profile){
-    showModal("プロフィールが未登録です");
+    showModal();
     return;
   }
 
@@ -234,7 +249,7 @@ function generateThanks(){
   const memory=document.getElementById("memory").value;
 
   if(!place){
-    showModal("場所は必須です");
+    showModal();
     return;
   }
 
@@ -266,11 +281,39 @@ ${ending}`;
   const result=document.getElementById("result");
   result.innerText=text;
   result.style.display="block";
+
+  saveHistory(text);
+}
+
+function saveHistory(text){
+  let history=JSON.parse(localStorage.getItem("diaryHistory")||"[]");
+  history.unshift(text);
+  history=history.slice(0,5);
+  localStorage.setItem("diaryHistory",JSON.stringify(history));
+  renderHistory();
+}
+
+function renderHistory(){
+  const history=JSON.parse(localStorage.getItem("diaryHistory")||"[]");
+  const list=document.getElementById("historyList");
+  list.innerHTML="";
+  history.forEach(item=>{
+    const div=document.createElement("div");
+    div.className="history-item";
+    div.innerText=item.split("\n")[0];
+    div.onclick=()=>{
+      const result=document.getElementById("result");
+      result.style.display="block";
+      result.innerText=item;
+    };
+    list.appendChild(div);
+  });
 }
 
 window.onload=function(){
   loadProfile();
   createHintButtons();
+  renderHistory();
 };
 
 </script>
