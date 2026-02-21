@@ -6,6 +6,10 @@
 <title>プロフィール登録</title>
 
 <style>
+*{
+  box-sizing:border-box;
+}
+
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,sans-serif;
@@ -16,26 +20,6 @@ body{
   max-width:520px;
   margin:40px auto;
   padding:20px;
-  animation:fadeUp .4s ease;
-}
-
-@keyframes fadeUp{
-  from{opacity:0; transform:translateY(10px);}
-  to{opacity:1; transform:translateY(0);}
-}
-
-.header{ margin-bottom:20px; }
-
-.title{
-  font-size:20px;
-  font-weight:700;
-  margin:0 0 6px;
-}
-
-.subtitle{
-  font-size:13px;
-  color:#888;
-  margin:0;
 }
 
 .card{
@@ -46,57 +30,36 @@ body{
   box-shadow:0 8px 20px rgba(255,95,162,0.08);
 }
 
-.card h2{
+label{
   font-size:14px;
-  margin:0 0 12px;
+  display:block;
+  margin-top:10px;
 }
 
 input{
   width:100%;
-  padding:10px 12px;
-  font-size:14px;
+  padding:12px;
   border-radius:12px;
   border:1px solid #eee;
-  margin-bottom:10px;
-  outline:none;
-  box-sizing:border-box;
-}
-
-input:focus{ border-color:#ff85b3; }
-
-.short-row{
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
-
-.short-row input{
-  flex:1;
-  max-width:200px;
-}
-
-.same-btn{
-  padding:8px 14px;
-  border-radius:20px;
-  border:1px solid #ffb6d2;
-  background:#fff;
-  font-size:12px;
-  cursor:pointer;
+  margin-top:6px;
+  font-size:16px; /* 自動ズーム防止 */
 }
 
 .button-group{
   display:flex;
   flex-wrap:wrap;
   gap:8px;
+  margin-top:10px;
 }
 
 .btn{
   padding:8px 14px;
   border-radius:20px;
   border:1px solid #ffb6d2;
-  font-size:13px;
   background:#fff;
+  font-size:13px;
   cursor:pointer;
+  transition:0.2s;
 }
 
 .btn.active{
@@ -105,42 +68,36 @@ input:focus{ border-color:#ff85b3; }
   border:1px solid #ff85b3;
 }
 
-/* ===== エラーモーダル ===== */
+.sameBtn{
+  margin-top:4px; /* 少し上に調整 */
+  font-size:12px;
+  padding:6px 12px;
+}
 
-.error-modal{
+.updateBtn{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:25px;
+  background:linear-gradient(135deg,#ff5fa2,#ff85b3);
+  color:#fff;
+  font-size:14px;
+  margin-top:20px;
+}
+
+.toast{
   position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.35);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  opacity:0;
-  pointer-events:none;
-  transition:.2s ease;
-  z-index:999;
-}
-
-.error-modal.active{
-  opacity:1;
-  pointer-events:auto;
-}
-
-.error-box{
-  background:#fff;
-  padding:28px 40px;
+  bottom:40px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#ff85b3;
+  color:#fff;
+  padding:12px 20px;
   border-radius:20px;
-  font-size:18px;
-  font-weight:600;
-  color:#ff5fa2;
-  box-shadow:0 20px 40px rgba(0,0,0,0.2);
-  animation:pop .2s ease;
+  font-size:14px;
+  opacity:0;
+  transition:0.3s;
 }
-
-@keyframes pop{
-  from{transform:scale(.9); opacity:0;}
-  to{transform:scale(1); opacity:1;}
-}
-
 </style>
 </head>
 
@@ -148,170 +105,96 @@ input:focus{ border-color:#ff85b3; }
 
 <div class="wrapper">
 
-  <div class="header">
-    <h1 class="title">プロフィール登録</h1>
-    <p class="subtitle">変更はいつでも出来ます。</p>
-  </div>
+<h2>プロフィール登録</h2>
 
-  <div class="card">
-    <h2>基本情報</h2>
+<div class="card">
+<label>源氏名</label>
+<input id="name">
 
-    <input type="text" id="name" placeholder="源氏名">
+<button class="btn sameBtn" onclick="copyName()">源氏名と同じ</button>
 
-    <div class="short-row">
-      <input type="text" id="selfCall" placeholder="自分の呼び方">
-      <button type="button" class="same-btn" onclick="copyName()">源氏名と同じ</button>
-    </div>
+<label>自分の呼び方</label>
+<input id="selfCall">
 
-    <input type="text" id="customerCall" placeholder="お客様の呼び方（お兄さん・紳士の方）">
-  </div>
+<label>お客様の呼び方</label>
+<input id="customerCall">
+</div>
 
-  <div class="card">
-    <h2>年齢</h2>
-    <div class="button-group" id="ageGroup">
-      <div class="btn">10代</div>
-      <div class="btn">20代</div>
-      <div class="btn">30代</div>
-      <div class="btn">40代</div>
-      <div class="btn">50代</div>
-    </div>
-  </div>
+<div class="card">
+<label>年齢</label>
+<div class="button-group" id="ageGroup"></div>
+</div>
 
-  <div class="card">
-    <h2>キャラクター</h2>
-    <div class="button-group" id="charGroup">
-      <div class="btn">妹系</div>
-      <div class="btn">小悪魔系</div>
-      <div class="btn">清楚系</div>
-      <div class="btn">お姉さん系</div>
-      <div class="btn">人妻系</div>
-      <div class="btn">熟女</div>
-    </div>
-  </div>
+<div class="card">
+<label>キャラクター</label>
+<div class="button-group" id="charGroup"></div>
+</div>
 
-  <div class="card">
-    <h2>個性（最大で3つ選択可）</h2>
-    <div class="button-group" id="traitGroup">
-      <div class="btn">S気質</div>
-      <div class="btn">M気質</div>
-      <div class="btn">甘え体質</div>
-      <div class="btn">寂しがり</div>
-      <div class="btn">痴女</div>
-      <div class="btn">巨乳</div>
-      <div class="btn">グラマー</div>
-      <div class="btn">大人の色気</div>
-      <div class="btn">ちょっぴり挑発的</div>
-      <div class="btn">ツンデレ</div>
-      <div class="btn">恥ずかしがり</div>
-      <div class="btn">密着好き</div>
-      <div class="btn">聞き上手</div>
-      <div class="btn">かまってちゃん</div>
-    </div>
-  </div>
+<button class="updateBtn" onclick="saveProfile()">更新する</button>
 
 </div>
 
-<!-- エラーモーダル -->
-<div id="errorModal" class="error-modal">
-  <div class="error-box">
-    選択は最大３つまでです
-  </div>
-</div>
+<div id="toast" class="toast">更新しました</div>
 
 <script>
 
-window.onload=function(){
-  const profile=JSON.parse(localStorage.getItem("profile"))||{};
-  document.getElementById("name").value=profile.name||"";
-  document.getElementById("selfCall").value=profile.selfCall||"";
-  document.getElementById("customerCall").value=profile.customerCall||"";
-  restoreSingle("ageGroup",profile.age);
-  restoreSingle("charGroup",profile.character);
-  restoreMulti("traitGroup",profile.traits||[]);
-};
+const ages=["10代","20代","30代","40代","50代"];
+const characters=["妹系","小悪魔系","清楚系","お姉さん系","人妻系","熟女"];
 
-function copyName(){
-  const nameValue=document.getElementById("name").value;
-  document.getElementById("selfCall").value=nameValue;
-  saveProfile();
+function createButtons(list,id){
+  const group=document.getElementById(id);
+  list.forEach(item=>{
+    const btn=document.createElement("button");
+    btn.className="btn";
+    btn.innerText=item;
+    btn.onclick=()=>{
+      if(btn.classList.contains("active")){
+        btn.classList.remove("active"); // 再タップで解除
+      }else{
+        [...group.children].forEach(b=>b.classList.remove("active"));
+        btn.classList.add("active");
+      }
+    };
+    group.appendChild(btn);
+  });
 }
 
-document.querySelectorAll("input").forEach(input=>{
-  input.addEventListener("input",saveProfile);
-});
+function copyName(){
+  const name=document.getElementById("name").value;
+  if(name){
+    document.getElementById("selfCall").value=name;
+  }
+}
+
+function getActive(id){
+  const active=document.querySelector(`#${id} .active`);
+  return active ? active.innerText : "";
+}
 
 function saveProfile(){
   const profile={
     name:document.getElementById("name").value,
     selfCall:document.getElementById("selfCall").value,
     customerCall:document.getElementById("customerCall").value,
-    age:getSingle("ageGroup"),
-    character:getSingle("charGroup"),
-    traits:getMulti("traitGroup")
+    age:getActive("ageGroup"),
+    character:getActive("charGroup"),
+    traits:[]
   };
+
   localStorage.setItem("profile",JSON.stringify(profile));
+  showToast();
 }
 
-function setupSingle(groupId){
-  const group=document.getElementById(groupId);
-  group.querySelectorAll(".btn").forEach(btn=>{
-    btn.onclick=()=>{
-      group.querySelectorAll(".btn").forEach(b=>b.classList.remove("active"));
-      btn.classList.add("active");
-      saveProfile();
-    };
-  });
+function showToast(){
+  const toast=document.getElementById("toast");
+  toast.style.opacity="1";
+  setTimeout(()=>{ toast.style.opacity="0"; },1500);
 }
 
-function setupMulti(groupId,max){
-  const group=document.getElementById(groupId);
-  group.querySelectorAll(".btn").forEach(btn=>{
-    btn.onclick=()=>{
-      const active=group.querySelectorAll(".active");
-      if(!btn.classList.contains("active")&&active.length>=max){
-        showError();
-        return;
-      }
-      btn.classList.toggle("active");
-      saveProfile();
-    };
-  });
-}
-
-function showError(){
-  const modal=document.getElementById("errorModal");
-  modal.classList.add("active");
-  setTimeout(()=>{
-    modal.classList.remove("active");
-  },1500);
-}
-
-function getSingle(groupId){
-  const active=document.querySelector(`#${groupId} .active`);
-  return active?active.textContent:"";
-}
-
-function getMulti(groupId){
-  return Array.from(document.querySelectorAll(`#${groupId} .active`))
-    .map(b=>b.textContent);
-}
-
-function restoreSingle(groupId,value){
-  if(!value)return;
-  document.querySelectorAll(`#${groupId} .btn`).forEach(btn=>{
-    if(btn.textContent===value)btn.classList.add("active");
-  });
-}
-
-function restoreMulti(groupId,values){
-  document.querySelectorAll(`#${groupId} .btn`).forEach(btn=>{
-    if(values.includes(btn.textContent))btn.classList.add("active");
-  });
-}
-
-setupSingle("ageGroup");
-setupSingle("charGroup");
-setupMulti("traitGroup",3);
+window.onload=function(){
+  createButtons(ages,"ageGroup");
+  createButtons(characters,"charGroup");
+};
 
 </script>
 
