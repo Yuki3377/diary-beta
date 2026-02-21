@@ -2,7 +2,8 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>お礼日記をつくる</title>
 
 <style>
@@ -26,22 +27,6 @@ body{
   max-width:520px;
   margin:40px auto;
   padding:20px;
-  animation:fadeUp .4s ease;
-}
-
-@keyframes fadeUp{
-  from{opacity:0; transform:translateY(10px);}
-  to{opacity:1; transform:translateY(0);}
-}
-
-h2{
-  margin-bottom:6px;
-}
-
-.profileInfo{
-  font-size:13px;
-  color:#888;
-  margin-bottom:18px;
 }
 
 .card{
@@ -118,10 +103,6 @@ button.primary{
   border:1px solid #eee;
 }
 
-.history-item:hover{
-  background:#ffeaf4;
-}
-
 .modal{
   position:fixed;
   top:50%;
@@ -147,12 +128,12 @@ button.primary{
 <div class="profileInfo" id="profileInfo"></div>
 
 <div class="card">
-<label>場所（ホテル名・部屋番号・コース時間など）</label>
+<label>場所</label>
 <input id="place">
 </div>
 
 <div class="card">
-<label>ヒント（複数可）</label>
+<label>ヒント</label>
 <div class="button-group" id="hintButtons"></div>
 </div>
 
@@ -178,27 +159,12 @@ button.primary{
 
 let profile=null;
 let selectedHints=[];
-let lastTap=0;
-
-document.addEventListener("touchend",function(e){
-  const now=new Date().getTime();
-  if(now-lastTap<300){
-    e.preventDefault();
-  }
-  lastTap=now;
-});
-
-document.addEventListener("touchend",function(e){
-  if(e.target.classList.contains("choice-btn")){
-    e.target.blur();
-  }
-});
 
 const hints=[
-"久しぶり","新規","指名","仲良し様","長めコース",
-"短めコース","いっぱい褒めてくれた",
-"たくさんイッちゃった","いっぱいせめた",
-"いっぱいせめられた","ぎゅってしてくれた"
+"久しぶり","新規","指名","仲良し様",
+"長めコース","短めコース",
+"いっぱい褒めてくれた",
+"ぎゅってしてくれた"
 ];
 
 function createHintButtons(){
@@ -239,15 +205,12 @@ function showModal(){
 }
 
 function generateThanks(){
-
   if(!profile){
     showModal();
     return;
   }
 
   const place=document.getElementById("place").value;
-  const memory=document.getElementById("memory").value;
-
   if(!place){
     showModal();
     return;
@@ -255,65 +218,18 @@ function generateThanks(){
 
   const customer=profile.customerCall || "お兄さん";
 
-  let hintText="";
-  if(selectedHints.length>0){
-    hintText=selectedHints.join("、") + "だったね。\n\n";
-  }
+  const text=`${customer}へ
 
-  const endings=[
-    "またちゃんと時間つくってね。",
-    "次も楽しみにしてる。",
-    "また会えるよね？"
-  ];
-
-  const ending=endings[Math.floor(Math.random()*endings.length)];
-
-  const text=`さっき来てくれた${customer}へ
-
-${place}で一緒に過ごせて嬉しかった。
-
-${hintText}${memory || "あの距離感、ちゃんと覚えてるよ。"}
-
-今日はありがとう。
-
-${ending}`;
+${place}でありがとう。`;
 
   const result=document.getElementById("result");
   result.innerText=text;
   result.style.display="block";
-
-  saveHistory(text);
-}
-
-function saveHistory(text){
-  let history=JSON.parse(localStorage.getItem("diaryHistory")||"[]");
-  history.unshift(text);
-  history=history.slice(0,5);
-  localStorage.setItem("diaryHistory",JSON.stringify(history));
-  renderHistory();
-}
-
-function renderHistory(){
-  const history=JSON.parse(localStorage.getItem("diaryHistory")||"[]");
-  const list=document.getElementById("historyList");
-  list.innerHTML="";
-  history.forEach(item=>{
-    const div=document.createElement("div");
-    div.className="history-item";
-    div.innerText=item.split("\n")[0];
-    div.onclick=()=>{
-      const result=document.getElementById("result");
-      result.style.display="block";
-      result.innerText=item;
-    };
-    list.appendChild(div);
-  });
 }
 
 window.onload=function(){
   loadProfile();
   createHintButtons();
-  renderHistory();
 };
 
 </script>
