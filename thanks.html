@@ -2,16 +2,13 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-
 <meta name="viewport"
 content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 <title>お礼日記をつくる</title>
 
 <style>
-html{
-  touch-action: manipulation;
-}
+html{ touch-action: manipulation; }
 
 body{
   margin:0;
@@ -46,10 +43,8 @@ h2{
   box-shadow:0 10px 25px rgba(255,95,162,0.08);
 }
 
-/* ★ はみ出し完全防止 */
 input,textarea{
   width:100%;
-  max-width:100%;
   padding:14px;
   border-radius:14px;
   border:1px solid #eee;
@@ -70,9 +65,8 @@ input,textarea{
   padding:8px 16px;
   border-radius:999px;
   font-size:13px;
-  cursor:pointer;
   user-select:none;
-  touch-action: manipulation;
+  cursor:pointer;
 }
 
 .choice-btn.active{
@@ -89,8 +83,6 @@ input,textarea{
   background:linear-gradient(135deg,#ff5fa2,#ff85b3);
   color:#fff;
   font-size:15px;
-  cursor:pointer;
-  touch-action: manipulation;
 }
 
 .result{
@@ -100,35 +92,6 @@ input,textarea{
   border-radius:20px;
   white-space:pre-wrap;
   display:none;
-}
-
-.history{
-  margin-top:30px;
-}
-
-.history-item{
-  background:#fff;
-  padding:12px;
-  border-radius:14px;
-  margin-bottom:8px;
-  font-size:12px;
-  border:1px solid #eee;
-  cursor:pointer;
-}
-
-.modal{
-  position:fixed;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  background:#ff5fa2;
-  color:#fff;
-  padding:22px 45px;
-  border-radius:30px;
-  font-size:18px;
-  opacity:0;
-  transition:0.3s;
-  z-index:1000;
 }
 </style>
 </head>
@@ -155,18 +118,11 @@ input,textarea{
 <textarea id="memory" rows="3"></textarea>
 </div>
 
-<button type="button" class="primary" onclick="generateThanks()">つくる</button>
+<button type="button" class="primary" id="createBtn">つくる</button>
 
 <div class="result" id="result"></div>
 
-<div class="history">
-<h3>過去につくった日記</h3>
-<div id="historyList"></div>
 </div>
-
-</div>
-
-<div id="modal" class="modal">プロフィール未登録です</div>
 
 <script>
 
@@ -174,21 +130,26 @@ let profile=null;
 let selectedHints=[];
 
 const hints=[
-"久しぶり","新規","指名","仲良し様","長めコース","短めコース",
+"久しぶり","新規","指名","仲良し様",
+"長めコース","短めコース",
 "いっぱい褒めてくれた","たくさんイッちゃった",
-"いっぱいせめた","いっぱいせめられた","ぎゅってしてくれた","また誘ってください"
+"いっぱいせめた","いっぱいせめられた",
+"ぎゅってしてくれた","また誘ってください"
 ];
 
 function createHintButtons(){
   const container=document.getElementById("hintButtons");
+
   hints.forEach(h=>{
     const btn=document.createElement("button");
     btn.type="button";
     btn.className="choice-btn";
     btn.innerText=h;
 
-    btn.addEventListener("click",()=>{
+    // 🔥 clickをやめて pointerdown
+    btn.addEventListener("pointerdown",()=>{
       btn.classList.toggle("active");
+
       if(selectedHints.includes(h)){
         selectedHints=selectedHints.filter(x=>x!==h);
       }else{
@@ -202,34 +163,21 @@ function createHintButtons(){
 
 function loadProfile(){
   const saved=localStorage.getItem("profile");
-  if(!saved){
-    showModal();
-    return;
-  }
+  if(!saved) return;
   profile=JSON.parse(saved);
 
-  const traits=profile.traits?.join(" / ") || "";
   document.getElementById("profileInfo").innerText=
     `（${profile.character || ""} / ${profile.age || ""}）`;
 }
 
-function showModal(){
-  const modal=document.getElementById("modal");
-  modal.style.opacity="1";
-  setTimeout(()=>{ modal.style.opacity="0"; },1500);
-}
+document.getElementById("createBtn").addEventListener("pointerdown",generateThanks);
 
 function generateThanks(){
-  if(!profile){
-    showModal();
-    return;
-  }
+
+  if(!profile) return;
 
   const place=document.getElementById("place").value;
-  if(!place){
-    showModal();
-    return;
-  }
+  if(!place) return;
 
   const customer=profile.customerCall || "お兄さん";
 
