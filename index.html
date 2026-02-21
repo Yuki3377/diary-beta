@@ -36,7 +36,6 @@ input, textarea {
 button.primary{ width:100%; padding:14px; border:none; border-radius:25px; background:linear-gradient(135deg,#ff5fa2,#ff85b3); color:white; margin-top:10px; font-size:14px; font-weight:bold; cursor:pointer; }
 button.primary:disabled { background: #ccc; cursor: not-allowed; }
 
-/* 編集エリア専用スタイル */
 .result-container { display:none; margin-top:20px; animation:fadeResult .35s ease; }
 @keyframes fadeResult{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
 
@@ -44,6 +43,9 @@ button.primary:disabled { background: #ccc; cursor: not-allowed; }
 .history-item{ background:#fff; padding:10px; border-radius:12px; margin-bottom:8px; font-size:12px; cursor:pointer; border:1px solid #eee; }
 
 .modal{ position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(255, 95, 162, 0.95); color:#fff; padding:20px 30px; border-radius:25px; font-size:16px; opacity:0; transition:0.3s; pointer-events:none; z-index:1000; text-align:center; width: 80%; }
+
+.nav-links { text-align: center; margin-top: 20px; }
+.nav-links a { color: #ff85b3; text-decoration: none; font-size: 13px; margin: 0 10px; }
 </style>
 </head>
 
@@ -73,7 +75,7 @@ button.primary:disabled { background: #ccc; cursor: not-allowed; }
   <div class="result-container" id="resultContainer">
     <div class="card" style="background:#fff0f6; border: 1px solid #ffb6d2;">
       <label>AIが書いた日記（自由に修正OK）</label>
-      <textarea id="resultTextarea" rows="8" placeholder="ここに日記が生成されます"></textarea>
+      <textarea id="resultTextarea" rows="8"></textarea>
       <div class="button-group">
         <button class="choice-btn" onclick="copyText()">📋 文章をコピー</button>
       </div>
@@ -81,8 +83,13 @@ button.primary:disabled { background: #ccc; cursor: not-allowed; }
   </div>
 
   <div class="history">
-    <h3>過去の履歴（5件）</h3>
+    <h3>過去の履歴</h3>
     <div id="historyList"></div>
+  </div>
+
+  <div class="nav-links">
+    <a href="thanks.html">お礼日記へ</a>
+    <a href="profile.html">プロフィール設定</a>
   </div>
 </div>
 
@@ -97,11 +104,11 @@ function loadProfile() {
   const saved = localStorage.getItem("profile");
   const infoDiv = document.getElementById("profileInfo");
   if (!saved) {
-    infoDiv.innerHTML = '<b style="color:#ff5fa2;">⚠️プロフィール未登録です。設定してください。</b>';
+    infoDiv.innerHTML = '<b style="color:#ff5fa2;">⚠️プロフィール未登録です。</b>';
     return;
   }
   profile = JSON.parse(saved);
-  const traits = profile.traits?.join(" / ") || "";
+  const traits = profile.traits?.join(" / ") || "特徴未設定";
   infoDiv.innerText = `${profile.name || "未設定"}（${profile.age || "?"}歳 / ${profile.character || "?"} / ${traits}）`;
 }
 
@@ -119,7 +126,7 @@ async function generate() {
   }
   const title = document.getElementById("title").value;
   if (!title || !selectedMood || !selectedSituation) {
-    showModal("すべての項目を入力してください");
+    showModal("項目をすべて選んでね");
     return;
   }
 
@@ -140,7 +147,8 @@ async function generate() {
           situation: selectedSituation,
           title: title,
           customer: profile.customerCall || "お兄さん",
-          character: profile.character
+          character: profile.character,
+          traits: profile.traits || [] // 特徴データを追加
         }
       })
     });
@@ -151,14 +159,13 @@ async function generate() {
       document.getElementById("resultContainer").style.display = "block";
       document.getElementById("resultTextarea").value = fullText;
       saveHistory(fullText);
-      
-      // 生成された場所にスクロール
       document.getElementById("resultContainer").scrollIntoView({ behavior: 'smooth' });
     } else {
-      throw new Error("生成失敗");
+      throw new Error(data.error || "生成失敗");
     }
   } catch (error) {
-    showModal("エラーが発生しました");
+    console.error(error);
+    showModal("エラーが発生しました。Workerの設定を確認してください。");
   } finally {
     btn.innerText = "日記をつくる";
     btn.disabled = false;
@@ -168,12 +175,9 @@ async function generate() {
 function copyText() {
   const textarea = document.getElementById("resultTextarea");
   textarea.select();
-  textarea.setSelectionRange(0, 99999); // スマホ対応
-  
   navigator.clipboard.writeText(textarea.value).then(() => {
-    showModal("コピーしました！SNS等に貼ってね");
+    showModal("コピーしました！");
   }).catch(() => {
-    // 古いブラウザ向け
     document.execCommand("copy");
     showModal("コピーしました！");
   });
