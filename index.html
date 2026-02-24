@@ -84,6 +84,39 @@
   /* リンク */
   .nav-links { text-align: center; margin-top: 20px; margin-bottom: 20px; display: flex; justify-content: center; gap: 20px; }
   .nav-links a { color: #ff85b3; text-decoration: none; font-size: 14px; border-bottom: 1px dotted #ff85b3; padding-bottom: 2px; }
+
+  /* ★ピンクのローディングアニメーション */
+  .loading-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(255, 244, 248, 0.92); /* 薄いピンクのすりガラス */
+    backdrop-filter: blur(5px);
+    z-index: 9999;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+  }
+  .loading-overlay.active { opacity: 1; pointer-events: auto; }
+
+  /* ピンクのハートアイコン（優しく脈打つ） */
+  .heart-icon {
+    font-size: 70px;
+    margin-bottom: 20px;
+    color: #ff5fa2; /* ピンク色 */
+    animation: gentle-beat 2s infinite ease-in-out;
+  }
+  @keyframes gentle-beat {
+    0% { transform: scale(1); opacity: 0.9; }
+    50% { transform: scale(1.15); opacity: 1; }
+    100% { transform: scale(1); opacity: 0.9; }
+  }
+
+  /* 英語テキスト */
+  .loading-text { 
+    font-size: 18px; 
+    color: #ff5fa2; 
+    font-weight: bold; 
+    letter-spacing: 2px; 
+    font-family: 'Courier New', Courier, monospace; 
+  }
 </style>
 </head>
 
@@ -133,6 +166,11 @@
   </div>
 </div>
 
+<div id="loadingOverlay" class="loading-overlay">
+  <div class="heart-icon">🩷</div>
+  <div class="loading-text">Writing...</div>
+</div>
+
 <div id="modal" class="modal"></div>
 
 <script>
@@ -155,7 +193,6 @@ let selectedSituation = null;
 
 // --- 安全な初期化処理 ---
 window.onload = function() {
-  // 古いデータが悪さをしないように安全に読み込む
   safeLoadProfile();
   
   // ボタン生成
@@ -163,18 +200,17 @@ window.onload = function() {
   createButtons(SITUATIONS_TOP, "situationButtonsTop", (v) => selectedSituation = v);
   createButtons(SITUATIONS_BOTTOM, "situationButtonsBottom", (v) => selectedSituation = v);
   
-  // 履歴の修復と表示
   try {
     migrateHistoryIfNeeded();
     renderHistory();
   } catch(e) {
     console.log("履歴データの修復を実行します");
-    localStorage.removeItem("diaryHistory"); // どうしてもダメなら履歴をリセット
+    localStorage.removeItem("diaryHistory");
     renderHistory();
   }
 };
 
-// プロフィール読み込み（エラー回避版）
+// プロフィール読み込み
 function safeLoadProfile() {
   const infoDiv = document.getElementById("profileInfo");
   try {
@@ -189,7 +225,6 @@ function safeLoadProfile() {
     infoDiv.innerText = `${profile.name}（${ageText} / ${charText}）`;
   } catch(e) {
     console.error("Profile Error", e);
-    // エラー時はデータをリセットして案内を出す
     localStorage.removeItem("profile");
     infoDiv.innerHTML = '<a href="profile.html" style="color:#ff5fa2; text-decoration:underline;">⚠️ プロフィールを設定し直してください</a>';
   }
@@ -229,9 +264,9 @@ async function generate() {
   if (!selectedSituation) { showModal("「日記の状況」を選んでね"); return; }
   if (!title) { showModal("「題名」を入力してね"); return; }
 
-  const btn = document.getElementById("generateBtn");
-  btn.innerText = "お姉さんが執筆中...🖊️";
-  btn.disabled = true;
+  // ★ローディング表示
+  const loader = document.getElementById("loadingOverlay");
+  loader.classList.add("active");
 
   try {
     const workerUrl = "https://lucky-bush-6437diary-api.doropbox-kyoto.workers.dev"; 
@@ -272,18 +307,17 @@ async function generate() {
     console.error(error);
     showModal("ごめんね、うまく書けなかったみたい💦");
   } finally {
-    btn.innerText = "日記をつくる";
-    btn.disabled = false;
+    // ★ローディング非表示
+    loader.classList.remove("active");
   }
 }
 
-// --- 履歴機能（安全版） ---
+// --- 履歴機能 ---
 function migrateHistoryIfNeeded() {
   let raw = localStorage.getItem("diaryHistory");
   if(!raw) return;
   try {
     let history = JSON.parse(raw);
-    // データ修復ロジック
     if(history.length > 0 && (typeof history[0] === 'string' || !history[0].id)) {
       const newFormat = history.map(item => {
         const text = (typeof item === 'string') ? item : (item.text || "");
@@ -292,7 +326,7 @@ function migrateHistoryIfNeeded() {
       localStorage.setItem("diaryHistory", JSON.stringify(newFormat));
     }
   } catch(e) {
-    localStorage.removeItem("diaryHistory"); // 壊れたデータは捨てる
+    localStorage.removeItem("diaryHistory");
   }
 }
 
