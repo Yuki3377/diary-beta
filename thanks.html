@@ -13,6 +13,7 @@ export default {
     }
 
     try {
+      // Cloudflareの環境変数に GEMINI_API_KEY が設定されていることを確認してください
       const API_KEY = (env.GEMINI_API_KEY || "").trim();
       const requestData = await request.json();
 
@@ -52,11 +53,11 @@ export default {
 文章は明るく、読んでいて元気になるような内容でお願いします。
 `;
 
-      // ★ 2. お礼モード（ここを修正！）
+      // ★ 2. お礼モード
       } else if (requestData.promptType === "thanks") {
         const customerType = ctx.customerType || "お客様"; 
         const episodes = (ctx.episodes || []).join("、"); 
-        const detail = ctx.detail || ""; // 場所やコース
+        const detail = ctx.detail || ""; 
 
         systemInstruction = `
 あなたは「${character}」の女性になりきってください。
@@ -66,13 +67,12 @@ export default {
 絵文字を適度に入れて、相手がまた来たくなるような愛嬌のある文章にしてください。
 `;
 
-        // ★ここが変更点：detailを必ず先頭にする指示を追加
         userMessage = `
 以下の条件で、お礼のメッセージ（100〜150文字程度）を書いてください。
 
 【重要：書き出しの指定】
 ・文章の一番最初は、必ず「${detail}」という言葉からスタートしてください。
-（※これを宛名やタイトルの代わりにします。例：「〇〇ホテル！今日はありがとう」のように、入力された言葉をそのまま文頭に置いてください）
+（※これを宛名やタイトルの代わりにします。入力された言葉をそのまま文頭に置いてください）
 ・その直後から、改行して感謝の言葉やエピソードを続けてください。
 
 【相手情報】
@@ -90,7 +90,8 @@ export default {
       }
 
       // --- Geminiへの送信 ---
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
+      // ★修正：モデル名を gemini-1.5-flash に変更しました（これが一番安定しています）
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
 
       const response = await fetch(url, {
         method: "POST",
