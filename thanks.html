@@ -1,198 +1,123 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>お礼日記をつくる</title>
+export default {
+  async fetch(request, env) {
+    const headers = {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+    };
 
-<style>
-/* --- 紫テーマ（Night Mode）設定 --- */
-html,body{ touch-action: manipulation; -webkit-text-size-adjust:100%; }
-*{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
-body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif; background:#f8f0fc; color:#444; }
+    if (request.method === "OPTIONS") return new Response(null, { headers });
 
-.wrapper{ max-width:520px; margin:30px auto; padding:20px; animation:fadeUp .4s ease; }
-@keyframes fadeUp{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
-@keyframes popIn{ 0%{transform:scale(0.8); opacity:0;} 100%{transform:scale(1); opacity:1;} }
-
-h2{ margin:0 0 10px 0; color: #a65cd6; font-size: 22px; text-align: center; }
-.profileInfo{ font-size:13px; color:#999; margin-bottom:20px; text-align: center; min-height: 1.2em; }
-
-.card{ background:#fff; padding:18px; border-radius:20px; margin-bottom:16px; box-shadow:0 4px 15px rgba(166, 92, 214, 0.08); }
-
-label{ font-size: 14px; font-weight: bold; color: #a65cd6; display: block; margin-bottom: 10px; display:flex; align-items:center; justify-content:space-between; }
-.sub-label { font-size: 11px; color: #aaa; font-weight: normal; margin-left: 8px; }
-
-input, textarea {
-  width:100%; padding:14px; border-radius:12px; border:1px solid #f0f0f0;
-  font-size:16px; background: #fafafa; transition:0.2s; outline:none;
-  color: #444; appearance: none;
-}
-input:focus, textarea:focus { border-color: #d09dfc; background: #fff; }
-
-.button-group{ display:flex; flex-wrap:wrap; gap:8px; }
-
-.choice-btn{ 
-  padding:8px 12px; border-radius:18px; border:1px solid #ebdcfc; 
-  background:#fff; color:#777; cursor:pointer; font-size:13px; user-select:none; transition:0.2s;
-}
-.choice-btn:active { transform: scale(0.95); }
-.choice-btn.active{ background:#a65cd6; color:#fff; border-color:#a65cd6; box-shadow: 0 2px 6px rgba(166, 92, 214, 0.3); }
-
-button.primary{ 
-  width:100%; padding:16px; border:none; border-radius:30px; 
-  background:linear-gradient(135deg,#a65cd6,#d485ff); color:white; 
-  margin-top:10px; font-size:16px; font-weight:bold; cursor:pointer; 
-  box-shadow: 0 4px 12px rgba(166, 92, 214, 0.3); transition:0.2s;
-}
-button.primary:active { transform: scale(0.98); }
-button.primary:disabled { background: #ddd; cursor: not-allowed; box-shadow: none; }
-
-.result-container { display:none; margin-top:20px; animation:popIn .3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-
-.nav-links { text-align: center; margin-top: 30px; margin-bottom: 30px; }
-.nav-links a { color: #a65cd6; text-decoration: none; font-size: 14px; border-bottom: 1px dotted #a65cd6; padding-bottom: 2px; }
-
-.modal{ position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(60, 60, 60, 0.9); color:#fff; padding:16px 24px; border-radius:30px; font-size:14px; opacity:0; transition:0.3s; pointer-events:none; z-index:1000; text-align:center; white-space: nowrap; }
-
-/* ★追加：可愛いローディングアニメーション */
-.loading-overlay {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(248, 240, 252, 0.9); /* 薄紫のすりガラス風 */
-  backdrop-filter: blur(5px);
-  z-index: 9999;
-  display: flex; flex-direction: column; justify-content: center; align-items: center;
-  opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
-}
-.loading-overlay.active { opacity: 1; pointer-events: auto; }
-
-.heart-beat { font-size: 60px; margin-bottom: 20px; animation: beat 1.2s infinite ease-in-out; }
-@keyframes beat {
-  0% { transform: scale(1); }
-  15% { transform: scale(1.2); }
-  30% { transform: scale(1); }
-  45% { transform: scale(1.1); }
-  60% { transform: scale(1); }
-}
-
-.loading-text { font-size: 16px; color: #a65cd6; font-weight: bold; letter-spacing: 1px; }
-</style>
-</head>
-
-<body>
-
-<div class="wrapper">
-  <h2>お礼日記（LINE）💜</h2>
-  <div class="profileInfo" id="profileInfo">読み込み中...</div>
-
-  <div class="card">
-    <label>場所・コース時間<span class="sub-label">文章の補足に使います</span></label>
-    <input id="detailInput" placeholder="例：〇〇ホテル、120分コースなど">
-  </div>
-
-  <div class="card">
-    <label>お客様の呼び方<span class="sub-label">※1つ選択</span></label>
-    <div class="button-group" id="typeButtons"></div>
-  </div>
-
-  <div class="card">
-    <label>出来事・印象<span class="sub-label">※複数選択OK</span></label>
-    <div class="button-group" id="episodeButtons"></div>
-  </div>
-
-  <button class="primary" id="generateBtn" onclick="generate()">メッセージをつくる</button>
-
-  <div class="nav-links">
-    <a href="index.html">← 日記作成（メイン）に戻る</a>
-  </div>
-
-  <div class="result-container" id="resultContainer">
-    <div class="card" style="background:#fcf9ff; border: 2px solid #e0cbf7;">
-      <label style="color:#a65cd6;">AIが書いたメッセージ<span class="sub-label">自由に修正してね</span></label>
-      <textarea id="resultTextarea" rows="8"></textarea>
-      <div class="button-group" style="margin-top:10px;">
-        <button class="choice-btn" style="width:100%; text-align:center; background:#a65cd6; color:white; border:none;" onclick="copyText()">📋 コピーする</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div id="loadingOverlay" class="loading-overlay">
-  <div class="heart-beat">💜</div>
-  <div class="loading-text">お姉さんが一生懸命<br>書いてます...✨</div>
-</div>
-
-<div id="modal" class="modal"></div>
-
-<script>
-// データ設定
-const CUSTOMER_TYPES = ["新規様", "仲良しさん", "指名", "お久しぶり", "お兄さん", "お兄様"];
-const EPISODES = [
-  "長めコース", "貸切", "あっという間に",
-  "いっぱい褒めてくれた", "たくさんイッちゃった",
-  "いっぱいせめた", "いっぱいせめられた",
-  "ぎゅってしてくれた", "また誘ってください",
-  "照れてた", "恥ずかしかった"
-];
-
-let profile = null;
-let selectedType = null;
-let selectedEpisodes = [];
-
-window.onload = function() {
-  loadProfile();
-  
-  createButtons("typeButtons", CUSTOMER_TYPES, (val, btn) => {
-    selectedType = val;
-    document.querySelectorAll("#typeButtons .choice-btn").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-  });
-
-  createButtons("episodeButtons", EPISODES, (val, btn) => {
-    if (selectedEpisodes.includes(val)) {
-      selectedEpisodes = selectedEpisodes.filter(v => v !== val);
-      btn.classList.remove("active");
-    } else {
-      selectedEpisodes.push(val);
-      btn.classList.add("active");
+    if (request.method !== "POST") {
+      return new Response("APIは正常稼働中！アプリからリクエストしてね。", { headers });
     }
-  });
-};
 
-function createButtons(containerId, list, onClick) {
-  const container = document.getElementById(containerId);
-  list.forEach(item => {
-    const btn = document.createElement("button");
-    btn.className = "choice-btn";
-    btn.innerText = item;
-    btn.onclick = () => onClick(item, btn);
-    container.appendChild(btn);
-  });
-}
+    try {
+      const API_KEY = (env.GEMINI_API_KEY || "").trim();
+      const requestData = await request.json();
 
-function loadProfile() {
-  try {
-    const saved = localStorage.getItem("profile");
-    const infoDiv = document.getElementById("profileInfo");
-    if (!saved) {
-      infoDiv.innerHTML = '<a href="profile.html" style="color:#a65cd6;">⚠️ プロフィール未設定です</a>';
-      return;
+      // --- プロンプト（命令文）の組み立て ---
+      let systemInstruction = "";
+      let userMessage = "";
+
+      // 受け取ったデータ（共通）
+      const ctx = requestData.context || {};
+      const name = ctx.name || "私";
+      const character = ctx.character || "お姉さん";
+      const customerCall = ctx.customer || "お客様";
+      const traits = (ctx.traits || []).join("、"); 
+
+      // ★ 1. 日記モード
+      if (requestData.promptType === "index") {
+        const mood = ctx.mood || "普通";
+        const situation = ctx.situation || "日常";
+        const title = ctx.title || "無題";
+
+        systemInstruction = `
+あなたは「${character}」の女性になりきってください。
+名前は「${name}」です。
+あなたの特徴は「${traits}」です。
+一人称は「私」や「${name}」を使って、親しみやすく、絵文字を多めに使って書いてください。
+`;
+
+        userMessage = `
+以下の条件で、SNSに投稿するような短い日記（100〜140文字程度）を書いてください。
+
+【条件】
+・題名：${title}
+・今の気分：${mood}
+・状況：${situation}
+・お客様の呼び方：${customerCall}
+
+文章は明るく、読んでいて元気になるような内容でお願いします。
+`;
+
+      // ★ 2. お礼モード（ここを修正！）
+      } else if (requestData.promptType === "thanks") {
+        const customerType = ctx.customerType || "お客様"; 
+        const episodes = (ctx.episodes || []).join("、"); 
+        const detail = ctx.detail || ""; // 場所やコース
+
+        systemInstruction = `
+あなたは「${character}」の女性になりきってください。
+名前は「${name}」です。
+特徴は「${traits}」です。
+相手（${customerType}）に対して、来店のお礼LINEを送るメッセージを書いてください。
+絵文字を適度に入れて、相手がまた来たくなるような愛嬌のある文章にしてください。
+`;
+
+        // ★ここが変更点：detailを必ず先頭にする指示を追加
+        userMessage = `
+以下の条件で、お礼のメッセージ（100〜150文字程度）を書いてください。
+
+【重要：書き出しの指定】
+・文章の一番最初は、必ず「${detail}」という言葉からスタートしてください。
+（※これを宛名やタイトルの代わりにします。例：「〇〇ホテル！今日はありがとう」のように、入力された言葉をそのまま文頭に置いてください）
+・その直後から、改行して感謝の言葉やエピソードを続けてください。
+
+【相手情報】
+・関係性：${customerType}
+・呼び方：${customerCall}
+
+【内容】
+・エピソード：${episodes}
+
+相手との距離感（新規なら丁寧すぎず親しみやすく、仲良しならもっと砕けて）を意識してください。
+`;
+
+      } else {
+        userMessage = `親しみやすく100文字以内で日記を書いて：${requestData.prompt || "今日のできごと"}`;
+      }
+
+      // --- Geminiへの送信 ---
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{ text: systemInstruction + "\n\n" + userMessage }]
+          }]
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return new Response(JSON.stringify({ 
+          error: "Google APIエラー", 
+          message: data.error?.message || "エラーが発生しました",
+          status: response.status
+        }), { status: response.status, headers });
+      }
+
+      const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "うまく書けなかったみたい💦 もう一回試してね！";
+      
+      return new Response(JSON.stringify({ text: aiText }), { headers });
+
+    } catch (e) {
+      return new Response(JSON.stringify({ error: "Worker内部エラー", detail: e.message }), { status: 500, headers });
     }
-    profile = JSON.parse(saved);
-    infoDiv.innerText = `${profile.name}（${profile.age || "?"}歳 / ${profile.character || "?"}）`;
-  } catch(e) { console.error("Profile Error"); }
-}
-
-async function generate() {
-  if (!profile || !profile.name) {
-    showModal("プロフィールを設定してね💦");
-    setTimeout(() => location.href = "profile.html", 1500);
-    return;
   }
-  if (!selectedType) { showModal("お客様の呼び方を選んでね"); return; }
-  
-  const detail = document.getElementById("detailInput").value;
-
-  // ★変更：ローディングアニメーションを表示
-  const loader = document.getElementById("loadingOverlay");
-  loader.classList.add
+};
