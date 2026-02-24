@@ -66,6 +66,29 @@ button.primary:disabled { background: #ddd; cursor: not-allowed; box-shadow: non
 
 /* モーダル */
 .modal{ position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(60, 60, 60, 0.9); color:#fff; padding:16px 24px; border-radius:30px; font-size:14px; opacity:0; transition:0.3s; pointer-events:none; z-index:1000; text-align:center; white-space: nowrap; }
+
+/* ★ここから追加：可愛いローディングアニメーション */
+.loading-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(248, 240, 252, 0.9); /* 薄紫のすりガラス風 */
+  backdrop-filter: blur(5px);
+  z-index: 9999;
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+}
+.loading-overlay.active { opacity: 1; pointer-events: auto; }
+
+/* ハートがドキドキする動き */
+.heart-beat { font-size: 60px; margin-bottom: 20px; animation: beat 1.2s infinite ease-in-out; }
+@keyframes beat {
+  0% { transform: scale(1); }
+  15% { transform: scale(1.2); }
+  30% { transform: scale(1); }
+  45% { transform: scale(1.1); }
+  60% { transform: scale(1); }
+}
+
+.loading-text { font-size: 16px; color: #a65cd6; font-weight: bold; letter-spacing: 1px; }
 </style>
 </head>
 
@@ -107,14 +130,16 @@ button.primary:disabled { background: #ddd; cursor: not-allowed; box-shadow: non
   </div>
 </div>
 
+<div id="loadingOverlay" class="loading-overlay">
+  <div class="heart-beat">💜</div>
+  <div class="loading-text">お姉さんが一生懸命<br>書いてます...✨</div>
+</div>
+
 <div id="modal" class="modal"></div>
 
 <script>
 // --- 最新のボタンデータ ---
-// お客様の呼び方（全6種）
 const CUSTOMER_TYPES = ["新規様", "仲良しさん", "指名", "お久しぶり", "お兄さん", "お兄様"];
-
-// 出来事（全11種：短めコース削除、新しい3つ追加）
 const EPISODES = [
   "長めコース", "貸切", "あっという間に",
   "いっぱい褒めてくれた", "たくさんイッちゃった",
@@ -130,20 +155,18 @@ let selectedEpisodes = [];
 window.onload = function() {
   loadProfile();
   
-  // 関係性ボタン（単一選択）
   createButtons("typeButtons", CUSTOMER_TYPES, (val, btn) => {
     selectedType = val;
     document.querySelectorAll("#typeButtons .choice-btn").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
   });
 
-  // 出来事ボタン（複数選択）
   createButtons("episodeButtons", EPISODES, (val, btn) => {
     if (selectedEpisodes.includes(val)) {
-      selectedEpisodes = selectedEpisodes.filter(v => v !== val); // 解除
+      selectedEpisodes = selectedEpisodes.filter(v => v !== val);
       btn.classList.remove("active");
     } else {
-      selectedEpisodes.push(val); // 追加
+      selectedEpisodes.push(val);
       btn.classList.add("active");
     }
   });
@@ -170,9 +193,7 @@ function loadProfile() {
     }
     profile = JSON.parse(saved);
     infoDiv.innerText = `${profile.name}（${profile.age || "?"}歳 / ${profile.character || "?"}）`;
-  } catch(e) {
-    console.error("Profile Error");
-  }
+  } catch(e) { console.error("Profile Error"); }
 }
 
 async function generate() {
@@ -186,19 +207,18 @@ async function generate() {
   
   const detail = document.getElementById("detailInput").value;
 
-  const btn = document.getElementById("generateBtn");
-  btn.innerText = "お姉さんが執筆中...🖊️";
-  btn.disabled = true;
+  // ★変更点：ローディングアニメーションを表示！
+  const loader = document.getElementById("loadingOverlay");
+  loader.classList.add("active");
 
   try {
     const workerUrl = "https://lucky-bush-6437diary-api.doropbox-kyoto.workers.dev";
     
-    // 最新のWorkerに対応したデータ形式
     const response = await fetch(workerUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        promptType: "thanks", // お礼モード
+        promptType: "thanks",
         context: {
           name: profile.name,
           customerType: selectedType,
@@ -226,8 +246,8 @@ async function generate() {
     console.error(error);
     showModal("ごめんね、エラーが出ちゃった💦");
   } finally {
-    btn.innerText = "メッセージをつくる";
-    btn.disabled = false;
+    // ★変更点：書き終わったらローディングを消す！
+    loader.classList.remove("active");
   }
 }
 
