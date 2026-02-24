@@ -6,159 +6,251 @@
 <title>お礼日記をつくる</title>
 
 <style>
-/* index.html / profile.html と共通のデザイン */
+/* 基本設定 */
 html,body{ touch-action: manipulation; -webkit-text-size-adjust:100%; }
 *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
-body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,sans-serif; background:#f4f9ff; } /* お礼は少し爽やかなブルー系 */
+body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif; background:#fff4f8; color:#444; }
 
-.wrapper{ max-width:520px; margin:40px auto; padding:20px; animation:fadeUp .4s ease; }
+.wrapper{ max-width:520px; margin:30px auto; padding:20px; animation:fadeUp .4s ease; }
 @keyframes fadeUp{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+@keyframes popIn{ 0%{transform:scale(0.8); opacity:0;} 100%{transform:scale(1); opacity:1;} }
 
-h2{ margin-bottom:6px; color: #4a90e2; }
-.profileInfo{ font-size:13px; color:#888; margin-bottom:18px; }
+h2{ margin:0 0 10px 0; color: #ff5fa2; font-size: 22px; text-align: center; }
+.profileInfo{ font-size:13px; color:#888; margin-bottom:20px; text-align: center; min-height: 1.2em; }
 
-.card{ background:#fff; padding:18px; border-radius:18px; margin-bottom:15px; box-shadow:0 8px 20px rgba(74,144,226,0.08); }
+/* カードデザイン */
+.card{ background:#fff; padding:18px; border-radius:20px; margin-bottom:16px; box-shadow:0 4px 15px rgba(255,95,162,0.06); }
 
-.button-group{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
-.choice-btn{ padding:8px 14px; border-radius:20px; border:1px solid #b6d4ff; background:#fff; cursor:pointer; font-size:13px; }
-.choice-btn.active{ background:#4a90e2; color:#fff; border:1px solid #4a90e2; }
+label{ font-size: 14px; font-weight: bold; color: #ff5fa2; display: block; margin-bottom: 10px; display:flex; align-items:center; justify-content:space-between; }
+.sub-label { font-size: 11px; color: #aaa; font-weight: normal; margin-left: 8px; }
 
-button.primary{ width:100%; padding:14px; border:none; border-radius:25px; background:linear-gradient(135deg,#4a90e2,#7eb6ff); color:white; margin-top:10px; font-size:14px; font-weight:bold; }
-button.primary:disabled { background: #ccc; }
+/* 入力欄 */
+input, textarea {
+  width:100%; padding:14px; border-radius:12px; border:1px solid #f0f0f0;
+  font-size:16px; background: #fafafa; transition:0.2s; outline:none;
+  color: #444; appearance: none;
+}
+input:focus, textarea:focus { border-color: #ff85b3; background: #fff; }
 
-.result{ margin-top:20px; padding:20px; background:#e3f2ff; border-radius:18px; white-space:pre-wrap; display:none; animation:fadeResult .35s ease; }
+/* ボタンエリア */
+.button-group{ display:flex; flex-wrap:wrap; gap:8px; }
 
-.modal{ position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(74, 144, 226, 0.95); color:#fff; padding:20px 30px; border-radius:25px; font-size:16px; opacity:0; transition:0.3s; pointer-events:none; z-index:1000; text-align:center; width: 80%; }
+/* 選択ボタン */
+.choice-btn{ 
+  padding:8px 12px; border-radius:18px; border:1px solid #ffe0eb; 
+  background:#fff; color:#666; cursor:pointer; font-size:12px; user-select:none; transition:0.2s;
+}
+.choice-btn:active { transform: scale(0.95); }
+/* 複数選択可能なスタイル */
+.choice-btn.active{ background:#ff5fa2; color:#fff; border-color:#ff5fa2; box-shadow: 0 2px 6px rgba(255,95,162,0.3); }
 
-.nav-links { text-align: center; margin-top: 20px; }
-.nav-links a { color: #4a90e2; text-decoration: none; font-size: 13px; margin: 0 10px; }
+/* 生成ボタン */
+button.primary{ 
+  width:100%; padding:16px; border:none; border-radius:30px; 
+  background:linear-gradient(135deg,#ff5fa2,#ff85b3); color:white; 
+  margin-top:10px; font-size:16px; font-weight:bold; cursor:pointer; 
+  box-shadow: 0 4px 12px rgba(255, 95, 162, 0.3); transition:0.2s;
+}
+button.primary:active { transform: scale(0.98); }
+button.primary:disabled { background: #ddd; cursor: not-allowed; box-shadow: none; }
+
+/* 結果表示エリア */
+.result-container { display:none; margin-top:20px; animation:popIn .3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+/* リンク */
+.nav-links { text-align: center; margin-top: 25px; margin-bottom: 25px; }
+.nav-links a { color: #ff85b3; text-decoration: none; font-size: 14px; border-bottom: 1px dotted #ff85b3; }
+
+/* モーダル */
+.modal{ position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(60, 60, 60, 0.9); color:#fff; padding:16px 24px; border-radius:30px; font-size:14px; opacity:0; transition:0.3s; pointer-events:none; z-index:1000; text-align:center; white-space: nowrap; }
+
 </style>
 </head>
 
 <body>
 
 <div class="wrapper">
-  <h2>お礼日記をつくる</h2>
-  <div class="profileInfo" id="profileInfo">プロフィール読み込み中...</div>
+  <h2>お礼日記（お礼LINE）</h2>
+  <div class="profileInfo" id="profileInfo">読み込み中...</div>
 
   <div class="card">
-    <label>何のお礼？</label>
-    <div class="button-group" id="thanksTypeButtons"></div>
+    <label>お客様のタイプ<span class="sub-label">※1つ選択</span></label>
+    <div class="button-group" id="customerTypeButtons"></div>
   </div>
 
   <div class="card">
-    <label>今の気持ち</label>
-    <div class="button-group" id="moodButtons"></div>
+    <label>接客のヒント<span class="sub-label">※複数選択OK</span></label>
+    <div class="button-group" id="episodeButtons"></div>
+  </div>
+
+  <div class="card">
+    <label>場所・コースなど<span class="sub-label">文章の補足に使います</span></label>
+    <input id="detail" placeholder="例：〇〇ホテル、120分コース、お土産ありがとう etc">
   </div>
 
   <button class="primary" id="generateBtn" onclick="generate()">お礼メッセージをつくる</button>
-  
-  <div class="result" id="result"></div>
 
   <div class="nav-links">
-    <a href="index.html">← 日記作成へ</a>
-    <a href="profile.html">プロフィール設定</a>
+    <a href="index.html">← メイン画面に戻る</a>
+  </div>
+
+  <div class="result-container" id="resultContainer">
+    <div class="card" style="background:#fff9fc; border: 2px solid #ffdeeb;">
+      <label style="color:#ff5fa2;">AIが書いたメッセージ<span class="sub-label">自由に修正してね</span></label>
+      <textarea id="resultTextarea" rows="9"></textarea>
+      <div class="button-group" style="margin-top:10px;">
+        <button class="choice-btn" style="width:100%; text-align:center; background:#ff5fa2; color:white; border:none;" onclick="copyText()">📋 文章をコピーする</button>
+      </div>
+    </div>
   </div>
 </div>
 
 <div id="modal" class="modal"></div>
 
 <script>
+// --- データ設定 ---
+// お客様タイプ（単一選択）
+const CUSTOMER_TYPES = ["新規", "指名", "仲良し様", "久しぶり"];
+
+// 接客エピソード（複数選択）
+const EPISODES = [
+  "長めコース", "短めコース", "貸切",
+  "いっぱい褒めてくれた", "たくさんイッちゃった",
+  "いっぱいせめた", "いっぱいせめられた",
+  "ぎゅってしてくれた", "また誘ってください"
+];
+
 let profile = null;
 let selectedType = null;
-let selectedMood = null;
+let selectedEpisodes = [];
 
-// 設定項目
-const thanksTypes = ["接客後のお礼", "ドリンクのお礼", "シャンパンのお礼", "予約のお礼", "久しぶりの連絡"];
-const moods = ["感謝いっぱい", "ドキドキした", "楽しかった", "また会いたい", "少し寂しい"];
+window.onload = function() {
+  loadProfile();
+  
+  // お客様タイプボタン（単一選択）
+  createButtons("customerTypeButtons", CUSTOMER_TYPES, (val, btn) => {
+    selectedType = val;
+    // 他の同グループボタンのactiveを消す
+    document.querySelectorAll("#customerTypeButtons .choice-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+  });
 
-function loadProfile() {
-  const saved = localStorage.getItem("profile");
-  const infoDiv = document.getElementById("profileInfo");
-  if (!saved) {
-    profile = null;
-    infoDiv.innerHTML = '<b style="color:#d0021b;">⚠️プロフィール未登録です</b>';
-    return;
-  }
-  profile = JSON.parse(saved);
-  infoDiv.innerText = `${profile.name}さんとして作成します`;
+  // エピソードボタン（複数選択）
+  createButtons("episodeButtons", EPISODES, (val, btn) => {
+    if (selectedEpisodes.includes(val)) {
+      selectedEpisodes = selectedEpisodes.filter(v => v !== val);
+      btn.classList.remove("active");
+    } else {
+      selectedEpisodes.push(val);
+      btn.classList.add("active");
+    }
+  });
+};
+
+function createButtons(containerId, list, onClick) {
+  const container = document.getElementById(containerId);
+  list.forEach(item => {
+    const btn = document.createElement("button");
+    btn.className = "choice-btn";
+    btn.innerText = item;
+    btn.onclick = () => onClick(item, btn);
+    container.appendChild(btn);
+  });
 }
 
-function showModal(msg) {
-  const modal = document.getElementById("modal");
-  modal.innerText = msg;
-  modal.style.opacity = "1";
-  setTimeout(() => { modal.style.opacity = "0"; }, 2500);
+function loadProfile() {
+  try {
+    const saved = localStorage.getItem("profile");
+    const infoDiv = document.getElementById("profileInfo");
+    if (!saved) {
+      infoDiv.innerHTML = '<a href="profile.html" style="color:#ff5fa2; text-decoration:underline;">⚠️ プロフィールを設定してください</a>';
+      return;
+    }
+    profile = JSON.parse(saved);
+    infoDiv.innerText = `${profile.name}（${profile.age || "?"}歳 / ${profile.character || "?"}）`;
+  } catch(e) {
+    console.error("Profile Error");
+  }
 }
 
 async function generate() {
-  if (!profile) {
-    showModal("プロフィールを先に登録してね");
+  if (!profile || !profile.name) {
+    showModal("プロフィール設定がまだのようです💦");
+    setTimeout(() => location.href = "profile.html", 1500);
     return;
   }
-  if (!selectedType || !selectedMood) {
-    showModal("項目をえらんでね");
-    return;
-  }
+  
+  if (!selectedType) { showModal("「お客様のタイプ」を選んでね"); return; }
+  
+  // 場所などの入力（空欄でもOKにする場合はチェックを外す）
+  const detail = document.getElementById("detail").value.trim();
 
   const btn = document.getElementById("generateBtn");
-  btn.innerText = "AIがお礼を考えています...";
+  btn.innerText = "お姉さんが執筆中...🖊️";
   btn.disabled = true;
 
   try {
     const workerUrl = "https://lucky-bush-6437diary-api.doropbox-kyoto.workers.dev";
+    
+    // Workerへ送るデータ
     const response = await fetch(workerUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        promptType: "thanks", // ここでWorker側に「お礼用」だと伝える
+        promptType: "thanks", // お礼日記用のモード
         context: {
           name: profile.name,
-          mood: selectedMood,
-          situation: selectedType, // お礼の種類を状況として送る
-          customer: profile.customerCall || "お兄さん",
-          character: profile.character
+          customerType: selectedType, // 新規、指名など
+          episodes: selectedEpisodes, // 選んだボタンのリスト
+          detail: detail, // 場所やコース
+          customer: profile.customerCall || "お客様",
+          character: profile.character,
+          traits: profile.traits || []
         }
       })
     });
 
+    if (!response.ok) throw new Error("API Error");
     const data = await response.json();
+    
     if (data.text) {
-      const resultArea = document.getElementById("result");
-      resultArea.style.display = "block";
-      resultArea.innerText = data.text;
+      const fullText = data.text;
+      const container = document.getElementById("resultContainer");
+      container.style.display = "block";
+      document.getElementById("resultTextarea").value = fullText;
+      container.scrollIntoView({ behavior: 'smooth', block: 'center' });
     } else {
-      throw new Error("生成失敗");
+      throw new Error("No text");
     }
+
   } catch (error) {
-    showModal("エラーが発生しました");
+    console.error(error);
+    showModal("エラーが発生しました💦");
   } finally {
     btn.innerText = "お礼メッセージをつくる";
     btn.disabled = false;
   }
 }
 
-// ボタン生成
-function createButtons(list, containerId, callback) {
-  const container = document.getElementById(containerId);
-  list.forEach(item => {
-    const btn = document.createElement("button");
-    btn.className = "choice-btn";
-    btn.innerText = item;
-    btn.onclick = () => {
-      [...container.children].forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      callback(item);
-    };
-    container.appendChild(btn);
-  });
+function copyText() {
+  const textarea = document.getElementById("resultTextarea");
+  if(!textarea.value) return;
+  textarea.select();
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(textarea.value).then(() => showModal("コピーしました✨"));
+  } else {
+    document.execCommand("copy");
+    showModal("コピーしました✨");
+  }
 }
 
-window.onload = function() {
-  loadProfile();
-  createButtons(thanksTypes, "thanksTypeButtons", (v) => selectedType = v);
-  createButtons(moods, "moodButtons", (v) => selectedMood = v);
-};
+function showModal(msg) {
+  const modal = document.getElementById("modal");
+  modal.innerText = msg;
+  modal.style.opacity = "1";
+  modal.style.top = "50%";
+  setTimeout(() => { modal.style.opacity = "0"; }, 2000);
+}
 </script>
 </body>
 </html>
