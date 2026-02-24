@@ -76,18 +76,18 @@ button.primary:disabled { background: #ddd; cursor: not-allowed; box-shadow: non
   <div class="profileInfo" id="profileInfo">読み込み中...</div>
 
   <div class="card">
-    <label>お客様は？<span class="sub-label">※1つ選択</span></label>
+    <label>場所・コース時間<span class="sub-label">文章の補足に使います</span></label>
+    <input id="detailInput" placeholder="例：〇〇ホテル、120分コースなど">
+  </div>
+
+  <div class="card">
+    <label>お客様の呼び方<span class="sub-label">※1つ選択</span></label>
     <div class="button-group" id="typeButtons"></div>
   </div>
 
   <div class="card">
     <label>出来事・印象<span class="sub-label">※複数選択OK</span></label>
     <div class="button-group" id="episodeButtons"></div>
-  </div>
-
-  <div class="card">
-    <label>場所・コース時間<span class="sub-label">文章の補足に使います</span></label>
-    <input id="detailInput" placeholder="例：〇〇ホテル、120分コース、お土産など">
   </div>
 
   <button class="primary" id="generateBtn" onclick="generate()">メッセージをつくる</button>
@@ -111,13 +111,16 @@ button.primary:disabled { background: #ddd; cursor: not-allowed; box-shadow: non
 
 <script>
 // --- 最新のボタンデータ ---
-const CUSTOMER_TYPES = ["久しぶり", "新規", "指名", "仲良し様"];
+// お客様の呼び方（全6種）
+const CUSTOMER_TYPES = ["新規様", "仲良しさん", "指名", "お久しぶり", "お兄さん", "お兄様"];
 
+// 出来事（全11種：短めコース削除、新しい3つ追加）
 const EPISODES = [
-  "長めコース", "短めコース", "貸切",
+  "長めコース", "貸切", "あっという間に",
   "いっぱい褒めてくれた", "たくさんイッちゃった",
   "いっぱいせめた", "いっぱいせめられた",
-  "ぎゅってしてくれた", "また誘ってください"
+  "ぎゅってしてくれた", "また誘ってください",
+  "照れてた", "恥ずかしかった"
 ];
 
 let profile = null;
@@ -179,7 +182,7 @@ async function generate() {
     return;
   }
   
-  if (!selectedType) { showModal("お客様のタイプを選んでね"); return; }
+  if (!selectedType) { showModal("お客様の呼び方を選んでね"); return; }
   
   const detail = document.getElementById("detailInput").value;
 
