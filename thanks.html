@@ -9,25 +9,20 @@
 /* --- 紫テーマ（Night Mode）設定 --- */
 html,body{ touch-action: manipulation; -webkit-text-size-adjust:100%; }
 *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
-/* 背景を少し大人っぽいラベンダー色に */
 body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif; background:#f8f0fc; color:#444; }
 
 .wrapper{ max-width:520px; margin:30px auto; padding:20px; animation:fadeUp .4s ease; }
 @keyframes fadeUp{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
 @keyframes popIn{ 0%{transform:scale(0.8); opacity:0;} 100%{transform:scale(1); opacity:1;} }
 
-/* 文字色をパープル系に */
 h2{ margin:0 0 10px 0; color: #a65cd6; font-size: 22px; text-align: center; }
 .profileInfo{ font-size:13px; color:#999; margin-bottom:20px; text-align: center; min-height: 1.2em; }
 
-/* カードデザイン */
 .card{ background:#fff; padding:18px; border-radius:20px; margin-bottom:16px; box-shadow:0 4px 15px rgba(166, 92, 214, 0.08); }
 
-/* ラベル色もパープル */
 label{ font-size: 14px; font-weight: bold; color: #a65cd6; display: block; margin-bottom: 10px; display:flex; align-items:center; justify-content:space-between; }
 .sub-label { font-size: 11px; color: #aaa; font-weight: normal; margin-left: 8px; }
 
-/* 入力欄 */
 input, textarea {
   width:100%; padding:14px; border-radius:12px; border:1px solid #f0f0f0;
   font-size:16px; background: #fafafa; transition:0.2s; outline:none;
@@ -35,19 +30,15 @@ input, textarea {
 }
 input:focus, textarea:focus { border-color: #d09dfc; background: #fff; }
 
-/* ボタンエリア */
 .button-group{ display:flex; flex-wrap:wrap; gap:8px; }
 
-/* 選択ボタン（紫枠） */
 .choice-btn{ 
   padding:8px 12px; border-radius:18px; border:1px solid #ebdcfc; 
   background:#fff; color:#777; cursor:pointer; font-size:13px; user-select:none; transition:0.2s;
 }
 .choice-btn:active { transform: scale(0.95); }
-/* アクティブ時は濃い紫 */
 .choice-btn.active{ background:#a65cd6; color:#fff; border-color:#a65cd6; box-shadow: 0 2px 6px rgba(166, 92, 214, 0.3); }
 
-/* 生成ボタン（紫グラデーション） */
 button.primary{ 
   width:100%; padding:16px; border:none; border-radius:30px; 
   background:linear-gradient(135deg,#a65cd6,#d485ff); color:white; 
@@ -57,20 +48,17 @@ button.primary{
 button.primary:active { transform: scale(0.98); }
 button.primary:disabled { background: #ddd; cursor: not-allowed; box-shadow: none; }
 
-/* 結果表示エリア */
 .result-container { display:none; margin-top:20px; animation:popIn .3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
-/* リンク */
 .nav-links { text-align: center; margin-top: 30px; margin-bottom: 30px; }
 .nav-links a { color: #a65cd6; text-decoration: none; font-size: 14px; border-bottom: 1px dotted #a65cd6; padding-bottom: 2px; }
 
-/* モーダル */
 .modal{ position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(60, 60, 60, 0.9); color:#fff; padding:16px 24px; border-radius:30px; font-size:14px; opacity:0; transition:0.3s; pointer-events:none; z-index:1000; text-align:center; white-space: nowrap; }
 
-/* ★ここから追加：可愛いローディングアニメーション */
+/* --- ローディング設定（ここを変更しました） --- */
 .loading-overlay {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(248, 240, 252, 0.9); /* 薄紫のすりガラス風 */
+  background: rgba(248, 240, 252, 0.92); /* 少し濃い目のすりガラス */
   backdrop-filter: blur(5px);
   z-index: 9999;
   display: flex; flex-direction: column; justify-content: center; align-items: center;
@@ -78,17 +66,19 @@ button.primary:disabled { background: #ddd; cursor: not-allowed; box-shadow: non
 }
 .loading-overlay.active { opacity: 1; pointer-events: auto; }
 
-/* ハートがドキドキする動き */
-.heart-beat { font-size: 60px; margin-bottom: 20px; animation: beat 1.2s infinite ease-in-out; }
-@keyframes beat {
-  0% { transform: scale(1); }
-  15% { transform: scale(1.2); }
-  30% { transform: scale(1); }
-  45% { transform: scale(1.1); }
-  60% { transform: scale(1); }
+/* ペンのアイコン設定 */
+.pen-icon {
+  font-size: 70px; /* 少し大きめに */
+  margin-bottom: 20px;
+  /* ゆっくりと優しく点滅するアニメーション */
+  animation: fade-slow 2s infinite ease-in-out;
+}
+@keyframes fade-slow {
+  0%, 100% { opacity: 1; transform: translateY(0); }
+  50% { opacity: 0.5; transform: translateY(-5px); /* 少しふわっと浮く */ }
 }
 
-.loading-text { font-size: 16px; color: #a65cd6; font-weight: bold; letter-spacing: 1px; }
+.loading-text { font-size: 16px; color: #a65cd6; font-weight: bold; letter-spacing: 1px; text-align: center; line-height: 1.5; }
 </style>
 </head>
 
@@ -131,14 +121,14 @@ button.primary:disabled { background: #ddd; cursor: not-allowed; box-shadow: non
 </div>
 
 <div id="loadingOverlay" class="loading-overlay">
-  <div class="heart-beat">💜</div>
+  <div class="pen-icon">🖊️</div>
   <div class="loading-text">お姉さんが一生懸命<br>書いてます...✨</div>
 </div>
 
 <div id="modal" class="modal"></div>
 
 <script>
-// --- 最新のボタンデータ ---
+// データ設定
 const CUSTOMER_TYPES = ["新規様", "仲良しさん", "指名", "お久しぶり", "お兄さん", "お兄様"];
 const EPISODES = [
   "長めコース", "貸切", "あっという間に",
@@ -202,12 +192,11 @@ async function generate() {
     setTimeout(() => location.href = "profile.html", 1500);
     return;
   }
-  
   if (!selectedType) { showModal("お客様の呼び方を選んでね"); return; }
   
   const detail = document.getElementById("detailInput").value;
 
-  // ★変更点：ローディングアニメーションを表示！
+  // ローディング表示
   const loader = document.getElementById("loadingOverlay");
   loader.classList.add("active");
 
@@ -246,7 +235,7 @@ async function generate() {
     console.error(error);
     showModal("ごめんね、エラーが出ちゃった💦");
   } finally {
-    // ★変更点：書き終わったらローディングを消す！
+    // ローディング非表示
     loader.classList.remove("active");
   }
 }
