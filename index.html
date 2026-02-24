@@ -65,4 +65,185 @@
   
   .history-item{ 
     background:#fff; padding:12px 14px; border-radius:12px; margin-bottom:10px; 
-    font-size:
+    font-size:13px; border:1px solid #f8f8f8; display: flex; 
+    justify-content: space-between; align-items: center; 
+    cursor: pointer; transition: 0.2s;
+  }
+  .history-item:active { background: #fff0f6; }
+  .history-text { flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: #555; }
+  .fav-btn { 
+    background: none; border: none; font-size: 18px; color: #ddd; 
+    cursor: pointer; padding: 0 0 0 10px; margin-left: 8px;
+    transition: color 0.2s;
+  }
+  .fav-btn.active { color: #ff5fa2; }
+
+  /* モーダル通知 */
+  .modal{ position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(60, 60, 60, 0.9); color:#fff; padding:16px 24px; border-radius:30px; font-size:14px; opacity:0; transition:0.3s; pointer-events:none; z-index:1000; text-align:center; white-space: nowrap; }
+
+  /* リンク */
+  .nav-links { text-align: center; margin-top: 20px; margin-bottom: 20px; display: flex; justify-content: center; gap: 20px; }
+  .nav-links a { color: #ff85b3; text-decoration: none; font-size: 14px; border-bottom: 1px dotted #ff85b3; padding-bottom: 2px; }
+</style>
+</head>
+
+<body>
+
+<div class="wrapper">
+  <h2>写メ日記をつくる</h2>
+  <div class="profileInfo" id="profileInfo">読み込み中...</div>
+
+  <div class="card">
+    <label>今の気分<span class="sub-label">※AIのテンションが変わります</span></label>
+    <div class="button-group" id="moodButtons"></div>
+  </div>
+
+  <div class="card">
+    <label>日記の状況<span class="sub-label">※内容のベースになります</span></label>
+    <div class="button-group" id="situationButtonsTop"></div>
+    <div class="divider"></div>
+    <div class="button-group" id="situationButtonsBottom"></div>
+  </div>
+
+  <div class="card">
+    <label>題名<span class="sub-label">＝題名（AIの文章にも反映されます）</span></label>
+    <input id="title" placeholder="例：今日のご褒美、お客様との思い出など">
+  </div>
+
+  <button class="primary" id="generateBtn" onclick="generate()">日記をつくる</button>
+
+  <div class="nav-links">
+    <a href="thanks.html">✨ お礼日記へ</a>
+    <a href="profile.html">⚙️ プロフィール設定</a>
+  </div>
+
+  <div class="result-container" id="resultContainer">
+    <div class="card" style="background:#fff9fc; border: 2px solid #ffdeeb;">
+      <label style="color:#ff5fa2;">AIが書いた日記<span class="sub-label">自由に修正してね</span></label>
+      <textarea id="resultTextarea" rows="9"></textarea>
+      <div class="button-group" style="margin-top:10px;">
+        <button class="choice-btn" style="width:100%; text-align:center; background:#ff5fa2; color:white; border:none;" onclick="copyText()">📋 文章をコピーする</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="history">
+    <h3>最近の履歴（20件）</h3>
+    <div id="historyList"></div>
+  </div>
+</div>
+
+<div id="modal" class="modal"></div>
+
+<script>
+// --- データ設定 ---
+const MOODS = [
+  "ルンルン", "ご機嫌", "ワクワク", "張り切り", "癒されたい",
+  "甘えたい", "寂しい", "まったり", "ほっこり", "お疲れ気味",
+  "眠い…", "強気", "センチメンタル", "お腹すいた", "酔っ払い"
+];
+
+const SITUATIONS_TOP = ["待機中", "明日出勤", "退勤"];
+const SITUATIONS_BOTTOM = [
+  "出勤前", "休憩中", "お休み", "美容Day", "お買い物", "ご飯", 
+  "お酒", "寝る前", "お散歩", "早起き", "雨の日", "旅行"
+];
+
+let profile = null;
+let selectedMood = null;
+let selectedSituation = null;
+
+// --- 安全な初期化処理 ---
+window.onload = function() {
+  // 古いデータが悪さをしないように安全に読み込む
+  safeLoadProfile();
+  
+  // ボタン生成
+  createButtons(MOODS, "moodButtons", (v) => selectedMood = v);
+  createButtons(SITUATIONS_TOP, "situationButtonsTop", (v) => selectedSituation = v);
+  createButtons(SITUATIONS_BOTTOM, "situationButtonsBottom", (v) => selectedSituation = v);
+  
+  // 履歴の修復と表示
+  try {
+    migrateHistoryIfNeeded();
+    renderHistory();
+  } catch(e) {
+    console.log("履歴データの修復を実行します");
+    localStorage.removeItem("diaryHistory"); // どうしてもダメなら履歴をリセット
+    renderHistory();
+  }
+};
+
+// プロフィール読み込み（エラー回避版）
+function safeLoadProfile() {
+  const infoDiv = document.getElementById("profileInfo");
+  try {
+    const saved = localStorage.getItem("profile");
+    if (!saved) {
+      infoDiv.innerHTML = '<a href="profile.html" style="color:#ff5fa2; text-decoration:underline;">⚠️ プロフィールを設定してください</a>';
+      return;
+    }
+    profile = JSON.parse(saved);
+    const ageText = profile.age ? `${profile.age}歳` : "";
+    const charText = profile.character || "";
+    infoDiv.innerText = `${profile.name}（${ageText} / ${charText}）`;
+  } catch(e) {
+    console.error("Profile Error", e);
+    // エラー時はデータをリセットして案内を出す
+    localStorage.removeItem("profile");
+    infoDiv.innerHTML = '<a href="profile.html" style="color:#ff5fa2; text-decoration:underline;">⚠️ プロフィールを設定し直してください</a>';
+  }
+}
+
+// ボタン生成
+function createButtons(list, containerId, callback) {
+  const container = document.getElementById(containerId);
+  if(!container) return;
+  list.forEach(item => {
+    const btn = document.createElement("button");
+    btn.className = "choice-btn";
+    btn.innerText = item;
+    btn.onclick = () => {
+      if(containerId.includes("situation")) {
+        document.querySelectorAll("#situationButtonsTop .choice-btn, #situationButtonsBottom .choice-btn").forEach(b => b.classList.remove("active"));
+      } else {
+        [...container.children].forEach(b => b.classList.remove("active"));
+      }
+      btn.classList.add("active");
+      callback(item);
+    };
+    container.appendChild(btn);
+  });
+}
+
+// --- 日記生成 ---
+async function generate() {
+  if (!profile || !profile.name) {
+    showModal("プロフィール設定がまだのようです💦");
+    setTimeout(() => location.href = "profile.html", 1500);
+    return;
+  }
+  
+  const title = document.getElementById("title").value.trim();
+  if (!selectedMood) { showModal("「今の気分」を選んでね"); return; }
+  if (!selectedSituation) { showModal("「日記の状況」を選んでね"); return; }
+  if (!title) { showModal("「題名」を入力してね"); return; }
+
+  const btn = document.getElementById("generateBtn");
+  btn.innerText = "お姉さんが執筆中...🖊️";
+  btn.disabled = true;
+
+  try {
+    const workerUrl = "https://lucky-bush-6437diary-api.doropbox-kyoto.workers.dev"; 
+    
+    const response = await fetch(workerUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        promptType: "index",
+        context: {
+          name: profile.name,
+          mood: selectedMood,
+          situation: selectedSituation,
+          title: title,
+          customer: profile
