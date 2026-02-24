@@ -6,90 +6,67 @@
 <title>プロフィール設定</title>
 
 <style>
+/* 基本設定 */
 html,body{ touch-action: manipulation; -webkit-text-size-adjust:100%; }
 *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
-body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,sans-serif; background:#fff4f8; }
+body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif; background:#fff4f8; color:#444; }
 
-.wrapper{ max-width:520px; margin:40px auto; padding:20px; animation:fadeUp .4s ease; }
+.wrapper{ max-width:520px; margin:30px auto; padding:20px; animation:fadeUp .4s ease; }
 @keyframes fadeUp{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
 
-h2{ margin-bottom:20px; color: #ff5fa2; text-align: center; }
+h2{ margin-bottom:20px; color: #ff5fa2; text-align: center; font-size: 22px; }
 
-.card{ background:#fff; padding:18px; border-radius:18px; margin-bottom:15px; box-shadow:0 8px 20px rgba(255,95,162,0.08); }
+/* カードデザイン */
+.card{ background:#fff; padding:20px; border-radius:20px; margin-bottom:16px; box-shadow:0 4px 15px rgba(255,95,162,0.06); }
 
-label{ display: block; margin-bottom: 8px; font-size: 14px; font-weight: bold; color: #555; }
+label{ display: block; margin-bottom: 8px; font-size: 14px; font-weight: bold; color: #ff5fa2; }
+.sub-label { font-size: 11px; color: #aaa; font-weight: normal; margin-left: 5px; }
 
+/* 入力欄 */
 input, select {
-  width:100%;
-  padding:12px;
-  border-radius:12px;
-  border:1px solid #eee;
-  font-size:16px;
-  background: #f9f9f9;
-  outline: none;
+  width:100%; padding:14px; border-radius:12px; border:1px solid #f0f0f0;
+  font-size:16px; background: #fafafa; outline: none; appearance: none;
+  color: #444; transition: 0.2s;
 }
+input:focus, select:focus { border-color: #ff85b3; background: #fff; }
 
-input:focus { border-color: #ff85b3; background: #fff; }
-
-.trait-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
+/* 特徴ボタンエリア */
+.trait-group { display: flex; flex-wrap: wrap; gap: 8px; }
 
 .trait-btn {
-  padding: 8px 14px;
-  border-radius: 20px;
-  border: 1px solid #eee;
-  background: #fff;
-  font-size: 13px;
-  cursor: pointer;
-  transition: 0.2s;
+  padding: 8px 12px; border-radius: 18px; border: 1px solid #ffe0eb;
+  background: #fff; font-size: 12px; cursor: pointer; transition: 0.2s;
+  color: #666; user-select: none;
 }
+.trait-btn:active { transform: scale(0.95); }
 
 .trait-btn.active {
-  background: #ff85b3;
-  color: #fff;
-  border-color: #ff85b3;
+  background: #ff5fa2; color: #fff; border-color: #ff5fa2;
+  box-shadow: 0 2px 6px rgba(255,95,162,0.3);
 }
 
-.limit-info {
-  font-size: 11px;
-  color: #ff85b3;
-  margin-top: 5px;
-  font-weight: normal;
-}
+.limit-info { font-size: 12px; color: #ff85b3; margin-top: 8px; text-align: right; }
 
+/* 保存ボタン */
 button.save-btn {
-  width:100%;
-  padding:15px;
-  border:none;
-  border-radius:25px;
+  width:100%; padding:16px; border:none; border-radius:30px;
   background:linear-gradient(135deg,#ff5fa2,#ff85b3);
-  color:white;
-  font-size:16px;
-  font-weight:bold;
-  margin-top:20px;
-  cursor: pointer;
-  box-shadow: 0 4px 10px rgba(255,95,162,0.3);
+  color:white; font-size:16px; font-weight:bold; margin-top:20px;
+  cursor: pointer; box-shadow: 0 4px 12px rgba(255,95,162,0.3);
+  transition: 0.2s;
 }
+button.save-btn:active { transform: scale(0.98); }
 
 .back-link {
-  display: block;
-  text-align: center;
-  margin-top: 20px;
-  color: #ff85b3;
-  text-decoration: none;
-  font-size: 14px;
+  display: block; text-align: center; margin-top: 25px;
+  color: #ff85b3; text-decoration: none; font-size: 14px;
+  border-bottom: 1px dotted #ff85b3; display: inline-block;
 }
+.back-link-container { text-align: center; }
 
 #statusMsg {
-  text-align: center;
-  font-size: 14px;
-  margin-top: 10px;
-  height: 1.2em;
-  color: #4caf50;
-  font-weight: bold;
+  text-align: center; font-size: 14px; margin-top: 15px;
+  height: 1.2em; color: #ff5fa2; font-weight: bold;
 }
 </style>
 </head>
@@ -101,12 +78,12 @@ button.save-btn {
 
   <div class="card">
     <label>源氏名（AIが名乗る名前）</label>
-    <input type="text" id="name" placeholder="あみ">
+    <input type="text" id="name" placeholder="例：あみ">
   </div>
 
   <div class="card">
-    <label>年齢（AIの口調に反映されます）</label>
-    <input type="number" id="age" placeholder="22">
+    <label>年齢（AIの考えや雰囲気に反映します）</label>
+    <input type="number" id="age" placeholder="例：24">
   </div>
 
   <div class="card">
@@ -119,44 +96,55 @@ button.save-btn {
       <option value="小悪魔系">小悪魔系</option>
       <option value="ドS系">ドS系</option>
       <option value="ドM系">ドM系</option>
+      <option value="天然系">天然系</option>
+      <option value="クール系">クール系</option>
     </select>
   </div>
 
   <div class="card">
     <label>お客さんの呼び方</label>
-    <input type="text" id="customerCall" placeholder="例：お兄さん、旦那様">
+    <input type="text" id="customerCall" placeholder="例：お兄さん、〇〇様、旦那様">
   </div>
 
   <div class="card">
-    <label>あなたの特徴 <span class="limit-info">※最大4つまで</span></label>
-    <div class="trait-group" id="traitGroup">
-      </div>
+    <label>あなたの特徴 <span class="sub-label">※4つまで選択OK</span></label>
+    <div class="trait-group" id="traitGroup"></div>
+    <div class="limit-info" id="limitInfo">あと 4 つ選べます</div>
   </div>
 
-  <button class="save-btn" onclick="saveProfile()">保存して戻る</button>
+  <button class="save-btn" onclick="saveProfile()">保存して完了</button>
   <div id="statusMsg"></div>
 
-  <a href="index.html" class="back-link">← キャンセルして戻る</a>
+  <div class="back-link-container">
+    <a href="index.html" class="back-link">キャンセルして戻る</a>
+  </div>
 </div>
 
 <script>
 let selectedTraits = [];
 
-// ご指定のリストを反映
+// ★変更点：特徴を30個に増量しました
 const traitsList = [
-  "S気質", "M気質", "甘え体質", "寂しがり", "痴女", 
-  "巨乳", "グラマー", "大人の色気", "ちょっぴり挑発的", 
-  "ツンデレ", "恥ずかしがり", "密着好き", "聞き上手", "かまってちゃん",
-  "優しい", "天然", "癒やし系", "お酒好き", "美脚"
+  // 性格・内面
+  "S気質", "M気質", "甘え体質", "寂しがり", "ツンデレ", 
+  "恥ずかしがり", "聞き上手", "かまってちゃん", "優しい", "天然", 
+  "癒やし系", "ノリがいい", "家庭的", "尽くすタイプ", "褒め上手", 
+  "負けず嫌い", "マイペース", "勉強熱心", "多趣味", "連絡マメ",
+  
+  // 外見・雰囲気・その他
+  "痴女", "巨乳", "グラマー", "大人の色気", "ちょっぴり挑発的", 
+  "密着好き", "お酒好き", "美脚", "色白", "笑顔が素敵"
 ];
 
 function renderTraits() {
   const container = document.getElementById("traitGroup");
   container.innerHTML = "";
+  
   traitsList.forEach(trait => {
     const btn = document.createElement("button");
     btn.className = "trait-btn";
     btn.innerText = trait;
+    
     if (selectedTraits.includes(trait)) btn.classList.add("active");
     
     btn.onclick = () => {
@@ -165,15 +153,32 @@ function renderTraits() {
         btn.classList.remove("active");
       } else {
         if (selectedTraits.length >= 4) {
-          alert("選べるのは4つまでだよ！");
+          // アラートの代わりに動きで知らせる
+          btn.style.transform = "translateX(2px)";
+          setTimeout(()=> btn.style.transform = "translateX(-2px)", 50);
+          setTimeout(()=> btn.style.transform = "none", 100);
           return;
         }
         selectedTraits.push(trait);
         btn.classList.add("active");
       }
+      updateLimitInfo();
     };
     container.appendChild(btn);
   });
+  updateLimitInfo();
+}
+
+function updateLimitInfo() {
+  const remaining = 4 - selectedTraits.length;
+  const info = document.getElementById("limitInfo");
+  if(remaining === 0) {
+    info.innerText = "MAX（これ以上選べません）";
+    info.style.color = "#ff5fa2";
+  } else {
+    info.innerText = `あと ${remaining} つ選べます`;
+    info.style.color = "#aaa";
+  }
 }
 
 function loadProfile() {
@@ -190,9 +195,9 @@ function loadProfile() {
 }
 
 function saveProfile() {
-  const name = document.getElementById("name").value;
+  const name = document.getElementById("name").value.trim();
   if (!name) {
-    alert("名前を入力してね！");
+    alert("お名前を入力してください✨");
     return;
   }
 
@@ -207,7 +212,8 @@ function saveProfile() {
   localStorage.setItem("profile", JSON.stringify(profileData));
   
   const msg = document.getElementById("statusMsg");
-  msg.innerText = "保存しました！";
+  msg.innerText = "プロフィールを保存しました✨";
+  
   setTimeout(() => { 
     location.href = "index.html";
   }, 800);
