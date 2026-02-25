@@ -123,7 +123,7 @@
   <div class="result-container" id="resultContainer">
     <div class="card" style="background:#fff9fc; border: 2px solid #ffdeeb;">
       <label style="color:#ff5fa2;">AIが書いた日記<span class="sub-label">自由に修正してね</span></label>
-      <textarea id="resultTextarea" rows="12"></textarea>
+      <textarea id="resultTextarea" rows="15"></textarea>
       <div class="button-group" style="margin-top:10px;">
         <button class="choice-btn" style="width:100%; text-align:center; background:#ff5fa2; color:white; border:none;" onclick="copyText()">📋 文章をコピーする</button>
       </div>
@@ -158,26 +158,22 @@ let selectedSituation = null;
 
 // --- 安全な初期化処理 ---
 window.onload = function() {
-  // 古いデータが悪さをしないように安全に読み込む
   safeLoadProfile();
-  
-  // ボタン生成
   createButtons(MOODS, "moodButtons", (v) => selectedMood = v);
   createButtons(SITUATIONS_TOP, "situationButtonsTop", (v) => selectedSituation = v);
   createButtons(SITUATIONS_BOTTOM, "situationButtonsBottom", (v) => selectedSituation = v);
   
-  // 履歴の修復と表示
   try {
     migrateHistoryIfNeeded();
     renderHistory();
   } catch(e) {
     console.log("履歴データの修復を実行します");
-    localStorage.removeItem("diaryHistory"); // どうしてもダメなら履歴をリセット
+    localStorage.removeItem("diaryHistory");
     renderHistory();
   }
 };
 
-// プロフィール読み込み（エラー回避版）
+// プロフィール読み込み
 function safeLoadProfile() {
   const infoDiv = document.getElementById("profileInfo");
   try {
@@ -191,7 +187,7 @@ function safeLoadProfile() {
     const charText = profile.character || "";
     infoDiv.innerText = `${profile.name}（${ageText} / ${charText}）`;
     
-    // ★追加：配置設定（左揃え・中央揃え）の適用
+    // 配置設定の適用
     const textarea = document.getElementById("resultTextarea");
     if (profile.textAlign === "center") {
         textarea.style.textAlign = "center";
@@ -201,7 +197,6 @@ function safeLoadProfile() {
     
   } catch(e) {
     console.error("Profile Error", e);
-    // エラー時はデータをリセットして案内を出す
     localStorage.removeItem("profile");
     infoDiv.innerHTML = '<a href="profile.html" style="color:#ff5fa2; text-decoration:underline;">⚠️ プロフィールを設定し直してください</a>';
   }
@@ -216,11 +211,9 @@ function createButtons(list, containerId, callback) {
     btn.className = "choice-btn";
     btn.innerText = item;
     btn.onclick = () => {
-      // 状況ボタン(Top/Bottom)は相互に排他制御が必要
       if(containerId.includes("situation")) {
         document.querySelectorAll("#situationButtonsTop .choice-btn, #situationButtonsBottom .choice-btn").forEach(b => b.classList.remove("active"));
       } else {
-        // 気分ボタンは自分のグループ内だけで排他制御
         [...container.children].forEach(b => b.classList.remove("active"));
       }
       btn.classList.add("active");
@@ -239,7 +232,7 @@ async function generate() {
   }
   
   const title = document.getElementById("title").value.trim();
-  if (!title) { showModal("「題名」を入力してね"); return; } // 順番変更によりチェック順も変更
+  if (!title) { showModal("「題名」を入力してね"); return; }
   if (!selectedSituation) { showModal("「日記の状況」を選んでね"); return; }
   if (!selectedMood) { showModal("「今の気分」を選んでね"); return; }
 
@@ -248,9 +241,9 @@ async function generate() {
   btn.disabled = true;
 
   try {
+    // ★ Cloudflare Workersのエンドポイント（ご自身のものに変更してください）
     const workerUrl = "https://lucky-bush-6437diary-api.doropbox-kyoto.workers.dev"; 
     
-    // APIリクエスト（構成は変えずに送信）
     const response = await fetch(workerUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -273,13 +266,22 @@ async function generate() {
     const data = await response.json();
     
     if (data.text) {
-      // ★追加：行間を空ける処理
-      // 改行コードで分割し、空行を除去してから、ダブル改行(\n\n)で結合
-      const formattedBody = data.text
+      let bodyText = data.text;
+
+      // ★追加修正: AIの文章に改行が少ない場合、強制的に句読点で改行を入れる
+      if ((bodyText.match(/\n/g) || []).length < 2) {
+         // 「。」「！」「？」の後に改行コードを2つ挿入する
+         bodyText = bodyText.replace(/([。！？!?]+)/g, "$1\n\n");
+      }
+
+      // 改行コードで分割し、空行を除去してから、ダブル改行(\n\n)で結合して行間を広げる
+      const formattedBody = bodyText
         .split(/\n/)
-        .filter(line => line.trim() !== "")
+        .map(line => line.trim())
+        .filter(line => line !== "")
         .join("\n\n");
 
+      // タイトルと本文の間もダブル改行で離す
       const fullText = `【${title}】\n\n${formattedBody}`;
       
       const container = document.getElementById("resultContainer");
@@ -288,6 +290,13 @@ async function generate() {
       const textarea = document.getElementById("resultTextarea");
       textarea.value = fullText;
       
+      // 再度配置スタイルを適用（念のため）
+      if (profile.textAlign === "center") {
+          textarea.style.textAlign = "center";
+      } else {
+          textarea.style.textAlign = "left";
+      }
+
       addToHistory(fullText);
       container.scrollIntoView({ behavior: 'smooth', block: 'center' });
     } else {
@@ -303,7 +312,7 @@ async function generate() {
   }
 }
 
-// --- 履歴機能（安全版・変更なし） ---
+// --- 履歴機能 ---
 function migrateHistoryIfNeeded() {
   let raw = localStorage.getItem("diaryHistory");
   if(!raw) return;
@@ -366,7 +375,6 @@ function renderHistory() {
     const div = document.createElement("div");
     div.className = "history-item";
     const preview = (item.text || "").split("\n")[0] || "無題";
-    const heartColor = item.fav ? "#ff5fa2" : "#ddd";
     const heartClass = item.fav ? "active" : "";
 
     div.innerHTML = `
@@ -378,7 +386,6 @@ function renderHistory() {
       container.style.display = "block";
       const textarea = document.getElementById("resultTextarea");
       textarea.value = item.text || "";
-      // 履歴から読み込む時も配置設定を再適用
       if (profile && profile.textAlign === "center") {
           textarea.style.textAlign = "center";
       } else {
