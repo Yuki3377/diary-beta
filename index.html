@@ -21,7 +21,6 @@ h2{ margin-bottom:20px; color: #ff5fa2; text-align: center; font-size: 22px; }
 /* ラベル設定 */
 .label-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
 label{ font-size: 14px; font-weight: bold; color: #ff5fa2; }
-.sub-label { font-size: 11px; color: #aaa; font-weight: normal; }
 
 /* 入力欄 */
 input, textarea, select {
@@ -31,6 +30,9 @@ input, textarea, select {
 }
 input:focus, textarea:focus, select:focus { border-color: #ff85b3; background: #fff; }
 textarea { resize: none; height: 100px; }
+
+/* プレースホルダーの文字色調整（長めの注釈を入れるため） */
+::placeholder { color: #aaa; font-size: 14px; }
 
 /* 気分ボタンエリア */
 .mood-group { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; }
@@ -89,11 +91,8 @@ button.generate-btn:disabled { opacity: 0.7; cursor: not-allowed; }
   <h2>AI写メ日記</h2>
 
   <div class="card">
-    <div class="label-row">
-      <label>日記のタイトル</label>
-      <span class="sub-label">（AIの文章にも反映されます）</span>
-    </div>
-    <input type="text" id="topic" placeholder="例：久々の美容室✨">
+    <label>日記のタイトル</label>
+    <input type="text" id="topic" placeholder="例：久々の美容室✨（AIの文章にも反映されます）">
   </div>
 
   <div class="card">
@@ -120,7 +119,7 @@ button.generate-btn:disabled { opacity: 0.7; cursor: not-allowed; }
   <div id="resultArea">
     <div class="label-row" style="margin-top:10px; margin-bottom:5px; padding:0 10px;">
       <label>完成した日記</label>
-      <span class="sub-label" id="copyMsg">タップしてコピー</span>
+      <span class="sub-label" id="copyMsg" style="font-size:11px; color:#aaa;">タップしてコピー</span>
     </div>
     <div class="result-box" id="resultText" onclick="copyText()"></div>
   </div>
@@ -140,27 +139,20 @@ window.onload = function() {
   if (saved) {
     userProfile = JSON.parse(saved);
   } else {
-    // プロフィールがない場合は設定画面へ誘導などの処理も可能
-    console.log("プロフィール未設定");
+    // デフォルト設定
+    userProfile = { textAlign: 'left' }; 
   }
 };
 
 // 気分選択
 function selectMood(btn, mood) {
-  // 既存の選択解除
   document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('active'));
-  // 選択反映
   btn.classList.add('active');
   selectedMood = mood;
 }
 
 // 日記生成実行
 async function generateDiary() {
-  // プロフィール未設定時のデフォルト値
-  const profileData = userProfile || { 
-    name: "私", character: "お姉さん系", textAlign: "left" 
-  };
-
   const topic = document.getElementById("topic").value;
   const detail = document.getElementById("detail").value;
 
@@ -169,7 +161,7 @@ async function generateDiary() {
     return;
   }
 
-  // UIをロード中に変更
+  // UIローディング表示
   const btn = document.getElementById("genBtn");
   const spinner = document.getElementById("spinner");
   const btnText = document.getElementById("btnText");
@@ -180,56 +172,36 @@ async function generateDiary() {
   document.getElementById("resultArea").style.display = "none";
 
   try {
-    // ★重要: ここはあなたのCloudflare WorkersのURLに書き換えてください
-    const API_URL = "https://diary-beta.pages.dev/api/generate"; // 仮のパス
-    // もしくは前のスクリーンショットにあったURLを使用:
-    // const API_URL = "https://lucky-bush-6437.doropbox-kyoto.workers.dev/"; 
-
-    // リクエストデータ作成 (既存のAPI構造に合わせて調整してください)
-    // ここでは新しい構成に合わせて送信します
-    const payload = {
-      topic: topic,
-      detail: detail,
-      mood: selectedMood || "普通",
-      profile: profileData // プロフィール情報も一緒に送ってAIに反映させる想定
-    };
-
-    // fetchでAPIを叩く
-    // ※現在は動作テスト用にモック（擬似）レスポンスを返します
-    // 本番ではここを fetch(API_URL, ...) に戻してください
+    /* ----------------------------------------------------
+       TODO: ここで Cloudflare Workers (API) へ fetch する
+       ---------------------------------------------------- */
     
-    /* --- 本番用コード (コメントアウト中) ---
-    const response = await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-    const data = await response.json();
-    let generatedText = data.text || "エラーが発生しました";
-    --------------------------------------- */
+    // --- 動作確認用のダミー生成処理 ---
+    await new Promise(r => setTimeout(r, 2000)); // 2秒待機
+    
+    // 仮の生成テキスト（改行コード \n を含む）
+    const generatedText = `${topic}に行ってきたよ！\n${detail}って感じでめっちゃ楽しかった〜✨\n${selectedMood}な気分だから、誰か癒やしてくれないかな？笑\n明日も頑張ろうっと！`;
+    
+    // --------------------------------
 
-    // --- テスト用: 3秒後に擬似テキストを返す ---
-    await new Promise(r => setTimeout(r, 2000));
-    const generatedText = `${topic}に行ってきたよ！\n\n${detail}って感じでめっちゃ楽しかった〜✨\n\n${selectedMood}な気分だから、誰か癒やしてくれないかな？笑\n\n明日も頑張ろうっと！`;
-    // ---------------------------------------
-
-    // ★修正ポイント: 行間を空ける処理 (改行を2つに増やす)
-    // 既に空行がある場合は重複しないように正規表現で調整
-    let formattedText = generatedText.replace(/\n/g, "\n\n").replace(/\n\n\n/g, "\n\n");
+    // ★修正: 行間を必ず1行あける処理
+    // 改行コードで分割し、空行を除去してから、ダブル改行(\n\n)で結合する
+    const formattedText = generatedText
+        .split(/\n/)
+        .filter(line => line.trim() !== "") // 空行があれば削除
+        .join("\n\n"); // 全ての間隔を1行あける
 
     const resultBox = document.getElementById("resultText");
     resultBox.innerText = formattedText;
 
-    // ★修正ポイント: 配置（左揃え・中央揃え）の反映
-    if (profileData.textAlign === "center") {
+    // ★修正: プロフィールの配置設定を反映 (左揃え or 中央揃え)
+    if (userProfile.textAlign === "center") {
       resultBox.style.textAlign = "center";
     } else {
       resultBox.style.textAlign = "left";
     }
 
     document.getElementById("resultArea").style.display = "block";
-    
-    // スクロール
     document.getElementById("resultArea").scrollIntoView({behavior: "smooth"});
 
   } catch (e) {
@@ -247,4 +219,15 @@ function copyText() {
   navigator.clipboard.writeText(text).then(() => {
     const msg = document.getElementById("copyMsg");
     const original = msg.innerText;
-    msg.innerText = "コピー
+    msg.innerText = "コピーしました！✨";
+    msg.style.color = "#ff5fa2";
+    setTimeout(() => {
+      msg.innerText = original;
+      msg.style.color = "#aaa";
+    }, 2000);
+  });
+}
+</script>
+
+</body>
+</html>
