@@ -45,6 +45,18 @@ input:focus, select:focus { border-color: #ff85b3; background: #fff; }
   box-shadow: 0 2px 6px rgba(255,95,162,0.3);
 }
 
+/* ★追加：配置ボタンエリア */
+.align-group { display: flex; gap: 10px; }
+.align-btn {
+  flex: 1; padding: 14px; border-radius: 12px; border: 1px solid #ffe0eb;
+  background: #fff; font-size: 14px; cursor: pointer; transition: 0.2s;
+  color: #666; text-align: center; font-weight: bold;
+}
+.align-btn.active {
+  background: #ff5fa2; color: #fff; border-color: #ff5fa2;
+  box-shadow: 0 2px 6px rgba(255,95,162,0.3);
+}
+
 .limit-info { font-size: 12px; color: #ff85b3; margin-top: 8px; text-align: right; }
 
 /* 保存ボタン */
@@ -107,6 +119,18 @@ button.save-btn:active { transform: scale(0.98); }
   </div>
 
   <div class="card">
+    <label>文章のスタイル（配置）</label>
+    <div class="align-group">
+      <button class="align-btn" id="btnLeft" onclick="selectAlign('left')">
+        ← 左揃え<br><span style="font-size:10px; font-weight:normal">（通常の日記）</span>
+      </button>
+      <button class="align-btn" id="btnCenter" onclick="selectAlign('center')">
+        →← 中央揃え<br><span style="font-size:10px; font-weight:normal">（ポエム風）</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="card">
     <label>あなたの特徴 <span class="sub-label">※4つまで選択OK</span></label>
     <div class="trait-group" id="traitGroup"></div>
     <div class="limit-info" id="limitInfo">あと 4 つ選べます</div>
@@ -122,15 +146,23 @@ button.save-btn:active { transform: scale(0.98); }
 
 <script>
 let selectedTraits = [];
+let textAlign = 'left'; // ★追加：デフォルトは左揃え
 
-// ★変更点：特徴を30個に増量しました
+// ★追加：配置選択関数
+function selectAlign(align) {
+  textAlign = align;
+  // UI更新
+  document.getElementById('btnLeft').className = align === 'left' ? 'align-btn active' : 'align-btn';
+  document.getElementById('btnCenter').className = align === 'center' ? 'align-btn active' : 'align-btn';
+}
+
 const traitsList = [
   // 性格・内面
   "S気質", "M気質", "甘え体質", "寂しがり", "ツンデレ", 
   "恥ずかしがり", "聞き上手", "かまってちゃん", "優しい", "天然", 
   "癒やし系", "ノリがいい", "家庭的", "尽くすタイプ", "褒め上手", 
   "負けず嫌い", "マイペース", "勉強熱心", "多趣味", "連絡マメ",
-  
+   
   // 外見・雰囲気・その他
   "痴女", "巨乳", "グラマー", "大人の色気", "ちょっぴり挑発的", 
   "密着好き", "お酒好き", "美脚", "色白", "笑顔が素敵"
@@ -139,7 +171,7 @@ const traitsList = [
 function renderTraits() {
   const container = document.getElementById("traitGroup");
   container.innerHTML = "";
-  
+   
   traitsList.forEach(trait => {
     const btn = document.createElement("button");
     btn.className = "trait-btn";
@@ -153,7 +185,6 @@ function renderTraits() {
         btn.classList.remove("active");
       } else {
         if (selectedTraits.length >= 4) {
-          // アラートの代わりに動きで知らせる
           btn.style.transform = "translateX(2px)";
           setTimeout(()=> btn.style.transform = "translateX(-2px)", 50);
           setTimeout(()=> btn.style.transform = "none", 100);
@@ -190,7 +221,14 @@ function loadProfile() {
     document.getElementById("character").value = p.character || "お姉さん系";
     document.getElementById("customerCall").value = p.customerCall || "";
     selectedTraits = p.traits || [];
+    
+    // ★追加：保存された配置設定を読み込む（なければ左揃え）
+    textAlign = p.textAlign || 'left';
   }
+  
+  // ★追加：配置UIの初期反映
+  selectAlign(textAlign);
+  
   renderTraits();
 }
 
@@ -206,14 +244,15 @@ function saveProfile() {
     age: document.getElementById("age").value,
     character: document.getElementById("character").value,
     customerCall: document.getElementById("customerCall").value,
-    traits: selectedTraits
+    traits: selectedTraits,
+    textAlign: textAlign // ★追加：配置設定も保存
   };
 
   localStorage.setItem("profile", JSON.stringify(profileData));
-  
+   
   const msg = document.getElementById("statusMsg");
   msg.innerText = "プロフィールを保存しました✨";
-  
+   
   setTimeout(() => { 
     location.href = "index.html";
   }, 800);
