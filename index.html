@@ -15,7 +15,7 @@
   @keyframes fadeUp{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
   @keyframes popIn{ 0%{transform:scale(0.8); opacity:0;} 100%{transform:scale(1); opacity:1;} }
 
-  .wrapper{ max-width:520px; margin:30px auto; padding:20px; animation:fadeUp .4s ease; }
+  .wrapper{ max-width:520px; margin:30px auto; padding:20px; padding-bottom: 80px; animation:fadeUp .4s ease; }
 
   h2{ margin:0 0 10px 0; color: #ff5fa2; font-size: 22px; text-align: center; }
   .profileInfo{ font-size:13px; color:#888; margin-bottom:20px; text-align: center; min-height: 1.2em; }
@@ -56,7 +56,7 @@
   button.primary:active { transform: scale(0.98); }
   button.primary:disabled { background: #ddd; cursor: not-allowed; box-shadow: none; }
 
-  /* ★追加：ヘブンへのリンクボタン（空色） */
+  /* ヘブンへのリンクボタン */
   .heaven-link-btn {
     display: block; width: 100%; text-align: center; padding: 12px;
     background: #5cacee; color: white; border-radius: 18px; text-decoration: none;
@@ -119,6 +119,54 @@
   .loading-text { 
     font-size: 18px; color: #ff5fa2; font-weight: bold; letter-spacing: 2px; font-family: 'Courier New', Courier, monospace; 
   }
+
+  /* ★追加：お姉さんガイドのスタイル */
+  .guide-overlay {
+    position: fixed;
+    bottom: 20px; /* 画面下からの距離 */
+    right: 20px;  /* 右からの距離 */
+    z-index: 900;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    animation: slideInUp 0.6s ease-out, float 3s infinite ease-in-out;
+    cursor: pointer;
+    display: none; /* 最初は隠しておく（JSで表示判定） */
+  }
+
+  /* 吹き出し部分 */
+  .guide-bubble {
+    background: #ff5fa2; /* ピンク色 */
+    color: white;
+    padding: 12px 16px;
+    border-radius: 12px 12px 0 12px; /* 左下だけ角を尖らせない */
+    font-size: 13px;
+    font-weight: bold;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    margin-bottom: 8px;
+    position: relative;
+    max-width: 200px;
+  }
+  /* 吹き出しのしっぽ */
+  .guide-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    right: 10px;
+    border-width: 8px 8px 0 0;
+    border-style: solid;
+    border-color: #ff5fa2 transparent transparent transparent;
+  }
+
+  /* キャラクターアイコン */
+  .guide-char {
+    font-size: 40px;
+    filter: drop-shadow(0 2px 5px rgba(0,0,0,0.1));
+  }
+
+  /* アニメーション定義 */
+  @keyframes slideInUp { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  @keyframes float { 0% { transform: translateY(0); } 50% { transform: translateY(-5px); } 100% { transform: translateY(0); } }
 </style>
 </head>
 
@@ -159,7 +207,6 @@
       
       <div class="button-group" style="margin-top:10px;">
         <button class="choice-btn" style="width:100%; text-align:center; background:#ff5fa2; color:white; border:none;" onclick="copyText()">📋 文章をコピーする</button>
-        
         <a href="https://spgirl.cityheaven.net/J1Login.php" target="_blank" class="heaven-link-btn">🚀 ヘブンの投稿画面を開く</a>
       </div>
     </div>
@@ -174,6 +221,11 @@
 <div id="loadingOverlay" class="loading-overlay">
   <div class="heart-icon">🩷</div>
   <div class="loading-text">Writing...</div>
+</div>
+
+<div id="guideOverlay" class="guide-overlay" onclick="location.href='profile.html'">
+  <div class="guide-bubble">まずはここから<br>プロフィールを設定してね！💕</div>
+  <div class="guide-char">👩‍🦰</div>
 </div>
 
 <div id="modal" class="modal"></div>
@@ -209,7 +261,19 @@ window.onload = function() {
     localStorage.removeItem("diaryHistory");
     renderHistory();
   }
+
+  // ★ガイド表示チェックを実行
+  checkGuide();
 };
+
+// ★ガイドを表示するか判断する関数
+function checkGuide() {
+  const saved = localStorage.getItem("profile");
+  // プロフィールがない（nullまたは空）なら表示する
+  if (!saved) {
+    document.getElementById("guideOverlay").style.display = "flex";
+  }
+}
 
 function safeLoadProfile() {
   const infoDiv = document.getElementById("profileInfo");
@@ -223,6 +287,10 @@ function safeLoadProfile() {
     const ageText = profile.age ? `${profile.age}歳` : "";
     const charText = profile.character || "";
     infoDiv.innerText = `${profile.name}（${ageText} / ${charText}）`;
+
+    // ★プロフィールがあるならガイドは隠す
+    document.getElementById("guideOverlay").style.display = "none";
+
   } catch(e) {
     localStorage.removeItem("profile");
     infoDiv.innerHTML = '<a href="profile.html" style="color:#ff5fa2; text-decoration:underline;">⚠️ プロフィールを設定し直してください</a>';
