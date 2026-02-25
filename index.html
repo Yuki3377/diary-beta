@@ -3,502 +3,248 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>写メ日記をつくる</title>
-
+<title>AI写メ日記作成</title>
 <style>
-  /* 基本設定 */
-  html,body{ touch-action: manipulation; -webkit-text-size-adjust:100%; }
-  *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
-  body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif; background:#fff4f8; color:#444; }
+/* 基本設定 (profile.htmlと共通) */
+html,body{ touch-action: manipulation; -webkit-text-size-adjust:100%; }
+*{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif; background:#fff4f8; color:#444; }
 
-  /* アニメーション */
-  @keyframes fadeUp{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
-  @keyframes popIn{ 0%{transform:scale(0.8); opacity:0;} 100%{transform:scale(1); opacity:1;} }
+.wrapper{ max-width:520px; margin:30px auto; padding:20px; animation:fadeUp .4s ease; }
+@keyframes fadeUp{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
 
-  .wrapper{ max-width:520px; margin:30px auto; padding:20px; padding-bottom: 80px; animation:fadeUp .4s ease; }
+h2{ margin-bottom:20px; color: #ff5fa2; text-align: center; font-size: 22px; }
 
-  h2{ margin:0 0 10px 0; color: #ff5fa2; font-size: 22px; text-align: center; }
-  .profileInfo{ font-size:13px; color:#888; margin-bottom:20px; text-align: center; min-height: 1.2em; }
+/* カードデザイン */
+.card{ background:#fff; padding:20px; border-radius:20px; margin-bottom:16px; box-shadow:0 4px 15px rgba(255,95,162,0.06); }
 
-  /* カードデザイン */
-  .card{ background:#fff; padding:18px; border-radius:20px; margin-bottom:16px; box-shadow:0 4px 15px rgba(255,95,162,0.06); }
-  
-  label{ font-size: 14px; font-weight: bold; color: #ff5fa2; display: block; margin-bottom: 10px; display:flex; align-items:center; justify-content:space-between; }
-  .sub-label { font-size: 11px; color: #aaa; font-weight: normal; margin-left: 8px; }
+/* ラベル設定 */
+.label-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+label{ font-size: 14px; font-weight: bold; color: #ff5fa2; }
+.sub-label { font-size: 11px; color: #aaa; font-weight: normal; }
 
-  /* 入力欄 */
-  input, textarea {
-    width:100%; padding:14px; border-radius:12px; border:1px solid #f0f0f0;
-    font-size:16px; background: #fafafa; transition:0.2s; outline:none;
-    color: #444; appearance: none;
-  }
-  input:focus, textarea:focus { border-color: #ff85b3; background: #fff; }
+/* 入力欄 */
+input, textarea, select {
+  width:100%; padding:14px; border-radius:12px; border:1px solid #f0f0f0;
+  font-size:16px; background: #fafafa; outline: none; appearance: none;
+  color: #444; transition: 0.2s; font-family: inherit;
+}
+input:focus, textarea:focus, select:focus { border-color: #ff85b3; background: #fff; }
+textarea { resize: none; height: 100px; }
 
-  /* ボタンエリア */
-  .button-group{ display:flex; flex-wrap:wrap; gap:8px; }
-  .divider { width: 100%; height: 1px; background: #f0f0f0; margin: 10px 0; }
-  
-  /* 選択ボタン */
-  .choice-btn{ 
-    padding:8px 12px; border-radius:18px; border:1px solid #ffe0eb; 
-    background:#fff; color:#666; cursor:pointer; font-size:13px; user-select:none; transition:0.2s;
-  }
-  .choice-btn:active { transform: scale(0.95); }
-  .choice-btn.active{ background:#ff5fa2; color:#fff; border-color:#ff5fa2; box-shadow: 0 2px 6px rgba(255,95,162,0.3); }
+/* 気分ボタンエリア */
+.mood-group { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; }
+.mood-btn {
+  flex: 0 0 auto; padding: 10px 16px; border-radius: 20px; border: 1px solid #ffe0eb;
+  background: #fff; font-size: 13px; cursor: pointer; transition: 0.2s;
+  color: #666; white-space: nowrap;
+}
+.mood-btn.active {
+  background: #ff5fa2; color: #fff; border-color: #ff5fa2;
+  box-shadow: 0 2px 6px rgba(255,95,162,0.3);
+}
 
-  /* 生成ボタン */
-  button.primary{ 
-    width:100%; padding:16px; border:none; border-radius:30px; 
-    background:linear-gradient(135deg,#ff5fa2,#ff85b3); color:white; 
-    margin-top:10px; font-size:16px; font-weight:bold; cursor:pointer; 
-    box-shadow: 0 4px 12px rgba(255, 95, 162, 0.3); transition:0.2s;
-  }
-  button.primary:active { transform: scale(0.98); }
-  button.primary:disabled { background: #ddd; cursor: not-allowed; box-shadow: none; }
+/* 生成ボタン */
+button.generate-btn {
+  width:100%; padding:16px; border:none; border-radius:30px;
+  background:linear-gradient(135deg,#ff5fa2,#ff85b3);
+  color:white; font-size:16px; font-weight:bold; margin-top:10px;
+  cursor: pointer; box-shadow: 0 4px 12px rgba(255,95,162,0.3);
+  transition: 0.2s; position: relative; overflow: hidden;
+}
+button.generate-btn:active { transform: scale(0.98); }
+button.generate-btn:disabled { opacity: 0.7; cursor: not-allowed; }
 
-  /* ヘブンへのリンクボタン */
-  .heaven-link-btn {
-    display: block; width: 100%; text-align: center; padding: 12px;
-    background: #5cacee; color: white; border-radius: 18px; text-decoration: none;
-    font-weight: bold; font-size: 14px; margin-top: 10px;
-    box-shadow: 0 4px 10px rgba(92, 172, 238, 0.3);
-    transition: 0.2s;
-  }
-  .heaven-link-btn:active { transform: scale(0.98); background: #4a90e2; }
+/* 結果表示エリア */
+#resultArea { margin-top: 30px; display: none; }
+.result-box {
+  background: #fff; padding: 25px; border-radius: 20px;
+  box-shadow: 0 4px 15px rgba(255,95,162,0.1);
+  border: 2px solid #ffe0eb;
+  font-size: 16px; line-height: 1.8; color: #333;
+  white-space: pre-wrap; /* 改行を反映 */
+}
 
-  /* 結果表示エリア */
-  .result-container { display:none; margin-top:20px; animation:popIn .3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-  
-  /* 履歴エリア */
-  .history{ margin-top:40px; border-top: 2px dashed #ffe0eb; padding-top: 20px; }
-  .history h3 { font-size: 16px; color: #888; margin-bottom: 15px; text-align: center; }
-  
-  .history-item{ 
-    background:#fff; padding:12px 14px; border-radius:12px; margin-bottom:10px; 
-    font-size:13px; border:1px solid #f8f8f8; display: flex; 
-    justify-content: space-between; align-items: center; 
-    cursor: pointer; transition: 0.2s;
-  }
-  .history-item:active { background: #fff0f6; }
-  .history-text { flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: #555; }
-  .fav-btn { 
-    background: none; border: none; font-size: 18px; color: #ddd; 
-    cursor: pointer; padding: 0 0 0 10px; margin-left: 8px;
-    transition: color 0.2s;
-  }
-  .fav-btn.active { color: #ff5fa2; }
+/* 設定リンク */
+.setting-link {
+  text-align: center; margin-top: 30px;
+}
+.setting-link a {
+  color: #aaa; text-decoration: none; font-size: 12px; border-bottom: 1px solid #ddd;
+}
 
-  /* モーダル通知 */
-  .modal{ position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(60, 60, 60, 0.9); color:#fff; padding:16px 24px; border-radius:30px; font-size:14px; opacity:0; transition:0.3s; pointer-events:none; z-index:1000; text-align:center; white-space: nowrap; }
+/* 読み込みアニメーション */
+.spinner {
+  display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 50%; border-top-color: #fff; animation: spin 1s ease-in-out infinite;
+  margin-right: 8px; vertical-align: middle; display: none;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 
-  /* リンク */
-  .nav-links { text-align: center; margin-top: 20px; margin-bottom: 20px; display: flex; justify-content: center; gap: 20px; }
-  .nav-links a { color: #ff85b3; text-decoration: none; font-size: 14px; border-bottom: 1px dotted #ff85b3; padding-bottom: 2px; }
-
-  /* ピンクのローディングアニメーション */
-  .loading-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(255, 244, 248, 0.92);
-    backdrop-filter: blur(5px);
-    z-index: 9999;
-    display: flex; flex-direction: column; justify-content: center; align-items: center;
-    opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
-  }
-  .loading-overlay.active { opacity: 1; pointer-events: auto; }
-
-  .heart-icon {
-    font-size: 70px; margin-bottom: 20px; color: #ff5fa2;
-    animation: gentle-beat 2s infinite ease-in-out;
-  }
-  @keyframes gentle-beat {
-    0% { transform: scale(1); opacity: 0.9; }
-    50% { transform: scale(1.15); opacity: 1; }
-    100% { transform: scale(1); opacity: 0.9; }
-  }
-
-  .loading-text { 
-    font-size: 18px; color: #ff5fa2; font-weight: bold; letter-spacing: 2px; font-family: 'Courier New', Courier, monospace; 
-  }
-
-  /* ★追加：ガイド（クマさん）のスタイル（中央表示・タップ付き） */
-  .guide-overlay {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%); /* 画面の完全な中央に配置 */
-    z-index: 900;
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* 左右中央揃え */
-    /* ふわふわ浮くアニメーション */
-    animation: float 3s infinite ease-in-out;
-    cursor: pointer;
-    display: none; /* 最初は隠しておく（JSで表示判定） */
-    
-    /* 背景を少し白くして読みやすく */
-    background: rgba(255, 255, 255, 0.6);
-    padding: 30px;
-    border-radius: 30px;
-    backdrop-filter: blur(3px);
-    box-shadow: 0 10px 25px rgba(255, 95, 162, 0.2);
-  }
-
-  /* 吹き出し部分 */
-  .guide-bubble {
-    background: #ff5fa2; /* ピンク色 */
-    color: white;
-    padding: 16px 20px;
-    border-radius: 20px;
-    font-size: 15px;
-    font-weight: bold;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-    margin-bottom: 15px;
-    position: relative;
-    max-width: 250px;
-    text-align: center;
-    line-height: 1.5;
-  }
-  /* 吹き出しのしっぽ（下向き） */
-  .guide-bubble::after {
-    content: '';
-    position: absolute;
-    bottom: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    border-width: 10px 10px 0 10px;
-    border-style: solid;
-    border-color: #ff5fa2 transparent transparent transparent;
-  }
-
-  /* キャラクターアイコン（巨大化） */
-  .guide-char {
-    font-size: 100px;
-    filter: drop-shadow(0 5px 10px rgba(0,0,0,0.2));
-    margin-bottom: 15px;
-  }
-
-  /* 「ここをタップ」のテキスト */
-  .guide-tap-text {
-    font-size: 18px;
-    font-weight: bold;
-    color: #ff5fa2;
-    background: #fff;
-    padding: 10px 24px;
-    border-radius: 30px;
-    border: 2px solid #ff5fa2;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-    animation: gentle-beat 1.5s infinite ease-in-out; /* ドキドキさせる */
-  }
-
-  /* float: ふわふわ浮く動き */
-  @keyframes float { 0% { transform: translate(-50%, -50%) translateY(0); } 50% { transform: translate(-50%, -50%) translateY(-10px); } 100% { transform: translate(-50%, -50%) translateY(0); } }
 </style>
 </head>
-
 <body>
 
 <div class="wrapper">
-  <h2>写メ日記をつくる</h2>
-  <div class="profileInfo" id="profileInfo">読み込み中...</div>
+  <h2>AI写メ日記</h2>
 
   <div class="card">
-    <label>今の気分<span class="sub-label">※AIのテンションが変わります</span></label>
-    <div class="button-group" id="moodButtons"></div>
-  </div>
-
-  <div class="card">
-    <label>日記の状況<span class="sub-label">※内容のベースになります</span></label>
-    <div class="button-group" id="situationButtonsTop"></div>
-    <div class="divider"></div>
-    <div class="button-group" id="situationButtonsBottom"></div>
+    <div class="label-row">
+      <label>日記のタイトル</label>
+      <span class="sub-label">（AIの文章にも反映されます）</span>
+    </div>
+    <input type="text" id="topic" placeholder="例：久々の美容室✨">
   </div>
 
   <div class="card">
-    <label>題名<span class="sub-label">＝題名（AIの文章にも反映されます）</span></label>
-    <input id="title" placeholder="例：今日のご褒美、お客様との思い出など">
+    <label>日記の状況・写真の内容</label>
+    <textarea id="detail" placeholder="例：表参道のカフェでパンケーキ食べた！めっちゃ並んだけど美味しかった〜"></textarea>
   </div>
 
-  <button class="primary" id="generateBtn" onclick="generate()">日記をつくる</button>
-
-  <div class="nav-links">
-    <a href="thanks.html">✨ お礼日記へ</a>
-    <a href="profile.html">⚙️ プロフィール設定</a>
-  </div>
-
-  <div class="result-container" id="resultContainer">
-    <div class="card" style="background:#fff9fc; border: 2px solid #ffdeeb;">
-      <label style="color:#ff5fa2;">AIが書いた日記<span class="sub-label">自由に修正してね</span></label>
-      <textarea id="resultTextarea" rows="9"></textarea>
-      
-      <div class="button-group" style="margin-top:10px;">
-        <button class="choice-btn" style="width:100%; text-align:center; background:#ff5fa2; color:white; border:none;" onclick="copyText()">📋 文章をコピーする</button>
-        <a href="https://spgirl.cityheaven.net/J1Login.php" target="_blank" class="heaven-link-btn">🚀 ヘブンの投稿画面を開く</a>
-      </div>
+  <div class="card">
+    <label>今の気分</label>
+    <div class="mood-group" id="moodGroup">
+      <button class="mood-btn" onclick="selectMood(this, 'ハッピー')">ハッピー🥰</button>
+      <button class="mood-btn" onclick="selectMood(this, '疲れた')">疲れた💦</button>
+      <button class="mood-btn" onclick="selectMood(this, 'まったり')">まったり🍵</button>
+      <button class="mood-btn" onclick="selectMood(this, 'かまって')">かまって🥺</button>
+      <button class="mood-btn" onclick="selectMood(this, 'おこ')">おこ💢</button>
     </div>
   </div>
 
-  <div class="history">
-    <h3>最近の履歴（20件）</h3>
-    <div id="historyList"></div>
+  <button class="generate-btn" id="genBtn" onclick="generateDiary()">
+    <span class="spinner" id="spinner"></span>
+    <span id="btnText">日記をつくる ✨</span>
+  </button>
+
+  <div id="resultArea">
+    <div class="label-row" style="margin-top:10px; margin-bottom:5px; padding:0 10px;">
+      <label>完成した日記</label>
+      <span class="sub-label" id="copyMsg">タップしてコピー</span>
+    </div>
+    <div class="result-box" id="resultText" onclick="copyText()"></div>
+  </div>
+
+  <div class="setting-link">
+    <a href="profile.html">プロフィール設定を変更する</a>
   </div>
 </div>
 
-<div id="loadingOverlay" class="loading-overlay">
-  <div class="heart-icon">🩷</div>
-  <div class="loading-text">Writing...</div>
-</div>
-
-<div id="guideOverlay" class="guide-overlay" onclick="location.href='profile.html'">
-  <div class="guide-bubble">まずはここから<br>プロフィールを設定してね！💕</div>
-  <div class="guide-char">🧸</div>
-  <div class="guide-tap-text">👆 ここをタップ！</div>
-</div>
-
-<div id="modal" class="modal"></div>
-
 <script>
-// --- データ設定 ---
-const MOODS = [
-  "ルンルン", "ご機嫌", "ワクワク", "張り切り", "癒されたい",
-  "甘えたい", "寂しい", "まったり", "ほっこり", "お疲れ気味",
-  "眠い…", "強気", "センチメンタル", "お腹すいた", "酔っ払い"
-];
+let selectedMood = "";
+let userProfile = {};
 
-const SITUATIONS_TOP = ["待機中", "明日出勤", "退勤"];
-const SITUATIONS_BOTTOM = [
-  "出勤前", "休憩中", "お休み", "美容Day", "お買い物", "ご飯", 
-  "お酒", "寝る前", "お散歩", "早起き", "雨の日", "旅行"
-];
-
-let profile = null;
-let selectedMood = null;
-let selectedSituation = null;
-
+// ページ読み込み時にプロフィール取得
 window.onload = function() {
-  safeLoadProfile();
-  createButtons(MOODS, "moodButtons", (v) => selectedMood = v);
-  createButtons(SITUATIONS_TOP, "situationButtonsTop", (v) => selectedSituation = v);
-  createButtons(SITUATIONS_BOTTOM, "situationButtonsBottom", (v) => selectedSituation = v);
-  
-  try {
-    migrateHistoryIfNeeded();
-    renderHistory();
-  } catch(e) {
-    localStorage.removeItem("diaryHistory");
-    renderHistory();
+  const saved = localStorage.getItem("profile");
+  if (saved) {
+    userProfile = JSON.parse(saved);
+  } else {
+    // プロフィールがない場合は設定画面へ誘導などの処理も可能
+    console.log("プロフィール未設定");
   }
-
-  // ★ガイド表示チェックを実行
-  checkGuide();
 };
 
-// ★ガイドを表示するか判断する関数
-function checkGuide() {
-  const saved = localStorage.getItem("profile");
-  // プロフィールがない（nullまたは空）なら表示する
-  if (!saved) {
-    document.getElementById("guideOverlay").style.display = "flex";
-  }
+// 気分選択
+function selectMood(btn, mood) {
+  // 既存の選択解除
+  document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('active'));
+  // 選択反映
+  btn.classList.add('active');
+  selectedMood = mood;
 }
 
-function safeLoadProfile() {
-  const infoDiv = document.getElementById("profileInfo");
-  try {
-    const saved = localStorage.getItem("profile");
-    if (!saved) {
-      infoDiv.innerHTML = '<a href="profile.html" style="color:#ff5fa2; text-decoration:underline;">⚠️ プロフィールを設定してください</a>';
-      return;
-    }
-    profile = JSON.parse(saved);
-    const ageText = profile.age ? `${profile.age}歳` : "";
-    const charText = profile.character || "";
-    infoDiv.innerText = `${profile.name}（${ageText} / ${charText}）`;
+// 日記生成実行
+async function generateDiary() {
+  // プロフィール未設定時のデフォルト値
+  const profileData = userProfile || { 
+    name: "私", character: "お姉さん系", textAlign: "left" 
+  };
 
-    // ★プロフィールがあるならガイドは隠す
-    document.getElementById("guideOverlay").style.display = "none";
+  const topic = document.getElementById("topic").value;
+  const detail = document.getElementById("detail").value;
 
-  } catch(e) {
-    localStorage.removeItem("profile");
-    infoDiv.innerHTML = '<a href="profile.html" style="color:#ff5fa2; text-decoration:underline;">⚠️ プロフィールを設定し直してください</a>';
-  }
-}
-
-function createButtons(list, containerId, callback) {
-  const container = document.getElementById(containerId);
-  if(!container) return;
-  list.forEach(item => {
-    const btn = document.createElement("button");
-    btn.className = "choice-btn";
-    btn.innerText = item;
-    btn.onclick = () => {
-      if(containerId.includes("situation")) {
-        document.querySelectorAll("#situationButtonsTop .choice-btn, #situationButtonsBottom .choice-btn").forEach(b => b.classList.remove("active"));
-      } else {
-        [...container.children].forEach(b => b.classList.remove("active"));
-      }
-      btn.classList.add("active");
-      callback(item);
-    };
-    container.appendChild(btn);
-  });
-}
-
-async function generate() {
-  if (!profile || !profile.name) {
-    showModal("プロフィール設定がまだのようです💦");
-    setTimeout(() => location.href = "profile.html", 1500);
+  if (!detail && !topic) {
+    alert("タイトルか状況を入力してください💦");
     return;
   }
-  
-  const title = document.getElementById("title").value.trim();
-  if (!selectedMood) { showModal("「今の気分」を選んでね"); return; }
-  if (!selectedSituation) { showModal("「日記の状況」を選んでね"); return; }
-  if (!title) { showModal("「題名」を入力してね"); return; }
 
-  const loader = document.getElementById("loadingOverlay");
-  loader.classList.add("active");
+  // UIをロード中に変更
+  const btn = document.getElementById("genBtn");
+  const spinner = document.getElementById("spinner");
+  const btnText = document.getElementById("btnText");
+  
+  btn.disabled = true;
+  spinner.style.display = "inline-block";
+  btnText.innerText = "考え中...";
+  document.getElementById("resultArea").style.display = "none";
 
   try {
-    const workerUrl = "https://lucky-bush-6437diary-api.doropbox-kyoto.workers.dev"; 
+    // ★重要: ここはあなたのCloudflare WorkersのURLに書き換えてください
+    const API_URL = "https://diary-beta.pages.dev/api/generate"; // 仮のパス
+    // もしくは前のスクリーンショットにあったURLを使用:
+    // const API_URL = "https://lucky-bush-6437.doropbox-kyoto.workers.dev/"; 
+
+    // リクエストデータ作成 (既存のAPI構造に合わせて調整してください)
+    // ここでは新しい構成に合わせて送信します
+    const payload = {
+      topic: topic,
+      detail: detail,
+      mood: selectedMood || "普通",
+      profile: profileData // プロフィール情報も一緒に送ってAIに反映させる想定
+    };
+
+    // fetchでAPIを叩く
+    // ※現在は動作テスト用にモック（擬似）レスポンスを返します
+    // 本番ではここを fetch(API_URL, ...) に戻してください
     
-    const response = await fetch(workerUrl, {
+    /* --- 本番用コード (コメントアウト中) ---
+    const response = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        promptType: "index",
-        context: {
-          name: profile.name,
-          mood: selectedMood,
-          situation: selectedSituation,
-          title: title,
-          customer: profile.customerCall || "お客様",
-          character: profile.character,
-          traits: profile.traits || []
-        }
-      })
+      body: JSON.stringify(payload)
     });
-
-    if (!response.ok) throw new Error("API Error");
-
     const data = await response.json();
-    
-    if (data.text) {
-      const fullText = `【${title}】\n\n${data.text}`;
-      const container = document.getElementById("resultContainer");
-      container.style.display = "block";
-      document.getElementById("resultTextarea").value = fullText;
-      addToHistory(fullText);
-      container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    let generatedText = data.text || "エラーが発生しました";
+    --------------------------------------- */
+
+    // --- テスト用: 3秒後に擬似テキストを返す ---
+    await new Promise(r => setTimeout(r, 2000));
+    const generatedText = `${topic}に行ってきたよ！\n\n${detail}って感じでめっちゃ楽しかった〜✨\n\n${selectedMood}な気分だから、誰か癒やしてくれないかな？笑\n\n明日も頑張ろうっと！`;
+    // ---------------------------------------
+
+    // ★修正ポイント: 行間を空ける処理 (改行を2つに増やす)
+    // 既に空行がある場合は重複しないように正規表現で調整
+    let formattedText = generatedText.replace(/\n/g, "\n\n").replace(/\n\n\n/g, "\n\n");
+
+    const resultBox = document.getElementById("resultText");
+    resultBox.innerText = formattedText;
+
+    // ★修正ポイント: 配置（左揃え・中央揃え）の反映
+    if (profileData.textAlign === "center") {
+      resultBox.style.textAlign = "center";
     } else {
-      throw new Error("No text");
+      resultBox.style.textAlign = "left";
     }
 
-  } catch (error) {
-    console.error(error);
-    showModal("ごめんね、うまく書けなかったみたい💦");
+    document.getElementById("resultArea").style.display = "block";
+    
+    // スクロール
+    document.getElementById("resultArea").scrollIntoView({behavior: "smooth"});
+
+  } catch (e) {
+    alert("エラーが発生しました: " + e.message);
   } finally {
-    loader.classList.remove("active");
+    btn.disabled = false;
+    spinner.style.display = "none";
+    btnText.innerText = "日記をつくる ✨";
   }
 }
 
-function migrateHistoryIfNeeded() {
-  let raw = localStorage.getItem("diaryHistory");
-  if(!raw) return;
-  try {
-    let history = JSON.parse(raw);
-    if(history.length > 0 && (typeof history[0] === 'string' || !history[0].id)) {
-      const newFormat = history.map(item => {
-        const text = (typeof item === 'string') ? item : (item.text || "");
-        return { text: text, fav: false, id: Date.now() + Math.random() };
-      });
-      localStorage.setItem("diaryHistory", JSON.stringify(newFormat));
-    }
-  } catch(e) {
-    localStorage.removeItem("diaryHistory");
-  }
-}
-
-function addToHistory(text) {
-  let history = getHistory();
-  const newItem = { text: text, fav: false, id: Date.now() };
-  history.unshift(newItem);
-  if (history.length > 20) history = history.slice(0, 20);
-  saveHistory(history);
-  renderHistory();
-}
-
-function toggleFav(id) {
-  let history = getHistory();
-  const index = history.findIndex(h => h.id === id);
-  if(index !== -1) {
-    history[index].fav = !history[index].fav;
-    saveHistory(history);
-    renderHistory();
-  }
-}
-
-function getHistory() {
-  try {
-    return JSON.parse(localStorage.getItem("diaryHistory") || "[]");
-  } catch(e) {
-    return [];
-  }
-}
-
-function saveHistory(history) {
-  localStorage.setItem("diaryHistory", JSON.stringify(history));
-}
-
-function renderHistory() {
-  const history = getHistory();
-  const list = document.getElementById("historyList");
-  list.innerHTML = "";
-  
-  if(history.length === 0) {
-    list.innerHTML = '<div style="text-align:center; font-size:12px; color:#aaa;">まだ履歴はありません</div>';
-    return;
-  }
-
-  history.forEach(item => {
-    const div = document.createElement("div");
-    div.className = "history-item";
-    const preview = (item.text || "").split("\n")[0] || "無題";
-    const heartColor = item.fav ? "#ff5fa2" : "#ddd";
-    const heartClass = item.fav ? "active" : "";
-
-    div.innerHTML = `
-      <div class="history-text">${preview}</div>
-      <button class="fav-btn ${heartClass}" onclick="event.stopPropagation(); toggleFav(${item.id})">♥</button>
-    `;
-    div.onclick = () => {
-      const container = document.getElementById("resultContainer");
-      container.style.display = "block";
-      document.getElementById("resultTextarea").value = item.text || "";
-      container.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    };
-    list.appendChild(div);
-  });
-}
-
+// コピー機能
 function copyText() {
-  const textarea = document.getElementById("resultTextarea");
-  if(!textarea.value) return;
-  textarea.select();
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(textarea.value).then(() => showModal("コピーしました✨"));
-  } else {
-    document.execCommand("copy");
-    showModal("コピーしました✨");
-  }
-}
-
-function showModal(msg) {
-  const modal = document.getElementById("modal");
-  modal.innerText = msg;
-  modal.style.opacity = "1";
-  modal.style.top = "50%";
-  setTimeout(() => { modal.style.opacity = "0"; }, 2000);
-}
-</script>
-</body>
-</html>
+  const text = document.getElementById("resultText").innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    const msg = document.getElementById("copyMsg");
+    const original = msg.innerText;
+    msg.innerText = "コピー
