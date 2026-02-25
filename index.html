@@ -120,53 +120,78 @@
     font-size: 18px; color: #ff5fa2; font-weight: bold; letter-spacing: 2px; font-family: 'Courier New', Courier, monospace; 
   }
 
-  /* ★追加：お姉さんガイドのスタイル */
+  /* ★追加：ガイド（クマさん）のスタイル（中央表示・タップ付き） */
   .guide-overlay {
     position: fixed;
-    bottom: 20px; /* 画面下からの距離 */
-    right: 20px;  /* 右からの距離 */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* 画面の完全な中央に配置 */
     z-index: 900;
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
-    animation: slideInUp 0.6s ease-out, float 3s infinite ease-in-out;
+    align-items: center; /* 左右中央揃え */
+    /* ふわふわ浮くアニメーション */
+    animation: float 3s infinite ease-in-out;
     cursor: pointer;
     display: none; /* 最初は隠しておく（JSで表示判定） */
+    
+    /* 背景を少し白くして読みやすく */
+    background: rgba(255, 255, 255, 0.6);
+    padding: 30px;
+    border-radius: 30px;
+    backdrop-filter: blur(3px);
+    box-shadow: 0 10px 25px rgba(255, 95, 162, 0.2);
   }
 
   /* 吹き出し部分 */
   .guide-bubble {
     background: #ff5fa2; /* ピンク色 */
     color: white;
-    padding: 12px 16px;
-    border-radius: 12px 12px 0 12px; /* 左下だけ角を尖らせない */
-    font-size: 13px;
+    padding: 16px 20px;
+    border-radius: 20px;
+    font-size: 15px;
     font-weight: bold;
     box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-    margin-bottom: 8px;
+    margin-bottom: 15px;
     position: relative;
-    max-width: 200px;
+    max-width: 250px;
+    text-align: center;
+    line-height: 1.5;
   }
-  /* 吹き出しのしっぽ */
+  /* 吹き出しのしっぽ（下向き） */
   .guide-bubble::after {
     content: '';
     position: absolute;
-    bottom: -8px;
-    right: 10px;
-    border-width: 8px 8px 0 0;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 10px 10px 0 10px;
     border-style: solid;
     border-color: #ff5fa2 transparent transparent transparent;
   }
 
-  /* キャラクターアイコン */
+  /* キャラクターアイコン（巨大化） */
   .guide-char {
-    font-size: 40px;
-    filter: drop-shadow(0 2px 5px rgba(0,0,0,0.1));
+    font-size: 100px;
+    filter: drop-shadow(0 5px 10px rgba(0,0,0,0.2));
+    margin-bottom: 15px;
   }
 
-  /* アニメーション定義 */
-  @keyframes slideInUp { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-  @keyframes float { 0% { transform: translateY(0); } 50% { transform: translateY(-5px); } 100% { transform: translateY(0); } }
+  /* 「ここをタップ」のテキスト */
+  .guide-tap-text {
+    font-size: 18px;
+    font-weight: bold;
+    color: #ff5fa2;
+    background: #fff;
+    padding: 10px 24px;
+    border-radius: 30px;
+    border: 2px solid #ff5fa2;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    animation: gentle-beat 1.5s infinite ease-in-out; /* ドキドキさせる */
+  }
+
+  /* float: ふわふわ浮く動き */
+  @keyframes float { 0% { transform: translate(-50%, -50%) translateY(0); } 50% { transform: translate(-50%, -50%) translateY(-10px); } 100% { transform: translate(-50%, -50%) translateY(0); } }
 </style>
 </head>
 
@@ -226,6 +251,7 @@
 <div id="guideOverlay" class="guide-overlay" onclick="location.href='profile.html'">
   <div class="guide-bubble">まずはここから<br>プロフィールを設定してね！💕</div>
   <div class="guide-char">🧸</div>
+  <div class="guide-tap-text">👆 ここをタップ！</div>
 </div>
 
 <div id="modal" class="modal"></div>
