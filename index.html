@@ -266,20 +266,20 @@ async function generate() {
     const data = await response.json();
     let bodyText = data.text || "";
 
-    // ===== 改行＆絵文字削除ロジック =====
+    // ===== 文字化け対策（完全除去）＆整形ロジック =====
     
-    // 1. 絵文字を削除 (Unicodeプロパティを使用)
-    // Extended_Pictographic: 絵文字全般
+    // 1. 絵文字(Extended_Pictographic)を全て削除
+    // ※ヘブン等のJPG変換による文字化けを防止
     bodyText = bodyText.replace(/\p{Extended_Pictographic}/gu, '');
     
-    // 2. 残りやすい記号も念のため削除
-    bodyText = bodyText.replace(/[✨💕🥺😊🎵💖✊]/g, '');
+    // 2. 残りやすい記号や特殊文字も個別に指定して削除
+    bodyText = bodyText.replace(/[★☆✨💕🥺😊🎵💖✊🙏✋✌️☀️☁️☔️📷]/g, '');
 
-    // 3. 改行コードの統一
+    // 3. 改行コードの統一 (CRLF -> LF)
     bodyText = bodyText.replace(/\r\n/g, "\n");
 
     // 4. 「。」「！」「？」の直後に必ず改行(2回)を入れる
-    // 既に改行がある場合は無視するようLookaheadを使うか、単純置換後に整理する
+    // Lookahead等を使わず単純置換で強力に広げる
     bodyText = bodyText.replace(/([。！？!?])/g, "$1\n\n");
 
     // 5. 連続しすぎた改行(3つ以上)は2つ(1行空き)に整える
