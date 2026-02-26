@@ -27,6 +27,7 @@ input, textarea {
   width:100%; padding:14px; border-radius:12px; border:1px solid #f0f0f0;
   font-size:16px; background: #fafafa; transition:0.2s; outline:none;
   color: #444; appearance: none;
+  line-height: 2.0; /* 行間を広めに確保 */
 }
 input:focus, textarea:focus { border-color: #d09dfc; background: #fff; }
 
@@ -84,7 +85,7 @@ button.primary:disabled { background: #ddd; cursor: not-allowed; box-shadow: non
   color: #a65cd6; 
   font-weight: bold; 
   letter-spacing: 2px; 
-  font-family: 'Courier New', Courier, monospace; /* 少しおしゃれなフォント */
+  font-family: 'Courier New', Courier, monospace;
 }
 </style>
 </head>
@@ -119,7 +120,7 @@ button.primary:disabled { background: #ddd; cursor: not-allowed; box-shadow: non
   <div class="result-container" id="resultContainer">
     <div class="card" style="background:#fcf9ff; border: 2px solid #e0cbf7;">
       <label style="color:#a65cd6;">AIが書いたメッセージ<span class="sub-label">自由に修正してね</span></label>
-      <textarea id="resultTextarea" rows="8"></textarea>
+      <textarea id="resultTextarea" rows="12"></textarea>
       <div class="button-group" style="margin-top:10px;">
         <button class="choice-btn" style="width:100%; text-align:center; background:#a65cd6; color:white; border:none;" onclick="copyText()">📋 コピーする</button>
       </div>
@@ -152,25 +153,31 @@ let selectedEpisodes = [];
 window.onload = function() {
   loadProfile();
   
-  createButtons("typeButtons", CUSTOMER_TYPES, (val, btn) => {
-    selectedType = val;
-    document.querySelectorAll("#typeButtons .choice-btn").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-  });
-
-  createButtons("episodeButtons", EPISODES, (val, btn) => {
-    if (selectedEpisodes.includes(val)) {
-      selectedEpisodes = selectedEpisodes.filter(v => v !== val);
-      btn.classList.remove("active");
-    } else {
-      selectedEpisodes.push(val);
+  // createButtons関数の修正：コンテナがない場合のエラー回避
+  if(document.getElementById("typeButtons")) {
+    createButtons("typeButtons", CUSTOMER_TYPES, (val, btn) => {
+      selectedType = val;
+      document.querySelectorAll("#typeButtons .choice-btn").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
-    }
-  });
+    });
+  }
+
+  if(document.getElementById("episodeButtons")) {
+    createButtons("episodeButtons", EPISODES, (val, btn) => {
+      if (selectedEpisodes.includes(val)) {
+        selectedEpisodes = selectedEpisodes.filter(v => v !== val);
+        btn.classList.remove("active");
+      } else {
+        selectedEpisodes.push(val);
+        btn.classList.add("active");
+      }
+    });
+  }
 };
 
 function createButtons(containerId, list, onClick) {
   const container = document.getElementById(containerId);
+  if(!container) return; // 安全対策
   list.forEach(item => {
     const btn = document.createElement("button");
     btn.className = "choice-btn";
@@ -189,7 +196,9 @@ function loadProfile() {
       return;
     }
     profile = JSON.parse(saved);
-    infoDiv.innerText = `${profile.name}（${profile.age || "?"}歳 / ${profile.character || "?"}）`;
+    const ageInfo = profile.age ? `${profile.age}歳` : "";
+    const charInfo = profile.character || "";
+    infoDiv.innerText = `${profile.name}（${ageInfo} / ${charInfo}）`;
   } catch(e) { console.error("Profile Error"); }
 }
 
@@ -228,11 +237,34 @@ async function generate() {
     });
 
     const data = await response.json();
+    let bodyText = data.text || "";
     
-    if (data.text) {
+    // ===== 文字化け対策（完全除去）＆整形ロジック =====
+    
+    // 1. 絵文字(Extended_Pictographic)を全て削除
+    bodyText = bodyText.replace(/\p{Extended_Pictographic}/gu, '');
+    
+    // 2. 残りやすい記号や特殊文字も個別に指定して削除
+    bodyText = bodyText.replace(/[★☆✨💕🥺😊🎵💖✊🙏✋✌️☀️☁️☔️📷]/g, '');
+
+    // 3. 改行コードの統一 (CRLF -> LF)
+    bodyText = bodyText.replace(/\r\n/g, "\n");
+
+    // 4. 「。」「！」「？」の直後に必ず改行(2回)を入れる
+    bodyText = bodyText.replace(/([。！？!?])/g, "$1\n\n");
+
+    // 5. 連続しすぎた改行(3つ以上)は2つ(1行空き)に整える
+    bodyText = bodyText.replace(/\n{3,}/g, "\n\n");
+
+    // 6. 前後の空白削除
+    bodyText = bodyText.trim();
+    
+    // ===============================================
+
+    if (bodyText) {
       const container = document.getElementById("resultContainer");
       container.style.display = "block";
-      document.getElementById("resultTextarea").value = data.text;
+      document.getElementById("resultTextarea").value = bodyText;
       container.scrollIntoView({ behavior: 'smooth', block: 'center' });
     } else {
       throw new Error("生成失敗");
