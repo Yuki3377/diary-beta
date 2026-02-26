@@ -114,6 +114,11 @@
     <div class="button-group" id="moodButtons"></div>
   </div>
 
+  <div class="card">
+    <label>ちょっぴり大人のスパイス<span class="sub-label">※文章の攻め具合</span></label>
+    <div class="button-group" id="eroButtons"></div>
+  </div>
+
   <button class="primary" id="generateBtn" onclick="generate()">日記をつくる</button>
 
   <div class="nav-links">
@@ -153,9 +158,12 @@ const SITUATIONS_BOTTOM = [
   "お酒", "寝る前", "お散歩", "早起き", "雨の日", "旅行"
 ];
 
+const ERO_LEVELS = ["ノーマル", "ムッツリ", "激エロ"]; // ★エロ度定義
+
 let profile = null;
 let selectedMood = null;
 let selectedSituation = null;
+let selectedEro = "ノーマル"; // ★デフォルト値
 
 // --- 初期化処理 ---
 window.onload = function() {
@@ -163,6 +171,7 @@ window.onload = function() {
   createButtons(MOODS, "moodButtons", (v) => selectedMood = v);
   createButtons(SITUATIONS_TOP, "situationButtonsTop", (v) => selectedSituation = v);
   createButtons(SITUATIONS_BOTTOM, "situationButtonsBottom", (v) => selectedSituation = v);
+  createButtons(ERO_LEVELS, "eroButtons", (v) => selectedEro = v); // ★エロ度ボタン生成
   
   try {
     migrateHistoryIfNeeded();
@@ -209,6 +218,12 @@ function createButtons(list, containerId, callback) {
     const btn = document.createElement("button");
     btn.className = "choice-btn";
     btn.innerText = item;
+    
+    // デフォルト選択状態にする処理（エロ度用）
+    if(containerId === "eroButtons" && item === "ノーマル") {
+        btn.classList.add("active");
+    }
+
     btn.onclick = () => {
       if(containerId.includes("situation")) {
         document.querySelectorAll("#situationButtonsTop .choice-btn, #situationButtonsBottom .choice-btn").forEach(b => b.classList.remove("active"));
@@ -254,6 +269,7 @@ async function generate() {
           mood: selectedMood,
           situation: selectedSituation,
           title: title,
+          eroLevel: selectedEro, // ★エロ度を追加
           customer: profile.customerCall || "お客様",
           character: profile.character,
           traits: profile.traits || []
@@ -269,7 +285,6 @@ async function generate() {
     // ===== 文字化け対策（完全除去）＆整形ロジック =====
     
     // 1. 絵文字(Extended_Pictographic)を全て削除
-    // ※ヘブン等のJPG変換による文字化けを防止
     bodyText = bodyText.replace(/\p{Extended_Pictographic}/gu, '');
     
     // 2. 残りやすい記号や特殊文字も個別に指定して削除
@@ -279,7 +294,6 @@ async function generate() {
     bodyText = bodyText.replace(/\r\n/g, "\n");
 
     // 4. 「。」「！」「？」の直後に必ず改行(2回)を入れる
-    // Lookahead等を使わず単純置換で強力に広げる
     bodyText = bodyText.replace(/([。！？!?])/g, "$1\n\n");
 
     // 5. 連続しすぎた改行(3つ以上)は2つ(1行空き)に整える
