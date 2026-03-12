@@ -241,3 +241,201 @@ function createButtons(list, containerId, callback) {
 async function generate() {
   if (!profile || !profile.name) {
     showModal("プロフィール設定がまだのようです💦");
+    setTimeout(() => location.href = "profile.html", 1500);
+    return;
+  }
+  
+  const title = document.getElementById("title").value.trim();
+  // バリデーション
+  if (!title) { showModal("題名を入力してね"); return; }
+  if (!selectedSituation) { showModal("日記の状況を選んでね"); return; }
+  if (!selectedMood) { showModal("今の気分を選んでね"); return; }
+
+  const btn = document.getElementById("generateBtn");
+  btn.innerText = "お姉さんが執筆中...🖊️";
+  btn.disabled = true;
+
+  try {
+    // 【変更箇所①】末尾に /generate を追加
+    const workerUrl = "https://lucky-bush-6437diary-api.doropbox-kyoto.workers.dev/generate"; 
+    
+    const response = await fetch(workerUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        promptType: "index",
+        context: {
+          name: profile.name,
+          mood: selectedMood,
+          situation: selectedSituation,
+          title: title,
+          eroLevel: selectedEro, // ★エロ度を追加
+          customer: profile.customerCall || "お客様",
+          character: profile.character,
+          traits: profile.traits || []
+        }
+      })
+    });
+
+    if (!response.ok) throw new Error("API Error");
+
+    const data = await response.json();
+    
+    // 【変更箇所②】Workerからの返却値（data.result）を読み取るように変更
+    let bodyText = data.result || data.text || "";
+
+    // ===== 文字化け対策（完全除去）＆整形ロジック =====
+    
+    // 1. 絵文字(Extended_Pictographic)を全て削除
+    bodyText = bodyText.replace(/\p{Extended_Pictographic}/gu, '');
+    
+    // 2. 残りやすい記号や特殊文字も個別に指定して削除
+    bodyText = bodyText.replace(/[★☆✨💕🥺😊🎵💖✊🙏✋✌️☀️☁️☔️📷]/g, '');
+
+    // 3. 改行コードの統一 (CRLF -> LF)
+    bodyText = bodyText.replace(/\r\n/g, "\n");
+
+    // 4. 「。」「！」「？」の直後に必ず改行(2回)を入れる
+    bodyText = bodyText.replace(/([。！？!?])/g, "$1\n\n");
+
+    // 5. 連続しすぎた改行(3つ以上)は2つ(1行空き)に整える
+    bodyText = bodyText.replace(/\n{3,}/g, "\n\n");
+
+    // 6. 前後の空白削除
+    bodyText = bodyText.trim();
+
+    // ================================
+
+    const fullText = `【${title}】\n\n${bodyText}`;
+      
+    const container = document.getElementById("resultContainer");
+    container.style.display = "block";
+      
+    const textarea = document.getElementById("resultTextarea");
+    textarea.value = fullText;
+      
+    if (profile.textAlign === "center") {
+        textarea.style.textAlign = "center";
+    } else {
+        textarea.style.textAlign = "left";
+    }
+
+    addToHistory(fullText);
+    container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+  } catch (error) {
+    console.error(error);
+    showModal("生成エラー💦");
+  } finally {
+    btn.innerText = "日記をつくる";
+    btn.disabled = false;
+  }
+}
+
+// --- 履歴機能 ---
+function migrateHistoryIfNeeded() {
+  let raw = localStorage.getItem("diaryHistory");
+  if(!raw) return;
+  try {
+    let history = JSON.parse(raw);
+    if(history.length > 0 && (typeof history[0] === 'string' || !history[0].id)) {
+      const newFormat = history.map(item => {
+        const text = (typeof item === 'string') ? item : (item.text || "");
+        return { text: text, fav: false, id: Date.now() + Math.random() };
+      });
+      localStorage.setItem("diaryHistory", JSON.stringify(newFormat));
+    }
+  } catch(e) {
+    localStorage.removeItem("diaryHistory");
+  }
+}
+
+function addToHistory(text) {
+  let history = getHistory();
+  const newItem = { text: text, fav: false, id: Date.now() };
+  history.unshift(newItem);
+  if (history.length > 20) history = history.slice(0, 20);
+  saveHistory(history);
+  renderHistory();
+}
+
+function toggleFav(id) {
+  let history = getHistory();
+  const index = history.findIndex(h => h.id === id);
+  if(index !== -1) {
+    history[index].fav = !history[index].fav;
+    saveHistory(history);
+    renderHistory();
+  }
+}
+
+function getHistory() {
+  try {
+    return JSON.parse(localStorage.getItem("diaryHistory") || "[]");
+  } catch(e) {
+    return [];
+  }
+}
+
+function saveHistory(history) {
+  localStorage.setItem("diaryHistory", JSON.stringify(history));
+}
+
+function renderHistory() {
+  const history = getHistory();
+  const list = document.getElementById("historyList");
+  list.innerHTML = "";
+  
+  if(history.length === 0) {
+    list.innerHTML = '<div style="text-align:center; font-size:12px; color:#aaa;">まだ履歴はありません</div>';
+    return;
+  }
+
+  history.forEach(item => {
+    const div = document.createElement("div");
+    div.className = "history-item";
+    const preview = (item.text || "").split("\n")[0] || "無題";
+    const heartClass = item.fav ? "active" : "";
+
+    div.innerHTML = `
+      <div class="history-text">${preview}</div>
+      <button class="fav-btn ${heartClass}" onclick="event.stopPropagation(); toggleFav(${item.id})">♥</button>
+    `;
+    div.onclick = () => {
+      const container = document.getElementById("resultContainer");
+      container.style.display = "block";
+      const textarea = document.getElementById("resultTextarea");
+      textarea.value = item.text || "";
+      if (profile && profile.textAlign === "center") {
+          textarea.style.textAlign = "center";
+      } else {
+          textarea.style.textAlign = "left";
+      }
+      container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
+    list.appendChild(div);
+  });
+}
+
+function copyText() {
+  const textarea = document.getElementById("resultTextarea");
+  if(!textarea.value) return;
+  textarea.select();
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(textarea.value).then(() => showModal("コピーしました✨"));
+  } else {
+    document.execCommand("copy");
+    showModal("コピーしました✨");
+  }
+}
+
+function showModal(msg) {
+  const modal = document.getElementById("modal");
+  modal.innerText = msg;
+  modal.style.opacity = "1";
+  modal.style.top = "50%";
+  setTimeout(() => { modal.style.opacity = "0"; }, 2000);
+}
+</script>
+</body>
+</html>
