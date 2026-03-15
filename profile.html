@@ -99,6 +99,17 @@ button.save-btn:active { transform: scale(0.98); }
   </div>
 
   <div class="card">
+    <label>お店のジャンル（文体や絵文字に反映）</label>
+    <select id="storeType">
+      <option value="学園系・激安">学園系・激安（若さ・ノリ・絵文字多め）</option>
+      <option value="高級店・エステ">高級店・エステ（上品・清楚・絵文字少なめ）</option>
+      <option value="熟女・人妻・姉系">熟女・人妻・姉系（色気・秘密・大人の余裕）</option>
+      <option value="SM">SM（支配・服従・フェティッシュ）</option>
+      <option value="ぽっちゃり">ぽっちゃり（癒やし・ふくよか・愛嬌）</option>
+    </select>
+  </div>
+
+  <div class="card">
     <label>キャラクター（性格）</label>
     <select id="character">
       <option value="お姉さん系">お姉さん系</option>
@@ -150,19 +161,15 @@ let textAlign = 'left';
 
 function selectAlign(align) {
   textAlign = align;
-  // UI更新
   document.getElementById('btnLeft').className = align === 'left' ? 'align-btn active' : 'align-btn';
   document.getElementById('btnCenter').className = align === 'center' ? 'align-btn active' : 'align-btn';
 }
 
 const traitsList = [
-  // 性格・内面
   "S気質", "M気質", "甘え体質", "寂しがり", "ツンデレ", 
   "恥ずかしがり", "聞き上手", "かまってちゃん", "優しい", "天然", 
   "癒やし系", "ノリがいい", "家庭的", "尽くすタイプ", "褒め上手", 
   "負けず嫌い", "マイペース", "勉強熱心", "多趣味", "連絡マメ",
-   
-  // 外見・雰囲気・その他
   "痴女", "巨乳", "グラマー", "大人の色気", "ちょっぴり挑発的", 
   "密着好き", "お酒好き", "美脚", "色白", "笑顔が素敵"
 ];
@@ -175,7 +182,6 @@ function renderTraits() {
     const btn = document.createElement("button");
     btn.className = "trait-btn";
     btn.innerText = trait;
-    
     if (selectedTraits.includes(trait)) btn.classList.add("active");
     
     btn.onclick = () => {
@@ -217,15 +223,13 @@ function loadProfile() {
     const p = JSON.parse(saved);
     document.getElementById("name").value = p.name || "";
     document.getElementById("age").value = p.age || "";
+    document.getElementById("storeType").value = p.storeType || "学園系・激安"; // ★追加
     document.getElementById("character").value = p.character || "お姉さん系";
     document.getElementById("customerCall").value = p.customerCall || "";
     selectedTraits = p.traits || [];
-    
     textAlign = p.textAlign || 'left';
   }
-  
   selectAlign(textAlign);
-  
   renderTraits();
 }
 
@@ -239,6 +243,7 @@ function saveProfile() {
   const profileData = {
     name: name,
     age: document.getElementById("age").value,
+    storeType: document.getElementById("storeType").value, // ★追加
     character: document.getElementById("character").value,
     customerCall: document.getElementById("customerCall").value,
     traits: selectedTraits,
@@ -257,6 +262,5 @@ function saveProfile() {
 
 window.onload = loadProfile;
 </script>
-
 </body>
 </html>
