@@ -21,7 +21,7 @@
   .profileInfo{ font-size:13px; color:#888; margin-bottom:20px; text-align: center; min-height: 1.2em; }
 
   /* カードデザイン */
-  .card{ background:#fff; padding:18px; border-radius:20px; margin-bottom:16px; box-shadow:0 4px 15px rgba(255,95,162,0.06); }
+  .card{ background:#fff; padding:18px; border-radius:20px; margin-bottom:166px; box-shadow:0 4px 15px rgba(255,95,162,0.06); }
    
   label{ font-size: 14px; font-weight: bold; color: #ff5fa2; display: block; margin-bottom: 10px; display:flex; align-items:center; justify-content:space-between; }
   .sub-label { font-size: 11px; color: #aaa; font-weight: normal; margin-left: 8px; }
@@ -59,45 +59,6 @@
   }
   button.primary:active { transform: scale(0.98); }
   button.primary:disabled { background: #ddd; cursor: not-allowed; box-shadow: none; }
-
-  /* ★待機画像エリア（image_0.pngを使用） */
-  .loadingArea {
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    margin-top: 20px;
-    animation: fadeUp .4s ease;
-  }
-  .loadingArea.active { display: flex; }
-  
-  /* 画像のスタイル（脉打つアニメーションを適用） */
-  .loadingImage {
-    max-width: 250px;
-    height: auto;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    filter: drop-shadow(0 0 10px rgba(255, 95, 162, 0.3)); /* 優しい影を追加 */
-  }
-  .loadingArea.active .loadingImage {
-    opacity: 1;
-    animation: gentle-beat 2s infinite ease-in-out;
-  }
-  @keyframes gentle-beat {
-    0% { transform: scale(1); opacity: 0.9; }
-    50% { transform: scale(1.05); opacity: 1; }
-    100% { transform: scale(1); opacity: 0.9; }
-  }
-  
-  /* 待機テキスト */
-  .loadingText { 
-    font-size: 16px; 
-    color: #ff5fa2; 
-    font-weight: bold; 
-    letter-spacing: 2px;
-    margin-top: 15px;
-    text-shadow: 0 1px 3px rgba(255, 95, 162, 0.2);
-  }
 
   /* 結果表示エリア */
   .result-container { display:none; margin-top:20px; animation:popIn .3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
@@ -168,11 +129,6 @@
   <div class="nav-links">
     <a href="thanks.html">✨ お礼日記へ</a>
     <a href="profile.html">⚙️ プロフィール設定</a>
-  </div>
-
-  <div class="loadingArea" id="loadingArea">
-    <img src="https://lucky-bush-6437diary-api.doropbox-kyoto.workers.dev/image_0.png" class="loadingImage" alt="女の子">
-    <div class="loadingText">お姉さんが執筆中...🖊️</div>
   </div>
 
   <div class="result-container" id="resultContainer">
@@ -304,12 +260,8 @@ async function generate() {
   if (!selectedMood) { showModal("今の気分を選んでね"); return; }
 
   const btn = document.getElementById("generateBtn");
-  // btn.innerText = "お姉さんが執筆中...🖊️"; // テキストは画像エリアに移動
+  btn.innerText = "お姉さんが執筆中...🖊️"; // ★テキスト表示に戻す
   btn.disabled = true;
-
-  // ★待機画像エリアを表示
-  const loadingArea = document.getElementById("loadingArea");
-  loadingArea.classList.add("active");
 
   try {
     const workerUrl = "https://lucky-bush-6437diary-api.doropbox-kyoto.workers.dev/generate"; 
@@ -338,11 +290,9 @@ async function generate() {
     const data = await response.json();
     let bodyText = data.result || data.text || "";
 
-    // ★修正点：絵文字を消すフィルターを無効化（コメントアウト）して絵文字を生かす
-    // bodyText = bodyText.replace(/\p{Extended_Pictographic}/gu, '');
-    // bodyText = bodyText.replace(/[★☆✨💕🥺😊🎵💖✊🙏✋✌️☀️☁️☔️📷]/g, '');
-    
-    // 改行整形のみ残す
+    // ===== 文字化け対策（完全除去）＆整形ロジック =====
+    bodyText = bodyText.replace(/\p{Extended_Pictographic}/gu, '');
+    bodyText = bodyText.replace(/[★☆✨💕🥺😊🎵💖✊🙏✋✌️☀️☁️☔️📷]/g, '');
     bodyText = bodyText.replace(/\r\n/g, "\n");
     bodyText = bodyText.replace(/([。！？!?])/g, "$1\n\n");
     bodyText = bodyText.replace(/\n{3,}/g, "\n\n");
@@ -370,8 +320,7 @@ async function generate() {
     console.error(error);
     showModal("生成エラー💦");
   } finally {
-    // ★待機画像エリアを非表示
-    loadingArea.classList.remove("active");
+    btn.innerText = "日記をつくる";
     btn.disabled = false;
   }
 }
