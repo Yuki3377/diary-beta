@@ -6,39 +6,125 @@
 <title>写メ日記をつくる</title>
 
 <style>
+  /* 基本設定 */
   html,body{ touch-action: manipulation; -webkit-text-size-adjust:100%; }
   *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
   body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif; background:#fff4f8; color:#444; }
 
+  /* アニメーション */
   @keyframes fadeUp{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
   @keyframes popIn{ 0%{transform:scale(0.8); opacity:0;} 100%{transform:scale(1); opacity:1;} }
 
   .wrapper{ max-width:520px; margin:30px auto; padding:20px; animation:fadeUp .4s ease; }
+
   h2{ margin:0 0 10px 0; color: #ff5fa2; font-size: 22px; text-align: center; }
   .profileInfo{ font-size:13px; color:#888; margin-bottom:20px; text-align: center; min-height: 1.2em; }
+
+  /* カードデザイン */
   .card{ background:#fff; padding:18px; border-radius:20px; margin-bottom:16px; box-shadow:0 4px 15px rgba(255,95,162,0.06); }
+   
   label{ font-size: 14px; font-weight: bold; color: #ff5fa2; display: block; margin-bottom: 10px; display:flex; align-items:center; justify-content:space-between; }
   .sub-label { font-size: 11px; color: #aaa; font-weight: normal; margin-left: 8px; }
-  input, textarea { width:100%; padding:14px; border-radius:12px; border:1px solid #f0f0f0; font-size:16px; background: #fafafa; transition:0.2s; outline:none; color: #444; appearance: none; line-height: 2.0; }
+
+  /* 入力欄 */
+  input, textarea {
+    width:100%; padding:14px; border-radius:12px; border:1px solid #f0f0f0;
+    font-size:16px; background: #fafafa; transition:0.2s; outline:none;
+    color: #444; appearance: none;
+    line-height: 2.0; /* 行間を広めに確保 */
+  }
   input:focus, textarea:focus { border-color: #ff85b3; background: #fff; }
+  
+  /* プレースホルダー調整 */
   ::placeholder { color: #aaa; font-size: 14px; }
+
+  /* ボタンエリア */
   .button-group{ display:flex; flex-wrap:wrap; gap:8px; }
   .divider { width: 100%; height: 1px; background: #f0f0f0; margin: 10px 0; }
-  .choice-btn{ padding:8px 12px; border-radius:18px; border:1px solid #ffe0eb; background:#fff; color:#666; cursor:pointer; font-size:13px; user-select:none; transition:0.2s; }
+   
+  /* 選択ボタン */
+  .choice-btn{ 
+    padding:8px 12px; border-radius:18px; border:1px solid #ffe0eb; 
+    background:#fff; color:#666; cursor:pointer; font-size:13px; user-select:none; transition:0.2s;
+  }
   .choice-btn:active { transform: scale(0.95); }
   .choice-btn.active{ background:#ff5fa2; color:#fff; border-color:#ff5fa2; box-shadow: 0 2px 6px rgba(255,95,162,0.3); }
-  button.primary{ width:100%; padding:16px; border:none; border-radius:30px; background:linear-gradient(135deg,#ff5fa2,#ff85b3); color:white; margin-top:10px; font-size:16px; font-weight:bold; cursor:pointer; box-shadow: 0 4px 12px rgba(255, 95, 162, 0.3); transition:0.2s; }
+
+  /* 生成ボタン */
+  button.primary{ 
+    width:100%; padding:16px; border:none; border-radius:30px; 
+    background:linear-gradient(135deg,#ff5fa2,#ff85b3); color:white; 
+    margin-top:10px; font-size:16px; font-weight:bold; cursor:pointer; 
+    box-shadow: 0 4px 12px rgba(255, 95, 162, 0.3); transition:0.2s;
+  }
   button.primary:active { transform: scale(0.98); }
   button.primary:disabled { background: #ddd; cursor: not-allowed; box-shadow: none; }
+
+  /* ★待機画像エリア（image_0.pngを使用） */
+  .loadingArea {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20px;
+    animation: fadeUp .4s ease;
+  }
+  .loadingArea.active { display: flex; }
+  
+  /* 画像のスタイル（脉打つアニメーションを適用） */
+  .loadingImage {
+    max-width: 250px;
+    height: auto;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    filter: drop-shadow(0 0 10px rgba(255, 95, 162, 0.3)); /* 優しい影を追加 */
+  }
+  .loadingArea.active .loadingImage {
+    opacity: 1;
+    animation: gentle-beat 2s infinite ease-in-out;
+  }
+  @keyframes gentle-beat {
+    0% { transform: scale(1); opacity: 0.9; }
+    50% { transform: scale(1.05); opacity: 1; }
+    100% { transform: scale(1); opacity: 0.9; }
+  }
+  
+  /* 待機テキスト */
+  .loadingText { 
+    font-size: 16px; 
+    color: #ff5fa2; 
+    font-weight: bold; 
+    letter-spacing: 2px;
+    margin-top: 15px;
+    text-shadow: 0 1px 3px rgba(255, 95, 162, 0.2);
+  }
+
+  /* 結果表示エリア */
   .result-container { display:none; margin-top:20px; animation:popIn .3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+   
+  /* 履歴エリア */
   .history{ margin-top:40px; border-top: 2px dashed #ffe0eb; padding-top: 20px; }
   .history h3 { font-size: 16px; color: #888; margin-bottom: 15px; text-align: center; }
-  .history-item{ background:#fff; padding:12px 14px; border-radius:12px; margin-bottom:10px; font-size:13px; border:1px solid #f8f8f8; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s; }
+   
+  .history-item{ 
+    background:#fff; padding:12px 14px; border-radius:12px; margin-bottom:10px; 
+    font-size:13px; border:1px solid #f8f8f8; display: flex; 
+    justify-content: space-between; align-items: center; 
+    cursor: pointer; transition: 0.2s;
+  }
   .history-item:active { background: #fff0f6; }
   .history-text { flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: #555; }
-  .fav-btn { background: none; border: none; font-size: 18px; color: #ddd; cursor: pointer; padding: 0 0 0 10px; margin-left: 8px; transition: color 0.2s; }
+  .fav-btn { 
+    background: none; border: none; font-size: 18px; color: #ddd; 
+    cursor: pointer; padding: 0 0 0 10px; margin-left: 8px;
+    transition: color 0.2s;
+  }
   .fav-btn.active { color: #ff5fa2; }
+
+  /* モーダル通知 */
   .modal{ position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(60, 60, 60, 0.9); color:#fff; padding:16px 24px; border-radius:30px; font-size:14px; opacity:0; transition:0.3s; pointer-events:none; z-index:1000; text-align:center; white-space: nowrap; }
+
+  /* リンク */
   .nav-links { text-align: center; margin-top: 20px; margin-bottom: 20px; display: flex; justify-content: center; gap: 20px; }
   .nav-links a { color: #ff85b3; text-decoration: none; font-size: 14px; border-bottom: 1px dotted #ff85b3; padding-bottom: 2px; }
 </style>
@@ -84,6 +170,11 @@
     <a href="profile.html">⚙️ プロフィール設定</a>
   </div>
 
+  <div class="loadingArea" id="loadingArea">
+    <img src="https://lucky-bush-6437diary-api.doropbox-kyoto.workers.dev/image_0.png" class="loadingImage" alt="女の子">
+    <div class="loadingText">お姉さんが執筆中...🖊️</div>
+  </div>
+
   <div class="result-container" id="resultContainer">
     <div class="card" style="background:#fff9fc; border: 2px solid #ffdeeb;">
       <label style="color:#ff5fa2;">AIが書いた日記<span class="sub-label">自由に修正してね</span></label>
@@ -103,6 +194,7 @@
 <div id="modal" class="modal"></div>
 
 <script>
+// --- データ設定 ---
 const MOODS = [
   "ルンルン", "ご機嫌", "ワクワク", "張り切り", "癒されたい",
   "甘えたい", "寂しい", "まったり", "ほっこり", "お疲れ気味",
@@ -116,21 +208,22 @@ const SITUATIONS_BOTTOM = [
 ];
 
 const ERO_LEVELS = ["ノーマル", "ムッツリ", "激エロ"];
-const LENGTH_OPTIONS = ["短め", "長め"];
+const LENGTH_OPTIONS = ["短め", "長め"]; // 文章のボリューム（以前から実装済み）
 
 let profile = null;
 let selectedMood = null;
 let selectedSituation = null;
 let selectedEro = "ノーマル";
-let selectedLength = "長め";
+let selectedLength = "長め"; // ★デフォルト値追加
 
+// --- 初期化処理 ---
 window.onload = function() {
   safeLoadProfile();
   createButtons(MOODS, "moodButtons", (v) => selectedMood = v);
   createButtons(SITUATIONS_TOP, "situationButtonsTop", (v) => selectedSituation = v);
   createButtons(SITUATIONS_BOTTOM, "situationButtonsBottom", (v) => selectedSituation = v);
   createButtons(ERO_LEVELS, "eroButtons", (v) => selectedEro = v);
-  createButtons(LENGTH_OPTIONS, "lengthButtons", (v) => selectedLength = v);
+  createButtons(LENGTH_OPTIONS, "lengthButtons", (v) => selectedLength = v); // 文章のボリューム
   
   try {
     migrateHistoryIfNeeded();
@@ -141,6 +234,7 @@ window.onload = function() {
   }
 };
 
+// プロフィール読み込み
 function safeLoadProfile() {
   const infoDiv = document.getElementById("profileInfo");
   try {
@@ -154,17 +248,21 @@ function safeLoadProfile() {
     const charText = profile.character || "";
     infoDiv.innerText = `${profile.name}（${ageText} / ${charText}）`;
     
+    // 配置設定の適用
     const textarea = document.getElementById("resultTextarea");
     if (profile.textAlign === "center") {
         textarea.style.textAlign = "center";
     } else {
         textarea.style.textAlign = "left";
     }
+    
   } catch(e) {
+    console.error("Profile Error", e);
     infoDiv.innerHTML = '<a href="profile.html" style="color:#ff5fa2; text-decoration:underline;">⚠️ プロフィールを設定し直してください</a>';
   }
 }
 
+// ボタン生成
 function createButtons(list, containerId, callback) {
   const container = document.getElementById(containerId);
   if(!container) return;
@@ -173,8 +271,9 @@ function createButtons(list, containerId, callback) {
     btn.className = "choice-btn";
     btn.innerText = item;
     
+    // デフォルト選択状態にする処理
     if((containerId === "eroButtons" && item === "ノーマル") || 
-       (containerId === "lengthButtons" && item === "長め")) {
+       (containerId === "lengthButtons" && item === "長め")) { // 文章のボリューム
         btn.classList.add("active");
     }
 
@@ -191,6 +290,7 @@ function createButtons(list, containerId, callback) {
   });
 }
 
+// --- 日記生成 ---
 async function generate() {
   if (!profile || !profile.name) {
     showModal("プロフィール設定がまだのようです💦");
@@ -204,11 +304,15 @@ async function generate() {
   if (!selectedMood) { showModal("今の気分を選んでね"); return; }
 
   const btn = document.getElementById("generateBtn");
-  btn.innerText = "お姉さんが執筆中...🖊️";
+  // btn.innerText = "お姉さんが執筆中...🖊️"; // テキストは画像エリアに移動
   btn.disabled = true;
 
+  // ★待機画像エリアを表示
+  const loadingArea = document.getElementById("loadingArea");
+  loadingArea.classList.add("active");
+
   try {
-    const workerUrl = "https://openrouter-diary-api.doropbox-kyoto.workers.dev/generate"; 
+    const workerUrl = "https://lucky-bush-6437diary-api.doropbox-kyoto.workers.dev/generate"; 
     
     const response = await fetch(workerUrl, {
       method: "POST",
@@ -221,8 +325,7 @@ async function generate() {
           situation: selectedSituation,
           title: title,
           eroLevel: selectedEro,
-          length: selectedLength,
-          storeType: profile.storeType || "学園系・激安", // ★追加：システムへ渡す
+          length: selectedLength, // 文章のボリューム指定をバックエンドへ送る
           customer: profile.customerCall || "お客様",
           character: profile.character,
           traits: profile.traits || []
@@ -235,7 +338,7 @@ async function generate() {
     const data = await response.json();
     let bodyText = data.result || data.text || "";
 
-    // ★修正：絵文字を消すフィルターを無効化（コメントアウト）して絵文字を生かす
+    // ★修正点：絵文字を消すフィルターを無効化（コメントアウト）して絵文字を生かす
     // bodyText = bodyText.replace(/\p{Extended_Pictographic}/gu, '');
     // bodyText = bodyText.replace(/[★☆✨💕🥺😊🎵💖✊🙏✋✌️☀️☁️☔️📷]/g, '');
     
@@ -244,6 +347,7 @@ async function generate() {
     bodyText = bodyText.replace(/([。！？!?])/g, "$1\n\n");
     bodyText = bodyText.replace(/\n{3,}/g, "\n\n");
     bodyText = bodyText.trim();
+    // ================================
 
     const fullText = `【${title}】\n\n${bodyText}`;
       
@@ -266,12 +370,13 @@ async function generate() {
     console.error(error);
     showModal("生成エラー💦");
   } finally {
-    btn.innerText = "日記をつくる";
+    // ★待機画像エリアを非表示
+    loadingArea.classList.remove("active");
     btn.disabled = false;
   }
 }
 
-// 履歴機能等の下部コードは変更なし
+// --- 履歴機能等の下部コードは変更なし ---
 function migrateHistoryIfNeeded() {
   let raw = localStorage.getItem("diaryHistory");
   if(!raw) return;
@@ -284,8 +389,11 @@ function migrateHistoryIfNeeded() {
       });
       localStorage.setItem("diaryHistory", JSON.stringify(newFormat));
     }
-  } catch(e) { localStorage.removeItem("diaryHistory"); }
+  } catch(e) {
+    localStorage.removeItem("diaryHistory");
+  }
 }
+
 function addToHistory(text) {
   let history = getHistory();
   const newItem = { text: text, fav: false, id: Date.now() };
@@ -294,6 +402,7 @@ function addToHistory(text) {
   saveHistory(history);
   renderHistory();
 }
+
 function toggleFav(id) {
   let history = getHistory();
   const index = history.findIndex(h => h.id === id);
@@ -303,39 +412,67 @@ function toggleFav(id) {
     renderHistory();
   }
 }
+
 function getHistory() {
-  try { return JSON.parse(localStorage.getItem("diaryHistory") || "[]"); } catch(e) { return []; }
+  try {
+    return JSON.parse(localStorage.getItem("diaryHistory") || "[]");
+  } catch(e) {
+    return [];
+  }
 }
-function saveHistory(history) { localStorage.setItem("diaryHistory", JSON.stringify(history)); }
+
+function saveHistory(history) {
+  localStorage.setItem("diaryHistory", JSON.stringify(history));
+}
+
 function renderHistory() {
   const history = getHistory();
   const list = document.getElementById("historyList");
   list.innerHTML = "";
-  if(history.length === 0) { list.innerHTML = '<div style="text-align:center; font-size:12px; color:#aaa;">まだ履歴はありません</div>'; return; }
+  
+  if(history.length === 0) {
+    list.innerHTML = '<div style="text-align:center; font-size:12px; color:#aaa;">まだ履歴はありません</div>';
+    return;
+  }
+
   history.forEach(item => {
     const div = document.createElement("div");
     div.className = "history-item";
     const preview = (item.text || "").split("\n")[0] || "無題";
     const heartClass = item.fav ? "active" : "";
-    div.innerHTML = `<div class="history-text">${preview}</div><button class="fav-btn ${heartClass}" onclick="event.stopPropagation(); toggleFav(${item.id})">♥</button>`;
+
+    div.innerHTML = `
+      <div class="history-text">${preview}</div>
+      <button class="fav-btn ${heartClass}" onclick="event.stopPropagation(); toggleFav(${item.id})">♥</button>
+    `;
     div.onclick = () => {
       const container = document.getElementById("resultContainer");
       container.style.display = "block";
       const textarea = document.getElementById("resultTextarea");
       textarea.value = item.text || "";
-      if (profile && profile.textAlign === "center") { textarea.style.textAlign = "center"; } else { textarea.style.textAlign = "left"; }
+      if (profile && profile.textAlign === "center") {
+          textarea.style.textAlign = "center";
+      } else {
+          textarea.style.textAlign = "left";
+      }
       container.scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
     list.appendChild(div);
   });
 }
+
 function copyText() {
   const textarea = document.getElementById("resultTextarea");
   if(!textarea.value) return;
   textarea.select();
-  if (navigator.clipboard) { navigator.clipboard.writeText(textarea.value).then(() => showModal("コピーしました✨"));
-  } else { document.execCommand("copy"); showModal("コピーしました✨"); }
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(textarea.value).then(() => showModal("コピーしました✨"));
+  } else {
+    document.execCommand("copy");
+    showModal("コピーしました✨");
+  }
 }
+
 function showModal(msg) {
   const modal = document.getElementById("modal");
   modal.innerText = msg;
