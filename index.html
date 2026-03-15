@@ -256,8 +256,8 @@ async function generate() {
   btn.disabled = true;
 
   try {
-    // 【変更箇所①】末尾に /generate を追加
-    const workerUrl = "https://lucky-bush-6437diary-api.doropbox-kyoto.workers.dev/generate"; 
+    // 【修正箇所】新しいWorkerのURLに変更
+    const workerUrl = "https://openrouter-diary-api.doropbox-kyoto.workers.dev/generate"; 
     
     const response = await fetch(workerUrl, {
       method: "POST",
@@ -281,7 +281,7 @@ async function generate() {
 
     const data = await response.json();
     
-    // 【変更箇所②】Workerからの返却値（data.result）を読み取るように変更
+    // Workerからの返却値（data.result）を読み取るように変更
     let bodyText = data.result || data.text || "";
 
     // ===== 文字化け対策（完全除去）＆整形ロジック =====
