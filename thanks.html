@@ -23,70 +23,28 @@ h2{ margin:0 0 10px 0; color: #a65cd6; font-size: 22px; text-align: center; }
 label{ font-size: 14px; font-weight: bold; color: #a65cd6; display: block; margin-bottom: 10px; display:flex; align-items:center; justify-content:space-between; }
 .sub-label { font-size: 11px; color: #aaa; font-weight: normal; margin-left: 8px; }
 
-input, textarea {
-  width:100%; padding:14px; border-radius:12px; border:1px solid #f0f0f0;
-  font-size:16px; background: #fafafa; transition:0.2s; outline:none;
-  color: #444; appearance: none;
-  line-height: 2.0; /* 行間を広めに確保 */
-}
+input, textarea { width:100%; padding:14px; border-radius:12px; border:1px solid #f0f0f0; font-size:16px; background: #fafafa; transition:0.2s; outline:none; color: #444; appearance: none; line-height: 2.0; }
 input:focus, textarea:focus { border-color: #d09dfc; background: #fff; }
 
 .button-group{ display:flex; flex-wrap:wrap; gap:8px; }
-
-.choice-btn{ 
-  padding:8px 12px; border-radius:18px; border:1px solid #ebdcfc; 
-  background:#fff; color:#777; cursor:pointer; font-size:13px; user-select:none; transition:0.2s;
-}
+.choice-btn{ padding:8px 12px; border-radius:18px; border:1px solid #ebdcfc; background:#fff; color:#777; cursor:pointer; font-size:13px; user-select:none; transition:0.2s; }
 .choice-btn:active { transform: scale(0.95); }
 .choice-btn.active{ background:#a65cd6; color:#fff; border-color:#a65cd6; box-shadow: 0 2px 6px rgba(166, 92, 214, 0.3); }
 
-button.primary{ 
-  width:100%; padding:16px; border:none; border-radius:30px; 
-  background:linear-gradient(135deg,#a65cd6,#d485ff); color:white; 
-  margin-top:10px; font-size:16px; font-weight:bold; cursor:pointer; 
-  box-shadow: 0 4px 12px rgba(166, 92, 214, 0.3); transition:0.2s;
-}
+button.primary{ width:100%; padding:16px; border:none; border-radius:30px; background:linear-gradient(135deg,#a65cd6,#d485ff); color:white; margin-top:10px; font-size:16px; font-weight:bold; cursor:pointer; box-shadow: 0 4px 12px rgba(166, 92, 214, 0.3); transition:0.2s; }
 button.primary:active { transform: scale(0.98); }
 button.primary:disabled { background: #ddd; cursor: not-allowed; box-shadow: none; }
 
 .result-container { display:none; margin-top:20px; animation:popIn .3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-
 .nav-links { text-align: center; margin-top: 30px; margin-bottom: 30px; }
 .nav-links a { color: #a65cd6; text-decoration: none; font-size: 14px; border-bottom: 1px dotted #a65cd6; padding-bottom: 2px; }
-
 .modal{ position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(60, 60, 60, 0.9); color:#fff; padding:16px 24px; border-radius:30px; font-size:14px; opacity:0; transition:0.3s; pointer-events:none; z-index:1000; text-align:center; white-space: nowrap; }
 
-/* --- ローディング設定 --- */
-.loading-overlay {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(248, 240, 252, 0.92);
-  backdrop-filter: blur(5px);
-  z-index: 9999;
-  display: flex; flex-direction: column; justify-content: center; align-items: center;
-  opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
-}
+.loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(248, 240, 252, 0.92); backdrop-filter: blur(5px); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
 .loading-overlay.active { opacity: 1; pointer-events: auto; }
-
-/* ハートのアイコン（優しく脈打つ） */
-.heart-icon {
-  font-size: 70px;
-  margin-bottom: 20px;
-  animation: gentle-beat 2s infinite ease-in-out;
-}
-@keyframes gentle-beat {
-  0% { transform: scale(1); opacity: 0.9; }
-  50% { transform: scale(1.15); opacity: 1; }
-  100% { transform: scale(1); opacity: 0.9; }
-}
-
-/* 英語テキスト */
-.loading-text { 
-  font-size: 18px; 
-  color: #a65cd6; 
-  font-weight: bold; 
-  letter-spacing: 2px; 
-  font-family: 'Courier New', Courier, monospace;
-}
+.heart-icon { font-size: 70px; margin-bottom: 20px; animation: gentle-beat 2s infinite ease-in-out; }
+@keyframes gentle-beat { 0% { transform: scale(1); opacity: 0.9; } 50% { transform: scale(1.15); opacity: 1; } 100% { transform: scale(1); opacity: 0.9; } }
+.loading-text { font-size: 18px; color: #a65cd6; font-weight: bold; letter-spacing: 2px; font-family: 'Courier New', Courier, monospace; }
 </style>
 </head>
 
@@ -136,13 +94,10 @@ button.primary:disabled { background: #ddd; cursor: not-allowed; box-shadow: non
 <div id="modal" class="modal"></div>
 
 <script>
-// データ設定
 const CUSTOMER_TYPES = ["新規様", "仲良しさん", "指名", "お久しぶり", "お兄さん", "お兄様"];
 const EPISODES = [
-  "長めコース", "貸切", "あっという間に",
-  "いっぱい褒めてくれた", "たくさんイッちゃった",
-  "いっぱいせめた", "いっぱいせめられた",
-  "ぎゅってしてくれた", "また誘ってください",
+  "長めコース", "貸切", "あっという間に", "いっぱい褒めてくれた", "たくさんイッちゃった",
+  "いっぱいせめた", "いっぱいせめられた", "ぎゅってしてくれた", "また誘ってください",
   "照れてた", "恥ずかしかった"
 ];
 
@@ -152,7 +107,6 @@ let selectedEpisodes = [];
 
 window.onload = function() {
   loadProfile();
-  
   if(document.getElementById("typeButtons")) {
     createButtons("typeButtons", CUSTOMER_TYPES, (val, btn) => {
       selectedType = val;
@@ -160,7 +114,6 @@ window.onload = function() {
       btn.classList.add("active");
     });
   }
-
   if(document.getElementById("episodeButtons")) {
     createButtons("episodeButtons", EPISODES, (val, btn) => {
       if (selectedEpisodes.includes(val)) {
@@ -176,7 +129,7 @@ window.onload = function() {
 
 function createButtons(containerId, list, onClick) {
   const container = document.getElementById(containerId);
-  if(!container) return; // 安全対策
+  if(!container) return;
   list.forEach(item => {
     const btn = document.createElement("button");
     btn.className = "choice-btn";
@@ -190,10 +143,7 @@ function loadProfile() {
   try {
     const saved = localStorage.getItem("profile");
     const infoDiv = document.getElementById("profileInfo");
-    if (!saved) {
-      infoDiv.innerHTML = '<a href="profile.html" style="color:#a65cd6;">⚠️ プロフィール未設定です</a>';
-      return;
-    }
+    if (!saved) { infoDiv.innerHTML = '<a href="profile.html" style="color:#a65cd6;">⚠️ プロフィール未設定です</a>'; return; }
     profile = JSON.parse(saved);
     const ageInfo = profile.age ? `${profile.age}歳` : "";
     const charInfo = profile.character || "";
@@ -210,8 +160,6 @@ async function generate() {
   if (!selectedType) { showModal("お客様の呼び方を選んでね"); return; }
   
   const detail = document.getElementById("detailInput").value;
-
-  // ローディング表示
   const loader = document.getElementById("loadingOverlay");
   loader.classList.add("active");
 
@@ -231,7 +179,8 @@ async function generate() {
           customer: profile.customerCall || "お客様",
           character: profile.character,
           traits: profile.traits || [],
-          length: "長め" // ★お礼日記はデフォルトで長め指定にしておきます
+          length: "長め",
+          storeType: profile.storeType || "学園系・激安" // ★追加
         }
       })
     });
@@ -239,14 +188,14 @@ async function generate() {
     const data = await response.json();
     let bodyText = data.text || data.result || "";
     
-    // ===== 文字化け対策（完全除去）＆整形ロジック =====
-    bodyText = bodyText.replace(/\p{Extended_Pictographic}/gu, '');
-    bodyText = bodyText.replace(/[★☆✨💕🥺😊🎵💖✊🙏✋✌️☀️☁️☔️📷]/g, '');
+    // ★修正：絵文字を消すフィルターを無効化（コメントアウト）
+    // bodyText = bodyText.replace(/\p{Extended_Pictographic}/gu, '');
+    // bodyText = bodyText.replace(/[★☆✨💕🥺😊🎵💖✊🙏✋✌️☀️☁️☔️📷]/g, '');
+    
     bodyText = bodyText.replace(/\r\n/g, "\n");
     bodyText = bodyText.replace(/([。！？!?])/g, "$1\n\n");
     bodyText = bodyText.replace(/\n{3,}/g, "\n\n");
     bodyText = bodyText.trim();
-    // ===============================================
 
     if (bodyText) {
       const container = document.getElementById("resultContainer");
@@ -261,7 +210,6 @@ async function generate() {
     console.error(error);
     showModal("ごめんね、エラーが出ちゃった💦");
   } finally {
-    // ローディング非表示
     loader.classList.remove("active");
   }
 }
@@ -270,14 +218,9 @@ function copyText() {
   const textarea = document.getElementById("resultTextarea");
   if(!textarea.value) return;
   textarea.select();
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(textarea.value).then(() => showModal("コピーしました✨"));
-  } else {
-    document.execCommand("copy");
-    showModal("コピーしました✨");
-  }
+  if (navigator.clipboard) { navigator.clipboard.writeText(textarea.value).then(() => showModal("コピーしました✨"));
+  } else { document.execCommand("copy"); showModal("コピーしました✨"); }
 }
-
 function showModal(msg) {
   const modal = document.getElementById("modal");
   modal.innerText = msg;
