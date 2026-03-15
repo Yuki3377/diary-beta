@@ -153,7 +153,6 @@ let selectedEpisodes = [];
 window.onload = function() {
   loadProfile();
   
-  // createButtons関数の修正：コンテナがない場合のエラー回避
   if(document.getElementById("typeButtons")) {
     createButtons("typeButtons", CUSTOMER_TYPES, (val, btn) => {
       selectedType = val;
@@ -217,7 +216,6 @@ async function generate() {
   loader.classList.add("active");
 
   try {
-    // 【修正箇所】新しいWorkerのURLに変更 ＆ /generate を追加
     const workerUrl = "https://openrouter-diary-api.doropbox-kyoto.workers.dev/generate";
     
     const response = await fetch(workerUrl, {
@@ -232,7 +230,8 @@ async function generate() {
           detail: detail,
           customer: profile.customerCall || "お客様",
           character: profile.character,
-          traits: profile.traits || []
+          traits: profile.traits || [],
+          length: "長め" // ★お礼日記はデフォルトで長め指定にしておきます
         }
       })
     });
@@ -241,25 +240,12 @@ async function generate() {
     let bodyText = data.text || data.result || "";
     
     // ===== 文字化け対策（完全除去）＆整形ロジック =====
-    
-    // 1. 絵文字(Extended_Pictographic)を全て削除
     bodyText = bodyText.replace(/\p{Extended_Pictographic}/gu, '');
-    
-    // 2. 残りやすい記号や特殊文字も個別に指定して削除
     bodyText = bodyText.replace(/[★☆✨💕🥺😊🎵💖✊🙏✋✌️☀️☁️☔️📷]/g, '');
-
-    // 3. 改行コードの統一 (CRLF -> LF)
     bodyText = bodyText.replace(/\r\n/g, "\n");
-
-    // 4. 「。」「！」「？」の直後に必ず改行(2回)を入れる
     bodyText = bodyText.replace(/([。！？!?])/g, "$1\n\n");
-
-    // 5. 連続しすぎた改行(3つ以上)は2つ(1行空き)に整える
     bodyText = bodyText.replace(/\n{3,}/g, "\n\n");
-
-    // 6. 前後の空白削除
     bodyText = bodyText.trim();
-    
     // ===============================================
 
     if (bodyText) {
