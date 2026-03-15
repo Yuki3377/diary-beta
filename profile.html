@@ -45,7 +45,7 @@ input:focus, select:focus { border-color: #ff85b3; background: #fff; }
   box-shadow: 0 2px 6px rgba(255,95,162,0.3);
 }
 
-/* ★追加：配置ボタンエリア */
+/* 配置ボタンエリア */
 .align-group { display: flex; gap: 10px; }
 .align-btn {
   flex: 1; padding: 14px; border-radius: 12px; border: 1px solid #ffe0eb;
@@ -146,9 +146,8 @@ button.save-btn:active { transform: scale(0.98); }
 
 <script>
 let selectedTraits = [];
-let textAlign = 'left'; // ★追加：デフォルトは左揃え
+let textAlign = 'left';
 
-// ★追加：配置選択関数
 function selectAlign(align) {
   textAlign = align;
   // UI更新
@@ -222,11 +221,9 @@ function loadProfile() {
     document.getElementById("customerCall").value = p.customerCall || "";
     selectedTraits = p.traits || [];
     
-    // ★追加：保存された配置設定を読み込む（なければ左揃え）
     textAlign = p.textAlign || 'left';
   }
   
-  // ★追加：配置UIの初期反映
   selectAlign(textAlign);
   
   renderTraits();
@@ -245,7 +242,7 @@ function saveProfile() {
     character: document.getElementById("character").value,
     customerCall: document.getElementById("customerCall").value,
     traits: selectedTraits,
-    textAlign: textAlign // ★追加：配置設定も保存
+    textAlign: textAlign
   };
 
   localStorage.setItem("profile", JSON.stringify(profileData));
