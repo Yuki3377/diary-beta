@@ -142,9 +142,9 @@ button.save-btn:active { transform: scale(0.98); }
   </div>
 
   <div class="card">
-    <label>あなたの特徴 <span class="sub-label">※4つまで選択OK</span></label>
+    <label>あなたの特徴 <span class="sub-label">※8つまで選択OK</span></label>
     <div class="trait-group" id="traitGroup"></div>
-    <div class="limit-info" id="limitInfo">あと 4 つ選べます</div>
+    <div class="limit-info" id="limitInfo">あと 8 つ選べます</div>
   </div>
 
   <button class="save-btn" onclick="saveProfile()">保存して完了</button>
@@ -189,7 +189,7 @@ function renderTraits() {
         selectedTraits = selectedTraits.filter(t => t !== trait);
         btn.classList.remove("active");
       } else {
-        if (selectedTraits.length >= 4) {
+        if (selectedTraits.length >= 8) { // ★上限を8に変更
           btn.style.transform = "translateX(2px)";
           setTimeout(()=> btn.style.transform = "translateX(-2px)", 50);
           setTimeout(()=> btn.style.transform = "none", 100);
@@ -206,7 +206,7 @@ function renderTraits() {
 }
 
 function updateLimitInfo() {
-  const remaining = 4 - selectedTraits.length;
+  const remaining = 8 - selectedTraits.length; // ★上限を8に変更
   const info = document.getElementById("limitInfo");
   if(remaining === 0) {
     info.innerText = "MAX（これ以上選べません）";
@@ -223,7 +223,7 @@ function loadProfile() {
     const p = JSON.parse(saved);
     document.getElementById("name").value = p.name || "";
     document.getElementById("age").value = p.age || "";
-    document.getElementById("storeType").value = p.storeType || "学園系・激安"; // ★追加
+    document.getElementById("storeType").value = p.storeType || "学園系・激安";
     document.getElementById("character").value = p.character || "お姉さん系";
     document.getElementById("customerCall").value = p.customerCall || "";
     selectedTraits = p.traits || [];
@@ -243,7 +243,7 @@ function saveProfile() {
   const profileData = {
     name: name,
     age: document.getElementById("age").value,
-    storeType: document.getElementById("storeType").value, // ★追加
+    storeType: document.getElementById("storeType").value,
     character: document.getElementById("character").value,
     customerCall: document.getElementById("customerCall").value,
     traits: selectedTraits,
