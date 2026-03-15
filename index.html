@@ -119,6 +119,11 @@
     <div class="button-group" id="eroButtons"></div>
   </div>
 
+  <div class="card">
+    <label>文章のボリューム<span class="sub-label">※毎回少し変動します</span></label>
+    <div class="button-group" id="lengthButtons"></div>
+  </div>
+
   <button class="primary" id="generateBtn" onclick="generate()">日記をつくる</button>
 
   <div class="nav-links">
@@ -158,12 +163,14 @@ const SITUATIONS_BOTTOM = [
   "お酒", "寝る前", "お散歩", "早起き", "雨の日", "旅行"
 ];
 
-const ERO_LEVELS = ["ノーマル", "ムッツリ", "激エロ"]; // ★エロ度定義
+const ERO_LEVELS = ["ノーマル", "ムッツリ", "激エロ"];
+const LENGTH_OPTIONS = ["短め", "長め"]; // ★追加
 
 let profile = null;
 let selectedMood = null;
 let selectedSituation = null;
-let selectedEro = "ノーマル"; // ★デフォルト値
+let selectedEro = "ノーマル";
+let selectedLength = "長め"; // ★デフォルト値追加
 
 // --- 初期化処理 ---
 window.onload = function() {
@@ -171,7 +178,8 @@ window.onload = function() {
   createButtons(MOODS, "moodButtons", (v) => selectedMood = v);
   createButtons(SITUATIONS_TOP, "situationButtonsTop", (v) => selectedSituation = v);
   createButtons(SITUATIONS_BOTTOM, "situationButtonsBottom", (v) => selectedSituation = v);
-  createButtons(ERO_LEVELS, "eroButtons", (v) => selectedEro = v); // ★エロ度ボタン生成
+  createButtons(ERO_LEVELS, "eroButtons", (v) => selectedEro = v);
+  createButtons(LENGTH_OPTIONS, "lengthButtons", (v) => selectedLength = v); // ★追加
   
   try {
     migrateHistoryIfNeeded();
@@ -219,8 +227,9 @@ function createButtons(list, containerId, callback) {
     btn.className = "choice-btn";
     btn.innerText = item;
     
-    // デフォルト選択状態にする処理（エロ度用）
-    if(containerId === "eroButtons" && item === "ノーマル") {
+    // デフォルト選択状態にする処理
+    if((containerId === "eroButtons" && item === "ノーマル") || 
+       (containerId === "lengthButtons" && item === "長め")) {
         btn.classList.add("active");
     }
 
@@ -246,7 +255,6 @@ async function generate() {
   }
   
   const title = document.getElementById("title").value.trim();
-  // バリデーション
   if (!title) { showModal("題名を入力してね"); return; }
   if (!selectedSituation) { showModal("日記の状況を選んでね"); return; }
   if (!selectedMood) { showModal("今の気分を選んでね"); return; }
@@ -256,7 +264,6 @@ async function generate() {
   btn.disabled = true;
 
   try {
-    // 【修正箇所】新しいWorkerのURLに変更
     const workerUrl = "https://openrouter-diary-api.doropbox-kyoto.workers.dev/generate"; 
     
     const response = await fetch(workerUrl, {
@@ -269,7 +276,8 @@ async function generate() {
           mood: selectedMood,
           situation: selectedSituation,
           title: title,
-          eroLevel: selectedEro, // ★エロ度を追加
+          eroLevel: selectedEro,
+          length: selectedLength, // ★追加：文字数指定をバックエンドへ送る
           customer: profile.customerCall || "お客様",
           character: profile.character,
           traits: profile.traits || []
@@ -280,30 +288,15 @@ async function generate() {
     if (!response.ok) throw new Error("API Error");
 
     const data = await response.json();
-    
-    // Workerからの返却値（data.result）を読み取るように変更
     let bodyText = data.result || data.text || "";
 
     // ===== 文字化け対策（完全除去）＆整形ロジック =====
-    
-    // 1. 絵文字(Extended_Pictographic)を全て削除
     bodyText = bodyText.replace(/\p{Extended_Pictographic}/gu, '');
-    
-    // 2. 残りやすい記号や特殊文字も個別に指定して削除
     bodyText = bodyText.replace(/[★☆✨💕🥺😊🎵💖✊🙏✋✌️☀️☁️☔️📷]/g, '');
-
-    // 3. 改行コードの統一 (CRLF -> LF)
     bodyText = bodyText.replace(/\r\n/g, "\n");
-
-    // 4. 「。」「！」「？」の直後に必ず改行(2回)を入れる
     bodyText = bodyText.replace(/([。！？!?])/g, "$1\n\n");
-
-    // 5. 連続しすぎた改行(3つ以上)は2つ(1行空き)に整える
     bodyText = bodyText.replace(/\n{3,}/g, "\n\n");
-
-    // 6. 前後の空白削除
     bodyText = bodyText.trim();
-
     // ================================
 
     const fullText = `【${title}】\n\n${bodyText}`;
