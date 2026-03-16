@@ -16,13 +16,11 @@ body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Goth
 
 h2{ margin-bottom:20px; color: #ff5fa2; text-align: center; font-size: 22px; }
 
-/* カードデザイン */
 .card{ background:#fff; padding:20px; border-radius:20px; margin-bottom:16px; box-shadow:0 4px 15px rgba(255,95,162,0.06); }
 
 label{ display: block; margin-bottom: 8px; font-size: 14px; font-weight: bold; color: #ff5fa2; }
 .sub-label { font-size: 11px; color: #aaa; font-weight: normal; margin-left: 5px; }
 
-/* 入力欄 */
 input, select {
   width:100%; padding:14px; border-radius:12px; border:1px solid #f0f0f0;
   font-size:16px; background: #fafafa; outline: none; appearance: none;
@@ -30,7 +28,6 @@ input, select {
 }
 input:focus, select:focus { border-color: #ff85b3; background: #fff; }
 
-/* 特徴ボタンエリア */
 .trait-group { display: flex; flex-wrap: wrap; gap: 8px; }
 
 .trait-btn {
@@ -45,7 +42,6 @@ input:focus, select:focus { border-color: #ff85b3; background: #fff; }
   box-shadow: 0 2px 6px rgba(255,95,162,0.3);
 }
 
-/* 配置ボタンエリア */
 .align-group { display: flex; gap: 10px; }
 .align-btn {
   flex: 1; padding: 14px; border-radius: 12px; border: 1px solid #ffe0eb;
@@ -59,7 +55,6 @@ input:focus, select:focus { border-color: #ff85b3; background: #fff; }
 
 .limit-info { font-size: 12px; color: #ff85b3; margin-top: 8px; text-align: right; }
 
-/* 保存ボタン */
 button.save-btn {
   width:100%; padding:16px; border:none; border-radius:30px;
   background:linear-gradient(135deg,#ff5fa2,#ff85b3);
@@ -69,17 +64,10 @@ button.save-btn {
 }
 button.save-btn:active { transform: scale(0.98); }
 
-.back-link {
-  display: block; text-align: center; margin-top: 25px;
-  color: #ff85b3; text-decoration: none; font-size: 14px;
-  border-bottom: 1px dotted #ff85b3; display: inline-block;
-}
+.back-link { display: block; text-align: center; margin-top: 25px; color: #ff85b3; text-decoration: none; font-size: 14px; border-bottom: 1px dotted #ff85b3; display: inline-block; }
 .back-link-container { text-align: center; }
 
-#statusMsg {
-  text-align: center; font-size: 14px; margin-top: 15px;
-  height: 1.2em; color: #ff5fa2; font-weight: bold;
-}
+#statusMsg { text-align: center; font-size: 14px; margin-top: 15px; height: 1.2em; color: #ff5fa2; font-weight: bold; }
 </style>
 </head>
 
@@ -189,7 +177,7 @@ function renderTraits() {
         selectedTraits = selectedTraits.filter(t => t !== trait);
         btn.classList.remove("active");
       } else {
-        if (selectedTraits.length >= 8) { // ★上限を8に変更
+        if (selectedTraits.length >= 8) { // ★上限8つ
           btn.style.transform = "translateX(2px)";
           setTimeout(()=> btn.style.transform = "translateX(-2px)", 50);
           setTimeout(()=> btn.style.transform = "none", 100);
@@ -206,7 +194,7 @@ function renderTraits() {
 }
 
 function updateLimitInfo() {
-  const remaining = 8 - selectedTraits.length; // ★上限を8に変更
+  const remaining = 8 - selectedTraits.length;
   const info = document.getElementById("limitInfo");
   if(remaining === 0) {
     info.innerText = "MAX（これ以上選べません）";
@@ -235,10 +223,7 @@ function loadProfile() {
 
 function saveProfile() {
   const name = document.getElementById("name").value.trim();
-  if (!name) {
-    alert("お名前を入力してください✨");
-    return;
-  }
+  if (!name) { alert("お名前を入力してください✨"); return; }
 
   const profileData = {
     name: name,
@@ -255,9 +240,7 @@ function saveProfile() {
   const msg = document.getElementById("statusMsg");
   msg.innerText = "プロフィールを保存しました✨";
    
-  setTimeout(() => { 
-    location.href = "index.html";
-  }, 800);
+  setTimeout(() => { location.href = "index.html"; }, 800);
 }
 
 window.onload = loadProfile;
