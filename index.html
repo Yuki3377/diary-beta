@@ -29,7 +29,7 @@
   input, textarea, select {
     width:100%; padding:14px; border-radius:12px; border:1px solid #f0f0f0;
     font-size:16px; background: #fafafa; transition:0.2s; outline:none;
-    color: #444; appearance: none; line-height: 1.8;
+    color: #444; appearance: none; line-height: 1.6;
   }
   input:focus, textarea:focus, select:focus { border-color: #ff85b3; background: #fff; }
   ::placeholder { color: #aaa; font-size: 14px; }
@@ -76,6 +76,12 @@
 
   .nav-links { text-align: center; margin-top: 20px; margin-bottom: 20px; display: flex; justify-content: center; gap: 20px; }
   .nav-links a { color: #ff85b3; text-decoration: none; font-size: 14px; border-bottom: 1px dotted #ff85b3; padding-bottom: 2px; }
+
+  .mini-note {
+    font-size: 12px;
+    color: #999;
+    margin-top: 6px;
+  }
 </style>
 </head>
 
@@ -91,13 +97,15 @@
   </div>
 
   <div class="card">
-    <label>冒頭固定挨拶（Header）<span class="sub-label">※毎回本文の前に入ります</span></label>
-    <textarea id="header" rows="3" placeholder="例：こんばんは💕"></textarea>
+    <label>冒頭固定挨拶（Header）<span class="sub-label">※一度入れたら保存されます</span></label>
+    <input id="header" type="text" placeholder="例：こんばんは💕">
+    <div class="mini-note">次回以降も自動で表示されます</div>
   </div>
 
   <div class="card">
-    <label>末尾固定署名（Footer）<span class="sub-label">※毎回本文の後に入ります</span></label>
-    <textarea id="footer" rows="3" placeholder="例：会えたら嬉しいな💕"></textarea>
+    <label>末尾固定署名（Footer）<span class="sub-label">※一度入れたら保存されます</span></label>
+    <input id="footer" type="text" placeholder="例：会えたら嬉しいな💕">
+    <div class="mini-note">次回以降も自動で表示されます</div>
   </div>
 
   <div class="card">
@@ -296,6 +304,7 @@ function loadHeaderFooter() {
   const footer = localStorage.getItem("diaryFooter") || "";
   const headerEl = document.getElementById("header");
   const footerEl = document.getElementById("footer");
+
   if (headerEl) headerEl.value = header;
   if (footerEl) footerEl.value = footer;
 
