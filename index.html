@@ -157,9 +157,9 @@
 
 <script>
 const MOOD_MAP = {
-  low: ["暇だよ", "誰か構って", "まったり中", "会いたいな"],
-  mid: ["お酒飲みたい", "二人きりがいい", "独占して？", "帰りたくない"],
-  high: ["濡れてる", "イチャイチャ", "疼く", "我慢できない"]
+  low: ["暇だよ", "構って？", "癒されたい", "予約待ってる"],
+  mid: ["お酒飲みたい", "密着したい", "帰りたくない", "内緒だよ"],
+  high: ["ムラムラ", "濡れてる", "イチャイチャ", "我慢できない"]
 };
 
 const SITUATIONS_TOP = ["待機中", "明日出勤", "退勤"];
@@ -384,7 +384,6 @@ async function generate() {
   }
 }
 
-// 履歴機能
 function migrateHistoryIfNeeded() {
   let raw = localStorage.getItem("diaryHistory");
   if(!raw) return;
