@@ -160,39 +160,42 @@ async function generate() {
   }
   if (!selectedType) { showModal("お客様の呼び方を選んでね"); return; }
   
-  const detail = document.getElementById("detailInput").value;
+  const detail = document.getElementById("detailInput").value.trim();
+  const contextParts = [selectedType, detail, ...selectedEpisodes].filter(Boolean);
+  const thanksContextStr = contextParts.join("、");
+
   const loader = document.getElementById("loadingOverlay");
   loader.classList.add("active");
 
   try {
-    // ★ 正しいURLに修正完了
-    const workerUrl = "https://openrouter-diary-api.doropbox-kyoto.workers.dev/generate";
+    // ★ 宛先を /generate-thanks に修正
+    const workerUrl = "https://openrouter-diary-api.doropbox-kyoto.workers.dev/generate-thanks";
     
+    // ★ localStorage から Header/Footer を読み込む
+    const headerStr = localStorage.getItem("diaryHeader") || "";
+    const footerStr = localStorage.getItem("diaryFooter") || "";
+    
+    // ★ Workerの想定するペイロードに完全に合わせる
     const response = await fetch(workerUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        promptType: "thanks",
-        context: {
-          name: profile.name,
-          customerType: selectedType,
-          episodes: selectedEpisodes,
-          detail: detail,
-          customer: profile.customerCall || "お客様",
-          character: profile.character,
-          traits: profile.traits || [],
-          length: "長め",
-          storeType: profile.storeType || "学園系・激安"
-        }
+        customer: profile.customerCall || selectedType,
+        thanksContext: thanksContextStr,
+        targetLength: 200,
+        emojiPalette: ["💕", "🥺", "✨", "💦", "💋", "🤫", "🍼", "🔞"],
+        header: headerStr,
+        footer: footerStr
       })
     });
 
     const data = await response.json();
-    let bodyText = data.text || data.result || "";
+    if (!response.ok) throw new Error("API Error");
     
-    // ★ 絵文字は消さない（改行の整形のみ行う）
+    let bodyText = data.result || data.text || "";
+    
+    // ★ 過剰な句点の改行を廃止し、自然な整形のみ行う
     bodyText = bodyText.replace(/\r\n/g, "\n");
-    bodyText = bodyText.replace(/([。！？!?])/g, "$1\n\n");
     bodyText = bodyText.replace(/\n{3,}/g, "\n\n");
     bodyText = bodyText.trim();
 
@@ -220,6 +223,7 @@ function copyText() {
   if (navigator.clipboard) { navigator.clipboard.writeText(textarea.value).then(() => showModal("コピーしました✨"));
   } else { document.execCommand("copy"); showModal("コピーしました✨"); }
 }
+
 function showModal(msg) {
   const modal = document.getElementById("modal");
   modal.innerText = msg;
