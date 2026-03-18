@@ -325,7 +325,7 @@ async function generate() {
   if (!selectedMood) { showModal("今の気分を選んでね"); return; }
 
   const btn = document.getElementById("generateBtn");
-  btn.innerText = "お姉さんが執筆中...🖊️";
+  btn.innerText = "メッセージを考案中...💭";
   btn.disabled = true;
 
   try {
@@ -344,7 +344,8 @@ async function generate() {
         mood: selectedMood,
         spiceLevel: selectedEro,
         targetLength: selectedLength === "短め" ? 140 : 220,
-        emojiPalette: ["💕", "🥺", "✨", "💦"],
+        // ★ 絵文字の制限を解放し、現場の匂いが出るものを追加
+        emojiPalette: ["💕", "🥺", "✨", "💦", "💋", "🤫", "🍼", "🔞"],
         customer: profile.customerCall || "お客様",
         header: document.getElementById("header").value.trim(),
         footer: document.getElementById("footer").value.trim(),
@@ -357,6 +358,7 @@ async function generate() {
     const data = await response.json();
     let bodyText = data.result || data.finalText || data.text || "";
 
+    // ★ 余計な処理はWorkerに任せ、最低限の改行整理のみ行う
     bodyText = bodyText.replace(/\r\n/g, "\n");
     bodyText = bodyText.replace(/\n{3,}/g, "\n\n");
     bodyText = bodyText.trim();
