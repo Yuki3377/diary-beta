@@ -82,6 +82,30 @@
     color: #999;
     margin-top: 6px;
   }
+
+  .radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .radio-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #666;
+    font-weight: normal;
+    justify-content: flex-start;
+    margin-bottom: 0;
+  }
+
+  .radio-row input[type="radio"] {
+    width: auto;
+    padding: 0;
+    margin: 0;
+    accent-color: #ff5fa2;
+  }
 </style>
 </head>
 
@@ -128,6 +152,29 @@
   <div class="card">
     <label>文章のボリューム<span class="sub-label">※毎回少し変動します</span></label>
     <div class="button-group" id="lengthButtons"></div>
+  </div>
+
+  <div class="card">
+    <label>スケジュール告知オプション<span class="sub-label">※出勤情報を自然に組み込みます</span></label>
+    <div class="radio-group">
+      <label class="radio-row">
+        <input type="radio" name="scheduleType" value="" checked>
+        <span>追加しない</span>
+      </label>
+      <label class="radio-row">
+        <input type="radio" name="scheduleType" value="today">
+        <span>今日の出勤</span>
+      </label>
+      <label class="radio-row">
+        <input type="radio" name="scheduleType" value="remaining">
+        <span>残り時間</span>
+      </label>
+      <label class="radio-row">
+        <input type="radio" name="scheduleType" value="next">
+        <span>次回出勤</span>
+      </label>
+    </div>
+    <div class="mini-note">「追加しない」以外を選ぶと、CityHeavenの出勤情報を使って文章を作ります</div>
   </div>
 
   <button class="primary" id="generateBtn" onclick="generate()">日記をつくる</button>
@@ -294,6 +341,11 @@ function renderMoodButtons(spiceLevel) {
   });
 }
 
+function getSelectedScheduleType() {
+  const checked = document.querySelector('input[name="scheduleType"]:checked');
+  return checked ? checked.value : "";
+}
+
 function saveHeaderFooter() {
   localStorage.setItem("diaryHeader", document.getElementById("header").value);
   localStorage.setItem("diaryFooter", document.getElementById("footer").value);
@@ -324,12 +376,28 @@ async function generate() {
   if (!selectedSituation) { showModal("日記の状況を選んでね"); return; }
   if (!selectedMood) { showModal("今の気分を選んでね"); return; }
 
+  const scheduleType = getSelectedScheduleType();
+  const cityheavenId =
+    localStorage.getItem("profile_cityheavenId") ||
+    localStorage.getItem("ch_id") ||
+    "";
+  const cityheavenPass =
+    localStorage.getItem("profile_cityheavenPass") ||
+    localStorage.getItem("ch_pass") ||
+    "";
+
+  if (scheduleType && (!cityheavenId || !cityheavenPass)) {
+    showModal("プロフィール設定でCityHeaven情報を保存してください");
+    return;
+  }
+
   const btn = document.getElementById("generateBtn");
   btn.innerText = "メッセージを考案中...💭";
   btn.disabled = true;
 
   try {
-    const workerUrl = "https://openrouter-diary-api.doropbox-kyoto.workers.dev/generate";
+    const route = scheduleType ? "/generate-with-schedule" : "/generate";
+    const workerUrl = `https://openrouter-diary-api.doropbox-kyoto.workers.dev${route}`;
 
     const response = await fetch(workerUrl, {
       method: "POST",
@@ -344,21 +412,26 @@ async function generate() {
         mood: selectedMood,
         spiceLevel: selectedEro,
         targetLength: selectedLength === "短め" ? 140 : 220,
-        // ★ 絵文字の制限を解放し、現場の匂いが出るものを追加
         emojiPalette: ["💕", "🥺", "✨", "💦", "💋", "🤫", "🍼", "🔞"],
         customer: profile.customerCall || "お客様",
         header: document.getElementById("header").value.trim(),
         footer: document.getElementById("footer").value.trim(),
-        title: title
+        title: title,
+        scheduleType: scheduleType,
+        cityheavenId: cityheavenId,
+        cityheavenPass: cityheavenPass
       })
     });
 
-    if (!response.ok) throw new Error("API Error");
+    const data = await response.json().catch(() => ({}));
 
-    const data = await response.json();
+    if (!response.ok) {
+      console.error(data);
+      showModal("生成エラー💦");
+      return;
+    }
+
     let bodyText = data.result || data.finalText || data.text || "";
-
-    // ★ 余計な処理はWorkerに任せ、最低限の改行整理のみ行う
     bodyText = bodyText.replace(/\r\n/g, "\n");
     bodyText = bodyText.replace(/\n{3,}/g, "\n\n");
     bodyText = bodyText.trim();
