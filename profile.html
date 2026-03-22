@@ -79,20 +79,29 @@
       color: #8d96ab;
     }
 
-    .save-btn {
+    .save-btn,
+    .test-btn {
       width: 100%;
       border: none;
       border-radius: 14px;
       padding: 14px 16px;
-      background: #4f7cff;
       color: #ffffff;
       font-size: 15px;
       font-weight: 700;
       cursor: pointer;
-      margin-top: 4px;
+      margin-top: 10px;
     }
 
-    .save-btn:active {
+    .save-btn {
+      background: #4f7cff;
+    }
+
+    .test-btn {
+      background: #2f9e44;
+    }
+
+    .save-btn:active,
+    .test-btn:active {
       transform: scale(0.995);
     }
 
@@ -100,6 +109,18 @@
       margin-top: 12px;
       font-size: 13px;
       color: #86efac;
+      display: none;
+    }
+
+    .result-box {
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 12px;
+      background: #0f131b;
+      border: 1px solid #313746;
+      font-size: 13px;
+      line-height: 1.7;
+      white-space: pre-wrap;
       display: none;
     }
   </style>
@@ -138,6 +159,10 @@
 
     <button class="save-btn" id="saveBtn">保存する</button>
     <div class="saved" id="savedMsg">保存しました</div>
+
+    <button class="test-btn" id="testBtn">出勤確認テスト</button>
+
+    <div class="result-box" id="resultBox"></div>
   </div>
 
   <script>
@@ -148,6 +173,10 @@
       cityheavenId: "profile_cityheavenId",
       cityheavenPass: "profile_cityheavenPass"
     };
+
+    const WORKER_BASE_URL = "https://あなたのWorkerのURL";
+    // 例:
+    // const WORKER_BASE_URL = "https://diary-worker.xxxxxx.workers.dev";
 
     function loadProfile() {
       document.getElementById("girlName").value = localStorage.getItem(STORAGE_KEYS.girlName) || "";
@@ -173,7 +202,43 @@
       }, 1800);
     }
 
+    async function testScheduleFetch() {
+      const resultBox = document.getElementById("resultBox");
+      resultBox.style.display = "block";
+      resultBox.textContent = "送信中...";
+
+      const cityheavenId = localStorage.getItem(STORAGE_KEYS.cityheavenId) || "";
+      const cityheavenPass = localStorage.getItem(STORAGE_KEYS.cityheavenPass) || "";
+
+      if (!cityheavenId || !cityheavenPass) {
+        resultBox.textContent = "CityHeaven のID / パスワードを先に保存してください。";
+        return;
+      }
+
+      try {
+        const res = await fetch(`${WORKER_BASE_URL}/get-schedule-msg`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            cityheavenId,
+            cityheavenPass
+          })
+        });
+
+        const text = await res.text();
+
+        resultBox.textContent =
+          `HTTP ${res.status}\n\n` +
+          text;
+      } catch (err) {
+        resultBox.textContent = "通信エラー:\n" + err.message;
+      }
+    }
+
     document.getElementById("saveBtn").addEventListener("click", saveProfile);
+    document.getElementById("testBtn").addEventListener("click", testScheduleFetch);
     window.addEventListener("DOMContentLoaded", loadProfile);
   </script>
 </body>
