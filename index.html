@@ -392,27 +392,60 @@ async function generate() {
   btn.disabled = true;
 
   try {
-    const route = scheduleType ? "/generate-with-schedule" : "/generate";
+    // ── スケジュールありの場合：先にシフトを取得してから生成 ──
+    let scheduleData = null;
+    if (scheduleType) {
+      const scrapeRes  = await fetch(`${WORKER_URL}/get-schedule-msg`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cityheavenId, cityheavenPass })
+      });
+      const scrapeData = await scrapeRes.json().catch(() => ({}));
+
+      if (!scrapeData.ok) {
+        showModal(scrapeData.message || "出勤情報の取得に失敗しました💦");
+        return;
+      }
+
+      if (scheduleType === "today" || scheduleType === "remaining") {
+        const todayShift = scrapeData.todayShift || (scrapeData.nextShift?.dateLabel === "本日" ? scrapeData.nextShift : null);
+        if (!todayShift) { showModal("本日の出勤情報がありません"); return; }
+        scheduleData = todayShift;
+      } else if (scheduleType === "next") {
+        const allShifts = scrapeData.allShifts || [];
+        const nextShift = allShifts.find(s => s.dateLabel !== "本日") || null;
+        if (!nextShift) { showModal("次回出勤情報がありません"); return; }
+        scheduleData = nextShift;
+      } else if (scheduleType === "week") {
+        const allShifts  = scrapeData.allShifts || [];
+        const weekShifts = allShifts.filter(s => s.dateLabel !== "本日").slice(0, 7);
+        if (weekShifts.length === 0) { showModal("今週の出勤予定がありません"); return; }
+        scheduleData = weekShifts;
+      }
+
+      btn.innerText = "メッセージを考案中...💭";
+    }
+
+    const route    = scheduleType ? "/generate-with-schedule" : "/generate";
     const endpoint = `${WORKER_URL}${route}`;
 
     const postBody = {
       mode: "diary",
-      storeType:      profile.storeType    || "学園系・激安",
-      name:           profile.name         || "",
-      character:      profile.character    || "",
-      traits:         profile.traits       || [],
-      situation:      selectedSituation,
-      mood:           selectedMood,
-      spiceLevel:     selectedEro,
-      targetLength:   selectedLength === "短め" ? 140 : 220,
-      emojiPalette:   ["💕", "🥺", "✨", "💦", "💋", "🤫", "🍼", "🔞"],
-      customer:       profile.customerCall || "お客様",
-      header:         document.getElementById("header").value.trim(),
-      footer:         document.getElementById("footer").value.trim(),
-      title:          title,
-      scheduleType:   scheduleType,
-      cityheavenId:   cityheavenId,
-      cityheavenPass: cityheavenPass
+      storeType:    profile.storeType   || "学園系・激安",
+      name:         profile.name        || "",
+      character:    profile.character   || "",
+      traits:       profile.traits      || [],
+      situation:    selectedSituation,
+      mood:         selectedMood,
+      spiceLevel:   selectedEro,
+      targetLength: selectedLength === "短め" ? 140 : 220,
+      emojiPalette: ["💕", "🥺", "✨", "💦", "💋", "🤫", "🍼", "🔞"],
+      customer:     profile.customerCall || "お客様",
+      header:       document.getElementById("header").value.trim(),
+      footer:       document.getElementById("footer").value.trim(),
+      title:        title,
+      scheduleType: scheduleType,
+      scheduleData: scheduleData
     };
 
     const response = await fetch(endpoint, {
