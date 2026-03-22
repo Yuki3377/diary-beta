@@ -169,6 +169,10 @@
         <input type="radio" name="scheduleType" value="next" onchange="onScheduleChange()">
         <span>📅 次回出勤</span>
       </label>
+      <label class="radio-row">
+        <input type="radio" name="scheduleType" value="week" onchange="onScheduleChange()">
+        <span>📆 今週の出勤予定</span>
+      </label>
     </div>
     <div class="schedule-hint" id="scheduleHint">
       CityHeavenの出勤情報を使って文章を作ります。<br>
@@ -393,21 +397,21 @@ async function generate() {
 
     const postBody = {
       mode: "diary",
-      storeType:     profile.storeType    || "学園系・激安",
-      name:          profile.name         || "",
-      character:     profile.character    || "",
-      traits:        profile.traits       || [],
-      situation:     selectedSituation,
-      mood:          selectedMood,
-      spiceLevel:    selectedEro,
-      targetLength:  selectedLength === "短め" ? 140 : 220,
-      emojiPalette:  ["💕", "🥺", "✨", "💦", "💋", "🤫", "🍼", "🔞"],
-      customer:      profile.customerCall || "お客様",
-      header:        document.getElementById("header").value.trim(),
-      footer:        document.getElementById("footer").value.trim(),
-      title:         title,
-      scheduleType:  scheduleType,
-      cityheavenId:  cityheavenId,
+      storeType:      profile.storeType    || "学園系・激安",
+      name:           profile.name         || "",
+      character:      profile.character    || "",
+      traits:         profile.traits       || [],
+      situation:      selectedSituation,
+      mood:           selectedMood,
+      spiceLevel:     selectedEro,
+      targetLength:   selectedLength === "短め" ? 140 : 220,
+      emojiPalette:   ["💕", "🥺", "✨", "💦", "💋", "🤫", "🍼", "🔞"],
+      customer:       profile.customerCall || "お客様",
+      header:         document.getElementById("header").value.trim(),
+      footer:         document.getElementById("footer").value.trim(),
+      title:          title,
+      scheduleType:   scheduleType,
+      cityheavenId:   cityheavenId,
       cityheavenPass: cityheavenPass
     };
 
