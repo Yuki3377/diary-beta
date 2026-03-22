@@ -77,40 +77,36 @@
   .nav-links { text-align: center; margin-top: 20px; margin-bottom: 20px; display: flex; justify-content: center; gap: 20px; }
   .nav-links a { color: #ff85b3; text-decoration: none; font-size: 14px; border-bottom: 1px dotted #ff85b3; padding-bottom: 2px; }
 
-  .mini-note {
-    font-size: 12px;
-    color: #999;
-    margin-top: 6px;
-  }
+  .mini-note { font-size: 12px; color: #999; margin-top: 6px; }
 
-  .radio-group {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
+  .radio-group { display: flex; flex-direction: column; gap: 10px; }
 
   .radio-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 14px;
-    color: #666;
-    font-weight: normal;
-    justify-content: flex-start;
-    margin-bottom: 0;
+    display: flex; align-items: center; gap: 10px;
+    font-size: 14px; color: #666; font-weight: normal;
+    justify-content: flex-start; margin-bottom: 0;
+    padding: 10px 12px; border-radius: 10px;
+    border: 1px solid #f0f0f0; background: #fafafa;
+    cursor: pointer; transition: 0.2s;
+  }
+  .radio-row:has(input:checked) {
+    border-color: #ff85b3; background: #fff5f9;
+    color: #ff5fa2; font-weight: bold;
+  }
+  .radio-row input[type="radio"] {
+    width: auto; padding: 0; margin: 0; accent-color: #ff5fa2;
   }
 
-  .radio-row input[type="radio"] {
-    width: auto;
-    padding: 0;
-    margin: 0;
-    accent-color: #ff5fa2;
+  .schedule-hint {
+    display: none; margin-top: 10px; padding: 10px 14px;
+    background: #fff0f6; border-radius: 10px; font-size: 12px;
+    color: #ff5fa2; border: 1px dashed #ffb3d0;
   }
+  .schedule-hint.visible { display: block; }
 </style>
 </head>
 
 <body>
-
 <div class="wrapper">
   <h2>写メ日記をつくる</h2>
   <div class="profileInfo" id="profileInfo">読み込み中...</div>
@@ -158,21 +154,25 @@
     <label>スケジュール告知オプション<span class="sub-label">※出勤情報を自然に組み込みます</span></label>
     <div class="radio-group">
       <label class="radio-row">
-        <input type="radio" name="scheduleType" value="" checked>
+        <input type="radio" name="scheduleType" value="" checked onchange="onScheduleChange()">
         <span>追加しない</span>
       </label>
       <label class="radio-row">
-        <input type="radio" name="scheduleType" value="today">
-        <span>今日の出勤</span>
+        <input type="radio" name="scheduleType" value="today" onchange="onScheduleChange()">
+        <span>🕐 今日の出勤</span>
       </label>
       <label class="radio-row">
-        <input type="radio" name="scheduleType" value="remaining">
-        <span>残り時間</span>
+        <input type="radio" name="scheduleType" value="remaining" onchange="onScheduleChange()">
+        <span>⏳ 残り時間</span>
       </label>
       <label class="radio-row">
-        <input type="radio" name="scheduleType" value="next">
-        <span>次回出勤</span>
+        <input type="radio" name="scheduleType" value="next" onchange="onScheduleChange()">
+        <span>📅 次回出勤</span>
       </label>
+    </div>
+    <div class="schedule-hint" id="scheduleHint">
+      CityHeavenの出勤情報を使って文章を作ります。<br>
+      プロフィール設定でID/PASSが保存済みであることを確認してください。
     </div>
     <div class="mini-note">「追加しない」以外を選ぶと、CityHeavenの出勤情報を使って文章を作ります</div>
   </div>
@@ -203,6 +203,8 @@
 <div id="modal" class="modal"></div>
 
 <script>
+const WORKER_URL = "https://openrouter-diary-api.doropbox-kyoto.workers.dev";
+
 const MOOD_MAP = {
   low: ["暇だよ", "構って？", "癒されたい", "予約待ってる"],
   mid: ["お酒飲みたい", "密着したい", "帰りたくない", "内緒だよ"],
@@ -232,13 +234,11 @@ let selectedLength = "長め";
 window.onload = function() {
   safeLoadProfile();
   loadHeaderFooter();
-
   createButtons(SITUATIONS_TOP, "situationButtonsTop", (v) => selectedSituation = v);
   createButtons(SITUATIONS_BOTTOM, "situationButtonsBottom", (v) => selectedSituation = v);
   createEroButtons();
   renderMoodButtons(selectedEro);
   createButtons(LENGTH_OPTIONS, "lengthButtons", (v) => selectedLength = v);
-
   try { migrateHistoryIfNeeded(); renderHistory(); }
   catch(e) { localStorage.removeItem("diaryHistory"); renderHistory(); }
 };
@@ -255,7 +255,6 @@ function safeLoadProfile() {
     const ageText = profile.age ? `${profile.age}歳` : "";
     const charText = profile.character || "";
     infoDiv.innerText = `${profile.name}（${ageText} / ${charText}）`;
-
     const textarea = document.getElementById("resultTextarea");
     if (profile.textAlign === "center") { textarea.style.textAlign = "center"; }
     else { textarea.style.textAlign = "left"; }
@@ -271,11 +270,7 @@ function createButtons(list, containerId, callback) {
     const btn = document.createElement("button");
     btn.className = "choice-btn";
     btn.innerText = item;
-
-    if (containerId === "lengthButtons" && item === "長め") {
-      btn.classList.add("active");
-    }
-
+    if (containerId === "lengthButtons" && item === "長め") btn.classList.add("active");
     btn.onclick = () => {
       if(containerId.includes("situation")) {
         document.querySelectorAll("#situationButtonsTop .choice-btn, #situationButtonsBottom .choice-btn").forEach(b => b.classList.remove("active"));
@@ -293,23 +288,17 @@ function createEroButtons() {
   const container = document.getElementById("eroButtons");
   if (!container) return;
   container.innerHTML = "";
-
   ERO_LEVELS.forEach((item) => {
     const btn = document.createElement("button");
     btn.className = "choice-btn";
     btn.innerText = item.label;
-
-    if (item.value === selectedEro) {
-      btn.classList.add("active");
-    }
-
+    if (item.value === selectedEro) btn.classList.add("active");
     btn.onclick = () => {
       [...container.children].forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
       selectedEro = item.value;
       renderMoodButtons(selectedEro);
     };
-
     container.appendChild(btn);
   });
 }
@@ -318,32 +307,44 @@ function renderMoodButtons(spiceLevel) {
   const container = document.getElementById("moodButtons");
   if (!container) return;
   container.innerHTML = "";
-
   const moods = MOOD_MAP[spiceLevel] || [];
   selectedMood = moods[0] || null;
-
   moods.forEach((item, index) => {
     const btn = document.createElement("button");
     btn.className = "choice-btn";
     btn.innerText = item;
-
-    if (index === 0) {
-      btn.classList.add("active");
-    }
-
+    if (index === 0) btn.classList.add("active");
     btn.onclick = () => {
       [...container.children].forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
       selectedMood = item;
     };
-
     container.appendChild(btn);
   });
+}
+
+function onScheduleChange() {
+  const scheduleType = getSelectedScheduleType();
+  const hint = document.getElementById("scheduleHint");
+  if (scheduleType) { hint.classList.add("visible"); }
+  else { hint.classList.remove("visible"); }
 }
 
 function getSelectedScheduleType() {
   const checked = document.querySelector('input[name="scheduleType"]:checked');
   return checked ? checked.value : "";
+}
+
+function getCityHeavenCreds() {
+  const id =
+    localStorage.getItem("cityheavenId") ||
+    localStorage.getItem("profile_cityheavenId") ||
+    localStorage.getItem("ch_id") || "";
+  const pass =
+    localStorage.getItem("cityheavenPass") ||
+    localStorage.getItem("profile_cityheavenPass") ||
+    localStorage.getItem("ch_pass") || "";
+  return { id, pass };
 }
 
 function saveHeaderFooter() {
@@ -356,10 +357,8 @@ function loadHeaderFooter() {
   const footer = localStorage.getItem("diaryFooter") || "";
   const headerEl = document.getElementById("header");
   const footerEl = document.getElementById("footer");
-
   if (headerEl) headerEl.value = header;
   if (footerEl) footerEl.value = footer;
-
   if (headerEl) headerEl.addEventListener("input", saveHeaderFooter);
   if (footerEl) footerEl.addEventListener("input", saveHeaderFooter);
 }
@@ -370,89 +369,78 @@ async function generate() {
     setTimeout(() => location.href = "profile.html", 1500);
     return;
   }
-
   const title = document.getElementById("title").value.trim();
   if (!title) { showModal("題名を入力してね"); return; }
   if (!selectedSituation) { showModal("日記の状況を選んでね"); return; }
   if (!selectedMood) { showModal("今の気分を選んでね"); return; }
 
   const scheduleType = getSelectedScheduleType();
-  const cityheavenId =
-    localStorage.getItem("profile_cityheavenId") ||
-    localStorage.getItem("ch_id") ||
-    "";
-  const cityheavenPass =
-    localStorage.getItem("profile_cityheavenPass") ||
-    localStorage.getItem("ch_pass") ||
-    "";
+  const { id: cityheavenId, pass: cityheavenPass } = getCityHeavenCreds();
 
   if (scheduleType && (!cityheavenId || !cityheavenPass)) {
     showModal("プロフィール設定でCityHeaven情報を保存してください");
+    setTimeout(() => location.href = "profile.html", 2000);
     return;
   }
 
   const btn = document.getElementById("generateBtn");
-  btn.innerText = "メッセージを考案中...💭";
+  btn.innerText = scheduleType ? "出勤情報を取得中...📅" : "メッセージを考案中...💭";
   btn.disabled = true;
 
   try {
     const route = scheduleType ? "/generate-with-schedule" : "/generate";
-    const workerUrl = `https://openrouter-diary-api.doropbox-kyoto.workers.dev${route}`;
+    const endpoint = `${WORKER_URL}${route}`;
 
-    const response = await fetch(workerUrl, {
+    const postBody = {
+      mode: "diary",
+      storeType:     profile.storeType    || "学園系・激安",
+      name:          profile.name         || "",
+      character:     profile.character    || "",
+      traits:        profile.traits       || [],
+      situation:     selectedSituation,
+      mood:          selectedMood,
+      spiceLevel:    selectedEro,
+      targetLength:  selectedLength === "短め" ? 140 : 220,
+      emojiPalette:  ["💕", "🥺", "✨", "💦", "💋", "🤫", "🍼", "🔞"],
+      customer:      profile.customerCall || "お客様",
+      header:        document.getElementById("header").value.trim(),
+      footer:        document.getElementById("footer").value.trim(),
+      title:         title,
+      scheduleType:  scheduleType,
+      cityheavenId:  cityheavenId,
+      cityheavenPass: cityheavenPass
+    };
+
+    const response = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        mode: "diary",
-        storeType: profile.storeType || "学園系・激安",
-        name: profile.name || "",
-        character: profile.character || "",
-        traits: profile.traits || [],
-        situation: selectedSituation,
-        mood: selectedMood,
-        spiceLevel: selectedEro,
-        targetLength: selectedLength === "短め" ? 140 : 220,
-        emojiPalette: ["💕", "🥺", "✨", "💦", "💋", "🤫", "🍼", "🔞"],
-        customer: profile.customerCall || "お客様",
-        header: document.getElementById("header").value.trim(),
-        footer: document.getElementById("footer").value.trim(),
-        title: title,
-        scheduleType: scheduleType,
-        cityheavenId: cityheavenId,
-        cityheavenPass: cityheavenPass
-      })
+      body: JSON.stringify(postBody)
     });
 
     const data = await response.json().catch(() => ({}));
 
-    if (!response.ok) {
+    if (!response.ok || !data.ok) {
       console.error(data);
-      showModal("生成エラー💦");
+      showModal(data.message || data.error || "生成エラー💦");
       return;
     }
 
     let bodyText = data.result || data.finalText || data.text || "";
-    bodyText = bodyText.replace(/\r\n/g, "\n");
-    bodyText = bodyText.replace(/\n{3,}/g, "\n\n");
-    bodyText = bodyText.trim();
+    bodyText = bodyText.replace(/\r\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
 
     const fullText = `【${title}】\n\n${bodyText}`;
-
     const container = document.getElementById("resultContainer");
     container.style.display = "block";
-
     const textarea = document.getElementById("resultTextarea");
     textarea.value = fullText;
-
     if (profile.textAlign === "center") { textarea.style.textAlign = "center"; }
     else { textarea.style.textAlign = "left"; }
-
     addToHistory(fullText);
-    container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    container.scrollIntoView({ behavior: "smooth", block: "center" });
 
   } catch (error) {
     console.error(error);
-    showModal("生成エラー💦");
+    showModal("通信エラー💦");
   } finally {
     btn.innerText = "日記をつくる";
     btn.disabled = false;
@@ -464,10 +452,10 @@ function migrateHistoryIfNeeded() {
   if(!raw) return;
   try {
     let history = JSON.parse(raw);
-    if(history.length > 0 && (typeof history[0] === 'string' || !history[0].id)) {
+    if(history.length > 0 && (typeof history[0] === "string" || !history[0].id)) {
       const newFormat = history.map(item => {
-        const text = (typeof item === 'string') ? item : (item.text || "");
-        return { text: text, fav: false, id: Date.now() + Math.random() };
+        const text = (typeof item === "string") ? item : (item.text || "");
+        return { text, fav: false, id: Date.now() + Math.random() };
       });
       localStorage.setItem("diaryHistory", JSON.stringify(newFormat));
     }
@@ -476,8 +464,7 @@ function migrateHistoryIfNeeded() {
 
 function addToHistory(text) {
   let history = getHistory();
-  const newItem = { text: text, fav: false, id: Date.now() };
-  history.unshift(newItem);
+  history.unshift({ text, fav: false, id: Date.now() });
   if (history.length > 20) history = history.slice(0, 20);
   saveHistory(history);
   renderHistory();
@@ -495,6 +482,7 @@ function toggleFav(id) {
 
 function getHistory() { try { return JSON.parse(localStorage.getItem("diaryHistory") || "[]"); } catch(e) { return []; } }
 function saveHistory(history) { localStorage.setItem("diaryHistory", JSON.stringify(history)); }
+
 function renderHistory() {
   const history = getHistory();
   const list = document.getElementById("historyList");
@@ -503,7 +491,6 @@ function renderHistory() {
     list.innerHTML = '<div style="text-align:center; font-size:12px; color:#aaa;">まだ履歴はありません</div>';
     return;
   }
-
   history.forEach(item => {
     const div = document.createElement("div");
     div.className = "history-item";
@@ -517,7 +504,7 @@ function renderHistory() {
       textarea.value = item.text || "";
       if (profile && profile.textAlign === "center") { textarea.style.textAlign = "center"; }
       else { textarea.style.textAlign = "left"; }
-      container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      container.scrollIntoView({ behavior: "smooth", block: "center" });
     };
     list.appendChild(div);
   });
