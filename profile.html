@@ -1,249 +1,180 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>プロフィール設定</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>プロフィール設定</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-<style>
-/* 基本設定 */
-html,body{ touch-action: manipulation; -webkit-text-size-adjust:100%; }
-*{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
-body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif; background:#fff4f8; color:#444; }
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #0f1115;
+      color: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+    }
 
-.wrapper{ max-width:520px; margin:30px auto; padding:20px; animation:fadeUp .4s ease; }
-@keyframes fadeUp{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+    .wrap {
+      max-width: 720px;
+      margin: 0 auto;
+    }
 
-h2{ margin-bottom:20px; color: #ff5fa2; text-align: center; font-size: 22px; }
+    h1 {
+      font-size: 22px;
+      margin: 0 0 20px;
+      font-weight: 700;
+    }
 
-.card{ background:#fff; padding:20px; border-radius:20px; margin-bottom:16px; box-shadow:0 4px 15px rgba(255,95,162,0.06); }
+    .card {
+      background: #171a21;
+      border: 1px solid #262b36;
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 16px;
+    }
 
-label{ display: block; margin-bottom: 8px; font-size: 14px; font-weight: bold; color: #ff5fa2; }
-.sub-label { font-size: 11px; color: #aaa; font-weight: normal; margin-left: 5px; }
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 14px;
+      color: #dfe6ff;
+    }
 
-input, select {
-  width:100%; padding:14px; border-radius:12px; border:1px solid #f0f0f0;
-  font-size:16px; background: #fafafa; outline: none; appearance: none;
-  color: #444; transition: 0.2s;
-}
-input:focus, select:focus { border-color: #ff85b3; background: #fff; }
+    label {
+      display: block;
+      font-size: 13px;
+      margin: 12px 0 6px;
+      color: #b8c0d4;
+    }
 
-.trait-group { display: flex; flex-wrap: wrap; gap: 8px; }
+    input,
+    textarea {
+      width: 100%;
+      border: 1px solid #313746;
+      background: #0f131b;
+      color: #ffffff;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 14px;
+      outline: none;
+    }
 
-.trait-btn {
-  padding: 8px 12px; border-radius: 18px; border: 1px solid #ffe0eb;
-  background: #fff; font-size: 12px; cursor: pointer; transition: 0.2s;
-  color: #666; user-select: none;
-}
-.trait-btn:active { transform: scale(0.95); }
+    input:focus,
+    textarea:focus {
+      border-color: #6ea8fe;
+    }
 
-.trait-btn.active {
-  background: #ff5fa2; color: #fff; border-color: #ff5fa2;
-  box-shadow: 0 2px 6px rgba(255,95,162,0.3);
-}
+    textarea {
+      min-height: 88px;
+      resize: vertical;
+    }
 
-.align-group { display: flex; gap: 10px; }
-.align-btn {
-  flex: 1; padding: 14px; border-radius: 12px; border: 1px solid #ffe0eb;
-  background: #fff; font-size: 14px; cursor: pointer; transition: 0.2s;
-  color: #666; text-align: center; font-weight: bold;
-}
-.align-btn.active {
-  background: #ff5fa2; color: #fff; border-color: #ff5fa2;
-  box-shadow: 0 2px 6px rgba(255,95,162,0.3);
-}
+    .hint {
+      margin-top: 8px;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #8d96ab;
+    }
 
-.limit-info { font-size: 12px; color: #ff85b3; margin-top: 8px; text-align: right; }
+    .save-btn {
+      width: 100%;
+      border: none;
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: #4f7cff;
+      color: #ffffff;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 4px;
+    }
 
-button.save-btn {
-  width:100%; padding:16px; border:none; border-radius:30px;
-  background:linear-gradient(135deg,#ff5fa2,#ff85b3);
-  color:white; font-size:16px; font-weight:bold; margin-top:20px;
-  cursor: pointer; box-shadow: 0 4px 12px rgba(255,95,162,0.3);
-  transition: 0.2s;
-}
-button.save-btn:active { transform: scale(0.98); }
+    .save-btn:active {
+      transform: scale(0.995);
+    }
 
-.back-link { display: block; text-align: center; margin-top: 25px; color: #ff85b3; text-decoration: none; font-size: 14px; border-bottom: 1px dotted #ff85b3; display: inline-block; }
-.back-link-container { text-align: center; }
-
-#statusMsg { text-align: center; font-size: 14px; margin-top: 15px; height: 1.2em; color: #ff5fa2; font-weight: bold; }
-</style>
+    .saved {
+      margin-top: 12px;
+      font-size: 13px;
+      color: #86efac;
+      display: none;
+    }
+  </style>
 </head>
-
 <body>
+  <div class="wrap">
+    <h1>プロフィール設定</h1>
 
-<div class="wrapper">
-  <h2>プロフィール設定</h2>
+    <div class="card">
+      <div class="card-title">基本設定</div>
 
-  <div class="card">
-    <label>源氏名（AIが名乗る名前）</label>
-    <input type="text" id="name" placeholder="例：あみ">
-  </div>
+      <label for="girlName">名前</label>
+      <input id="girlName" type="text" placeholder="例：おとは" />
 
-  <div class="card">
-    <label>年齢（AIの考えや雰囲気に反映します）</label>
-    <input type="number" id="age" placeholder="例：24">
-  </div>
+      <label for="headerText">Header</label>
+      <textarea id="headerText" placeholder="生成文の上に入れる固定文"></textarea>
 
-  <div class="card">
-    <label>お店のジャンル（文体や絵文字に反映）</label>
-    <select id="storeType">
-      <option value="学園系・激安">学園系・激安（若さ・ノリ・絵文字多め）</option>
-      <option value="高級店・エステ">高級店・エステ（上品・清楚・絵文字少なめ）</option>
-      <option value="熟女・人妻・姉系">熟女・人妻・姉系（色気・秘密・大人の余裕）</option>
-      <option value="SM">SM（支配・服従・フェティッシュ）</option>
-      <option value="ぽっちゃり">ぽっちゃり（癒やし・ふくよか・愛嬌）</option>
-    </select>
-  </div>
-
-  <div class="card">
-    <label>キャラクター（性格）</label>
-    <select id="character">
-      <option value="お姉さん系">お姉さん系</option>
-      <option value="妹系">妹系</option>
-      <option value="清楚系">清楚系</option>
-      <option value="ギャル系">ギャル系</option>
-      <option value="小悪魔系">小悪魔系</option>
-      <option value="ドS系">ドS系</option>
-      <option value="ドM系">ドM系</option>
-      <option value="天然系">天然系</option>
-      <option value="クール系">クール系</option>
-    </select>
-  </div>
-
-  <div class="card">
-    <label>お客さんの呼び方</label>
-    <input type="text" id="customerCall" placeholder="例：お兄さん、〇〇様、旦那様">
-  </div>
-
-  <div class="card">
-    <label>文章のスタイル（配置）</label>
-    <div class="align-group">
-      <button class="align-btn" id="btnLeft" onclick="selectAlign('left')">
-        ← 左揃え<br><span style="font-size:10px; font-weight:normal">（通常の日記）</span>
-      </button>
-      <button class="align-btn" id="btnCenter" onclick="selectAlign('center')">
-        →← 中央揃え<br><span style="font-size:10px; font-weight:normal">（ポエム風）</span>
-      </button>
+      <label for="footerText">Footer</label>
+      <textarea id="footerText" placeholder="生成文の下に入れる固定文"></textarea>
     </div>
+
+    <div class="card">
+      <div class="card-title">CityHeaven 連携</div>
+
+      <label for="cityheavenId">ログインID（女の子ID または メールアドレス）</label>
+      <input id="cityheavenId" type="text" placeholder="例：girl12345 / sample@example.com" />
+
+      <label for="cityheavenPass">パスワード</label>
+      <input id="cityheavenPass" type="password" placeholder="パスワードを入力" />
+
+      <div class="hint">
+        出勤情報の取得に使います。<br>
+        現段階ではこの端末の localStorage に保存します。
+      </div>
+    </div>
+
+    <button class="save-btn" id="saveBtn">保存する</button>
+    <div class="saved" id="savedMsg">保存しました</div>
   </div>
 
-  <div class="card">
-    <label>あなたの特徴 <span class="sub-label">※8つまで選択OK</span></label>
-    <div class="trait-group" id="traitGroup"></div>
-    <div class="limit-info" id="limitInfo">あと 8 つ選べます</div>
-  </div>
-
-  <button class="save-btn" onclick="saveProfile()">保存して完了</button>
-  <div id="statusMsg"></div>
-
-  <div class="back-link-container">
-    <a href="index.html" class="back-link">キャンセルして戻る</a>
-  </div>
-</div>
-
-<script>
-let selectedTraits = [];
-let textAlign = 'left';
-
-function selectAlign(align) {
-  textAlign = align;
-  document.getElementById('btnLeft').className = align === 'left' ? 'align-btn active' : 'align-btn';
-  document.getElementById('btnCenter').className = align === 'center' ? 'align-btn active' : 'align-btn';
-}
-
-const traitsList = [
-  "S気質", "M気質", "甘え体質", "寂しがり", "ツンデレ", 
-  "恥ずかしがり", "聞き上手", "かまってちゃん", "優しい", "天然", 
-  "癒やし系", "ノリがいい", "家庭的", "尽くすタイプ", "褒め上手", 
-  "負けず嫌い", "マイペース", "勉強熱心", "多趣味", "連絡マメ",
-  "痴女", "巨乳", "グラマー", "大人の色気", "ちょっぴり挑発的", 
-  "密着好き", "お酒好き", "美脚", "色白", "笑顔が素敵"
-];
-
-function renderTraits() {
-  const container = document.getElementById("traitGroup");
-  container.innerHTML = "";
-   
-  traitsList.forEach(trait => {
-    const btn = document.createElement("button");
-    btn.className = "trait-btn";
-    btn.innerText = trait;
-    if (selectedTraits.includes(trait)) btn.classList.add("active");
-    
-    btn.onclick = () => {
-      if (selectedTraits.includes(trait)) {
-        selectedTraits = selectedTraits.filter(t => t !== trait);
-        btn.classList.remove("active");
-      } else {
-        if (selectedTraits.length >= 8) { // ★上限8つ
-          btn.style.transform = "translateX(2px)";
-          setTimeout(()=> btn.style.transform = "translateX(-2px)", 50);
-          setTimeout(()=> btn.style.transform = "none", 100);
-          return;
-        }
-        selectedTraits.push(trait);
-        btn.classList.add("active");
-      }
-      updateLimitInfo();
+  <script>
+    const STORAGE_KEYS = {
+      girlName: "profile_girlName",
+      headerText: "profile_headerText",
+      footerText: "profile_footerText",
+      cityheavenId: "profile_cityheavenId",
+      cityheavenPass: "profile_cityheavenPass"
     };
-    container.appendChild(btn);
-  });
-  updateLimitInfo();
-}
 
-function updateLimitInfo() {
-  const remaining = 8 - selectedTraits.length;
-  const info = document.getElementById("limitInfo");
-  if(remaining === 0) {
-    info.innerText = "MAX（これ以上選べません）";
-    info.style.color = "#ff5fa2";
-  } else {
-    info.innerText = `あと ${remaining} つ選べます`;
-    info.style.color = "#aaa";
-  }
-}
+    function loadProfile() {
+      document.getElementById("girlName").value = localStorage.getItem(STORAGE_KEYS.girlName) || "";
+      document.getElementById("headerText").value = localStorage.getItem(STORAGE_KEYS.headerText) || "";
+      document.getElementById("footerText").value = localStorage.getItem(STORAGE_KEYS.footerText) || "";
+      document.getElementById("cityheavenId").value = localStorage.getItem(STORAGE_KEYS.cityheavenId) || "";
+      document.getElementById("cityheavenPass").value = localStorage.getItem(STORAGE_KEYS.cityheavenPass) || "";
+    }
 
-function loadProfile() {
-  const saved = localStorage.getItem("profile");
-  if (saved) {
-    const p = JSON.parse(saved);
-    document.getElementById("name").value = p.name || "";
-    document.getElementById("age").value = p.age || "";
-    document.getElementById("storeType").value = p.storeType || "学園系・激安";
-    document.getElementById("character").value = p.character || "お姉さん系";
-    document.getElementById("customerCall").value = p.customerCall || "";
-    selectedTraits = p.traits || [];
-    textAlign = p.textAlign || 'left';
-  }
-  selectAlign(textAlign);
-  renderTraits();
-}
+    function saveProfile() {
+      localStorage.setItem(STORAGE_KEYS.girlName, document.getElementById("girlName").value);
+      localStorage.setItem(STORAGE_KEYS.headerText, document.getElementById("headerText").value);
+      localStorage.setItem(STORAGE_KEYS.footerText, document.getElementById("footerText").value);
+      localStorage.setItem(STORAGE_KEYS.cityheavenId, document.getElementById("cityheavenId").value);
+      localStorage.setItem(STORAGE_KEYS.cityheavenPass, document.getElementById("cityheavenPass").value);
 
-function saveProfile() {
-  const name = document.getElementById("name").value.trim();
-  if (!name) { alert("お名前を入力してください✨"); return; }
+      const savedMsg = document.getElementById("savedMsg");
+      savedMsg.style.display = "block";
 
-  const profileData = {
-    name: name,
-    age: document.getElementById("age").value,
-    storeType: document.getElementById("storeType").value,
-    character: document.getElementById("character").value,
-    customerCall: document.getElementById("customerCall").value,
-    traits: selectedTraits,
-    textAlign: textAlign
-  };
+      clearTimeout(window.__savedTimer);
+      window.__savedTimer = setTimeout(() => {
+        savedMsg.style.display = "none";
+      }, 1800);
+    }
 
-  localStorage.setItem("profile", JSON.stringify(profileData));
-   
-  const msg = document.getElementById("statusMsg");
-  msg.innerText = "プロフィールを保存しました✨";
-   
-  setTimeout(() => { location.href = "index.html"; }, 800);
-}
-
-window.onload = loadProfile;
-</script>
+    document.getElementById("saveBtn").addEventListener("click", saveProfile);
+    window.addEventListener("DOMContentLoaded", loadProfile);
+  </script>
 </body>
 </html>
