@@ -6,7 +6,6 @@
 <title>お礼日記をつくる</title>
 
 <style>
-/* --- 紫テーマ --- */
 html,body{ touch-action: manipulation; -webkit-text-size-adjust:100%; }
 *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
 body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif; background:#f8f0fc; color:#444; }
@@ -19,12 +18,19 @@ h2{ margin:0 0 10px 0; color: #a65cd6; font-size: 22px; text-align: center; }
 .profileInfo{ font-size:13px; color:#999; margin-bottom:20px; text-align: center; min-height: 1.2em; }
 
 .card{ background:#fff; padding:18px; border-radius:20px; margin-bottom:16px; box-shadow:0 4px 15px rgba(166, 92, 214, 0.08); }
+.card-title{ font-size:15px; font-weight:bold; color:#a65cd6; margin-bottom:14px; padding-bottom:8px; border-bottom:1px solid #ebdcfc; }
 
 label{ font-size: 14px; font-weight: bold; color: #a65cd6; display: block; margin-bottom: 10px; display:flex; align-items:center; justify-content:space-between; }
 .sub-label { font-size: 11px; color: #aaa; font-weight: normal; margin-left: 8px; }
 
-input, textarea { width:100%; padding:14px; border-radius:12px; border:1px solid #f0f0f0; font-size:16px; background: #fafafa; transition:0.2s; outline:none; color: #444; appearance: none; line-height: 2.0; }
+input, textarea {
+  width:100%; padding:14px; border-radius:12px; border:1px solid #f0f0f0;
+  font-size:16px; background: #fafafa; transition:0.2s; outline:none;
+  color: #444; appearance: none; line-height: 1.6;
+}
 input:focus, textarea:focus { border-color: #d09dfc; background: #fff; }
+textarea{ min-height:80px; resize:vertical; }
+::placeholder{ color:#aaa; font-size:14px; }
 
 .button-group{ display:flex; flex-wrap:wrap; gap:8px; }
 .choice-btn{ padding:8px 12px; border-radius:18px; border:1px solid #ebdcfc; background:#fff; color:#777; cursor:pointer; font-size:13px; user-select:none; transition:0.2s; }
@@ -45,26 +51,39 @@ button.primary:disabled { background: #ddd; cursor: not-allowed; box-shadow: non
 .loading-overlay.active { opacity: 1; pointer-events: auto; }
 .heart-icon { font-size: 70px; margin-bottom: 20px; animation: gentle-beat 2s infinite ease-in-out; }
 @keyframes gentle-beat { 0% { transform: scale(1); opacity: 0.9; } 50% { transform: scale(1.15); opacity: 1; } 100% { transform: scale(1); opacity: 0.9; } }
-.loading-text { font-size: 18px; color: #a65cd6; font-weight: bold; letter-spacing: 2px; font-family: 'Courier New', Courier, monospace; }
+.loading-text { font-size: 18px; color: #a65cd6; font-weight: bold; letter-spacing: 2px; }
+
+.mini-note{ font-size:12px; color:#999; margin-top:6px; }
 </style>
 </head>
 
 <body>
-
 <div class="wrapper">
   <h2>お礼日記（LINE）💜</h2>
   <div class="profileInfo" id="profileInfo">読み込み中...</div>
 
+  <!-- 固定欄（保存される） -->
   <div class="card">
-    <label>場所・コース時間<span class="sub-label">文章の補足に使います</span></label>
-    <input id="detailInput" placeholder="例：〇〇ホテル、120分コースなど">
+    <div class="card-title">固定情報 <span class="sub-label">※保存されます</span></div>
+    <label>コース・場所など</label>
+    <input id="fixedDetail" placeholder="例：120分コース / 〇〇ホテル">
+    <div class="mini-note">次回以降も自動で表示されます</div>
   </div>
 
+  <!-- お客様の呼び方 -->
   <div class="card">
     <label>お客様の呼び方<span class="sub-label">※1つ選択</span></label>
     <div class="button-group" id="typeButtons"></div>
   </div>
 
+  <!-- 今日の出来事（都度入力） -->
+  <div class="card">
+    <div class="card-title">今日の出来事・共通体験 <span class="sub-label">※毎回入力</span></div>
+    <textarea id="todayMemo" placeholder="例：いっぱい笑った / 映画の話で盛り上がった / ずっと話してた"></textarea>
+    <div class="mini-note">AIの生成に反映されます</div>
+  </div>
+
+  <!-- 出来事・印象ボタン -->
   <div class="card">
     <label>出来事・印象<span class="sub-label">※複数選択OK</span></label>
     <div class="button-group" id="episodeButtons"></div>
@@ -95,7 +114,7 @@ button.primary:disabled { background: #ddd; cursor: not-allowed; box-shadow: non
 <div id="modal" class="modal"></div>
 
 <script>
-const CUSTOMER_TYPES = ["新規様", "仲良しさん", "指名", "お久しぶり", "お兄さん", "お兄様"];
+const CUSTOMER_TYPES = ["新規様", "仲良しさん", "本指名さん", "お久しぶり", "お兄さん", "お兄様"];
 const EPISODES = [
   "長めコース", "貸切", "あっという間に", "いっぱい褒めてくれた", "たくさんイッちゃった",
   "いっぱいせめた", "いっぱいせめられた", "ぎゅってしてくれた", "また誘ってください",
@@ -108,27 +127,36 @@ let selectedEpisodes = [];
 
 window.onload = function() {
   loadProfile();
-  if(document.getElementById("typeButtons")) {
-    createButtons("typeButtons", CUSTOMER_TYPES, (val, btn) => {
-      selectedType = val;
-      document.querySelectorAll("#typeButtons .choice-btn").forEach(b => b.classList.remove("active"));
+  loadFixedDetail();
+  createSingleButtons("typeButtons", CUSTOMER_TYPES, (val, btn) => {
+    selectedType = val;
+    document.querySelectorAll("#typeButtons .choice-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+  });
+  createMultiButtons("episodeButtons", EPISODES, (val, btn) => {
+    if (selectedEpisodes.includes(val)) {
+      selectedEpisodes = selectedEpisodes.filter(v => v !== val);
+      btn.classList.remove("active");
+    } else {
+      selectedEpisodes.push(val);
       btn.classList.add("active");
-    });
-  }
-  if(document.getElementById("episodeButtons")) {
-    createButtons("episodeButtons", EPISODES, (val, btn) => {
-      if (selectedEpisodes.includes(val)) {
-        selectedEpisodes = selectedEpisodes.filter(v => v !== val);
-        btn.classList.remove("active");
-      } else {
-        selectedEpisodes.push(val);
-        btn.classList.add("active");
-      }
-    });
-  }
+    }
+  });
 };
 
-function createButtons(containerId, list, onClick) {
+function createSingleButtons(containerId, list, onClick) {
+  const container = document.getElementById(containerId);
+  if(!container) return;
+  list.forEach(item => {
+    const btn = document.createElement("button");
+    btn.className = "choice-btn";
+    btn.innerText = item;
+    btn.onclick = () => onClick(item, btn);
+    container.appendChild(btn);
+  });
+}
+
+function createMultiButtons(containerId, list, onClick) {
   const container = document.getElementById(containerId);
   if(!container) return;
   list.forEach(item => {
@@ -144,12 +172,22 @@ function loadProfile() {
   try {
     const saved = localStorage.getItem("profile");
     const infoDiv = document.getElementById("profileInfo");
-    if (!saved) { infoDiv.innerHTML = '<a href="profile.html" style="color:#a65cd6;">⚠️ プロフィール未設定です</a>'; return; }
+    if (!saved) {
+      infoDiv.innerHTML = '<a href="profile.html" style="color:#a65cd6;">⚠️ プロフィール未設定です</a>';
+      return;
+    }
     profile = JSON.parse(saved);
-    const ageInfo = profile.age ? `${profile.age}歳` : "";
     const charInfo = profile.character || "";
-    infoDiv.innerText = `${profile.name}（${ageInfo} / ${charInfo}）`;
+    infoDiv.innerText = `${profile.name}（${charInfo}）`;
   } catch(e) { console.error("Profile Error"); }
+}
+
+function loadFixedDetail() {
+  const saved = localStorage.getItem("thanksFixedDetail") || "";
+  document.getElementById("fixedDetail").value = saved;
+  document.getElementById("fixedDetail").addEventListener("input", () => {
+    localStorage.setItem("thanksFixedDetail", document.getElementById("fixedDetail").value);
+  });
 }
 
 async function generate() {
@@ -159,55 +197,47 @@ async function generate() {
     return;
   }
   if (!selectedType) { showModal("お客様の呼び方を選んでね"); return; }
-  
-  const detail = document.getElementById("detailInput").value.trim();
-  const contextParts = [selectedType, detail, ...selectedEpisodes].filter(Boolean);
+
+  const fixedDetail = document.getElementById("fixedDetail").value.trim();
+  const todayMemo   = document.getElementById("todayMemo").value.trim();
+  const contextParts = [selectedType, fixedDetail, todayMemo, ...selectedEpisodes].filter(Boolean);
   const thanksContextStr = contextParts.join("、");
 
   const loader = document.getElementById("loadingOverlay");
   loader.classList.add("active");
 
   try {
-    // ★ 宛先を /generate-thanks に修正
-    const workerUrl = "https://openrouter-diary-api.doropbox-kyoto.workers.dev/generate-thanks";
-    
-    // ★ localStorage から Header/Footer を読み込む
-    const headerStr = localStorage.getItem("diaryHeader") || "";
-    const footerStr = localStorage.getItem("diaryFooter") || "";
-    
-    // ★ Workerの想定するペイロードに完全に合わせる
+    const workerUrl  = "https://openrouter-diary-api.doropbox-kyoto.workers.dev/generate-thanks";
+    const headerStr  = localStorage.getItem("diaryHeader") || "";
+    const footerStr  = localStorage.getItem("diaryFooter") || "";
+
     const response = await fetch(workerUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        customer: profile.customerCall || selectedType,
+        customer:      profile.customerCall || selectedType,
         thanksContext: thanksContextStr,
-        targetLength: 200,
-        emojiPalette: ["💕", "🥺", "✨", "💦", "💋", "🤫", "🍼", "🔞"],
-        header: headerStr,
-        footer: footerStr
+        targetLength:  200,
+        emojiPalette:  ["💕", "🥺", "✨", "💦", "💋", "🤫", "🍼", "🔞"],
+        header:        headerStr,
+        footer:        footerStr
       })
     });
 
     const data = await response.json();
     if (!response.ok) throw new Error("API Error");
-    
+
     let bodyText = data.result || data.text || "";
-    
-    // ★ 過剰な句点の改行を廃止し、自然な整形のみ行う
-    bodyText = bodyText.replace(/\r\n/g, "\n");
-    bodyText = bodyText.replace(/\n{3,}/g, "\n\n");
-    bodyText = bodyText.trim();
+    bodyText = bodyText.replace(/\r\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
 
     if (bodyText) {
       const container = document.getElementById("resultContainer");
       container.style.display = "block";
       document.getElementById("resultTextarea").value = bodyText;
-      container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      container.scrollIntoView({ behavior: "smooth", block: "center" });
     } else {
       throw new Error("生成失敗");
     }
-
   } catch (error) {
     console.error(error);
     showModal("ごめんね、エラーが出ちゃった💦");
@@ -220,8 +250,12 @@ function copyText() {
   const textarea = document.getElementById("resultTextarea");
   if(!textarea.value) return;
   textarea.select();
-  if (navigator.clipboard) { navigator.clipboard.writeText(textarea.value).then(() => showModal("コピーしました✨"));
-  } else { document.execCommand("copy"); showModal("コピーしました✨"); }
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(textarea.value).then(() => showModal("コピーしました✨"));
+  } else {
+    document.execCommand("copy");
+    showModal("コピーしました✨");
+  }
 }
 
 function showModal(msg) {
