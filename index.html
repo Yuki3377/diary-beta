@@ -210,9 +210,10 @@
 const WORKER_URL = "https://openrouter-diary-api.doropbox-kyoto.workers.dev";
 
 const MOOD_MAP = {
-  low: ["暇だよ", "構って？", "癒されたい", "予約待ってる"],
-  mid: ["お酒飲みたい", "密着したい", "帰りたくない", "内緒だよ"],
-  high: ["ムラムラ", "濡れてる", "イチャイチャ", "我慢できない"]
+  low:   ["時間あるかな？", "構って？", "癒されたい", "密着したい"],
+  mid:   ["ムラムラ", "濡れてる", "イチャイチャ", "我慢できない"],
+  high:  ["もっと奥まで", "止まらなくなっちゃう", "マ○コが濡れすぎて", "チ○チ○を舐めたい"],
+  ultra: ["もっと奥まで", "止まらなくなっちゃう", "マ○コが濡れすぎて", "チ○チ○を舐めたい"]
 };
 
 const SITUATIONS_TOP = ["待機中", "明日出勤", "退勤"];
@@ -222,9 +223,10 @@ const SITUATIONS_BOTTOM = [
 ];
 
 const ERO_LEVELS = [
-  { label: "清潔感", value: "low" },
-  { label: "ほんのり", value: "mid" },
-  { label: "過激", value: "high" }
+  { label: "清潔感 ⭐️",        value: "low"   },
+  { label: "ほんのりH ⭐️⭐️",  value: "mid"   },
+  { label: "過激 ⭐️⭐️⭐️",    value: "high"  },
+  { label: "過激○伏せ ⭐️⭐️⭐️", value: "ultra" }
 ];
 
 const LENGTH_OPTIONS = ["短め", "長め"];
@@ -256,9 +258,8 @@ function safeLoadProfile() {
       return;
     }
     profile = JSON.parse(saved);
-    const ageText = profile.age ? `${profile.age}歳` : "";
     const charText = profile.character || "";
-    infoDiv.innerText = `${profile.name}（${ageText} / ${charText}）`;
+    infoDiv.innerText = `${profile.name}（${charText}）`;
     const textarea = document.getElementById("resultTextarea");
     if (profile.textAlign === "center") { textarea.style.textAlign = "center"; }
     else { textarea.style.textAlign = "left"; }
@@ -392,10 +393,9 @@ async function generate() {
   btn.disabled = true;
 
   try {
-    // ── スケジュールありの場合：先にシフトを取得してから生成 ──
     let scheduleData = null;
     if (scheduleType) {
-      const scrapeRes  = await fetch(`${WORKER_URL}/get-schedule-msg`, {
+      const scrapeRes = await fetch(`${WORKER_URL}/get-schedule-msg`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ cityheavenId, cityheavenPass })
@@ -422,7 +422,6 @@ async function generate() {
         if (weekShifts.length === 0) { showModal("今週の出勤予定がありません"); return; }
         scheduleData = weekShifts;
       }
-
       btn.innerText = "メッセージを考案中...💭";
     }
 
@@ -430,11 +429,12 @@ async function generate() {
     const endpoint = `${WORKER_URL}${route}`;
 
     const postBody = {
-      mode: "diary",
-      storeType:    profile.storeType   || "学園系・激安",
-      name:         profile.name        || "",
-      character:    profile.character   || "",
-      traits:       profile.traits      || [],
+      mode:         "diary",
+      storeType:    profile.storeType    || "普通店",
+      name:         profile.name         || "",
+      character:    profile.character    || "",
+      characters:   profile.characters   || [],
+      traits:       profile.traits       || [],
       situation:    selectedSituation,
       mood:         selectedMood,
       spiceLevel:   selectedEro,
