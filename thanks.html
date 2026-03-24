@@ -60,9 +60,8 @@ button.primary:disabled { background: #ddd; cursor: not-allowed; box-shadow: non
 <body>
 <div class="wrapper">
   <h2>お礼日記（LINE）💜</h2>
-  <div class="profileInfo" id="profileInfo">読み込み中...</div>
+  <div class="profileInfo" id="profileInfo">プロフィール読み込み中...</div>
 
-  <!-- 固定欄（保存される） -->
   <div class="card">
     <div class="card-title">固定情報 <span class="sub-label">※保存されます</span></div>
     <label>コース・場所など</label>
@@ -70,20 +69,17 @@ button.primary:disabled { background: #ddd; cursor: not-allowed; box-shadow: non
     <div class="mini-note">次回以降も自動で表示されます</div>
   </div>
 
-  <!-- お客様の呼び方 -->
   <div class="card">
     <label>お客様の呼び方<span class="sub-label">※1つ選択</span></label>
     <div class="button-group" id="typeButtons"></div>
   </div>
 
-  <!-- 今日の出来事（都度入力） -->
   <div class="card">
     <div class="card-title">今日の出来事・共通体験 <span class="sub-label">※毎回入力</span></div>
     <textarea id="todayMemo" placeholder="例：いっぱい笑った / 映画の話で盛り上がった / ずっと話してた"></textarea>
     <div class="mini-note">AIの生成に反映されます</div>
   </div>
 
-  <!-- 出来事・印象ボタン -->
   <div class="card">
     <label>出来事・印象<span class="sub-label">※複数選択OK</span></label>
     <div class="button-group" id="episodeButtons"></div>
@@ -99,172 +95,4 @@ button.primary:disabled { background: #ddd; cursor: not-allowed; box-shadow: non
     <div class="card" style="background:#fcf9ff; border: 2px solid #e0cbf7;">
       <label style="color:#a65cd6;">AIが書いたメッセージ<span class="sub-label">自由に修正してね</span></label>
       <textarea id="resultTextarea" rows="12"></textarea>
-      <div class="button-group" style="margin-top:10px;">
-        <button class="choice-btn" style="width:100%; text-align:center; background:#a65cd6; color:white; border:none;" onclick="copyText()">📋 コピーする</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div id="loadingOverlay" class="loading-overlay">
-  <div class="heart-icon">💜</div>
-  <div class="loading-text">Writing...</div>
-</div>
-
-<div id="modal" class="modal"></div>
-
-<script>
-const CUSTOMER_TYPES = ["新規様", "仲良しさん", "本指名さん", "お久しぶり", "お兄さん", "お兄様"];
-const EPISODES = [
-  "長めコース", "貸切", "あっという間に", "いっぱい褒めてくれた", "たくさんイッちゃった",
-  "いっぱいせめた", "いっぱいせめられた", "ぎゅってしてくれた", "また誘ってください",
-  "照れてた", "恥ずかしかった"
-];
-
-let profile = null;
-let selectedType = null;
-let selectedEpisodes = [];
-
-window.onload = function() {
-  loadProfile();
-  loadFixedDetail();
-  createSingleButtons("typeButtons", CUSTOMER_TYPES, (val, btn) => {
-    selectedType = val;
-    document.querySelectorAll("#typeButtons .choice-btn").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-  });
-  createMultiButtons("episodeButtons", EPISODES, (val, btn) => {
-    if (selectedEpisodes.includes(val)) {
-      selectedEpisodes = selectedEpisodes.filter(v => v !== val);
-      btn.classList.remove("active");
-    } else {
-      selectedEpisodes.push(val);
-      btn.classList.add("active");
-    }
-  });
-};
-
-function createSingleButtons(containerId, list, onClick) {
-  const container = document.getElementById(containerId);
-  if(!container) return;
-  list.forEach(item => {
-    const btn = document.createElement("button");
-    btn.className = "choice-btn";
-    btn.innerText = item;
-    btn.onclick = () => onClick(item, btn);
-    container.appendChild(btn);
-  });
-}
-
-function createMultiButtons(containerId, list, onClick) {
-  const container = document.getElementById(containerId);
-  if(!container) return;
-  list.forEach(item => {
-    const btn = document.createElement("button");
-    btn.className = "choice-btn";
-    btn.innerText = item;
-    btn.onclick = () => onClick(item, btn);
-    container.appendChild(btn);
-  });
-}
-
-function loadProfile() {
-  try {
-    const saved = localStorage.getItem("profile");
-    const infoDiv = document.getElementById("profileInfo");
-    if (!saved) {
-      infoDiv.innerHTML = '<a href="profile.html" style="color:#a65cd6;">⚠️ プロフィール未設定です</a>';
-      return;
-    }
-    profile = JSON.parse(saved);
-    const charInfo = profile.character || "";
-    infoDiv.innerText = `${profile.name}（${charInfo}）`;
-  } catch(e) { console.error("Profile Error"); }
-}
-
-function loadFixedDetail() {
-  const saved = localStorage.getItem("thanksFixedDetail") || "";
-  document.getElementById("fixedDetail").value = saved;
-  document.getElementById("fixedDetail").addEventListener("input", () => {
-    localStorage.setItem("thanksFixedDetail", document.getElementById("fixedDetail").value);
-  });
-}
-
-async function generate() {
-  if (!profile || !profile.name) {
-    showModal("プロフィールを設定してね💦");
-    setTimeout(() => location.href = "profile.html", 1500);
-    return;
-  }
-  if (!selectedType) { showModal("お客様の呼び方を選んでね"); return; }
-
-  const fixedDetail = document.getElementById("fixedDetail").value.trim();
-  const todayMemo   = document.getElementById("todayMemo").value.trim();
-  const contextParts = [selectedType, fixedDetail, todayMemo, ...selectedEpisodes].filter(Boolean);
-  const thanksContextStr = contextParts.join("、");
-
-  const loader = document.getElementById("loadingOverlay");
-  loader.classList.add("active");
-
-  try {
-    const workerUrl  = "https://openrouter-diary-api.doropbox-kyoto.workers.dev/generate-thanks";
-    const headerStr  = localStorage.getItem("diaryHeader") || "";
-    const footerStr  = localStorage.getItem("diaryFooter") || "";
-
-    const response = await fetch(workerUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        customer:      profile.customerCall || selectedType,
-        thanksContext: thanksContextStr,
-        targetLength:  200,
-        emojiPalette:  ["💕", "🥺", "✨", "💦", "💋", "🤫", "🍼", "🔞"],
-        header:        headerStr,
-        footer:        footerStr
-      })
-    });
-
-    const data = await response.json();
-    if (!response.ok) throw new Error("API Error");
-
-    let bodyText = data.result || data.text || "";
-    bodyText = bodyText.replace(/\r\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
-
-    if (bodyText) {
-      const container = document.getElementById("resultContainer");
-      container.style.display = "block";
-      document.getElementById("resultTextarea").value = bodyText;
-      container.scrollIntoView({ behavior: "smooth", block: "center" });
-    } else {
-      throw new Error("生成失敗");
-    }
-  } catch (error) {
-    console.error(error);
-    showModal("ごめんね、エラーが出ちゃった💦");
-  } finally {
-    loader.classList.remove("active");
-  }
-}
-
-function copyText() {
-  const textarea = document.getElementById("resultTextarea");
-  if(!textarea.value) return;
-  textarea.select();
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(textarea.value).then(() => showModal("コピーしました✨"));
-  } else {
-    document.execCommand("copy");
-    showModal("コピーしました✨");
-  }
-}
-
-function showModal(msg) {
-  const modal = document.getElementById("modal");
-  modal.innerText = msg;
-  modal.style.opacity = "1";
-  modal.style.top = "50%";
-  setTimeout(() => { modal.style.opacity = "0"; }, 2000);
-}
-</script>
-</body>
-</html>
+      <div
