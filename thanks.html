@@ -11,10 +11,11 @@ body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Goth
 @keyframes fadeUp{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
 @keyframes popIn{ 0%{transform:scale(0.8); opacity:0;} 100%{transform:scale(1); opacity:1;} }
 .wrapper{ max-width:520px; margin:20px auto; padding:20px; animation:fadeUp .4s ease; }
-h2{ margin:0 0 12px 0; color:#a65cd6; font-size:22px; text-align:center; }
-.navbar{ display:flex; justify-content:center; gap:12px; flex-wrap:wrap; margin:0 0 8px; }
-.nav-btn{ padding:8px 16px; border-radius:20px; border:1px solid #ebdcfc; background:#fff; color:#a65cd6; font-size:13px; font-weight:bold; cursor:pointer; text-decoration:none; transition:0.2s; }
-.nav-btn.active{ background:#a65cd6; color:#fff; border-color:#a65cd6; }
+h2{ margin:0 0 10px 0; color:#a65cd6; font-size:22px; text-align:center; }
+.navbar{ display:flex; justify-content:center; gap:6px; background:#fff; border-radius:12px; padding:6px; border:1px solid #ebdcfc; margin:0 0 6px; }
+.nav-btn{ flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; padding:7px 4px; border-radius:8px; text-decoration:none; font-size:11px; color:#ccc; font-weight:bold; transition:0.2s; }
+.nav-btn.active{ background:#f8f0fc; color:#a65cd6; }
+.nav-ico{ font-size:18px; }
 .nav-note{ text-align:center; font-size:11px; color:#aaa; margin:0 0 20px; }
 .profileInfo{ font-size:13px; color:#999; margin-bottom:20px; text-align:center; min-height:1.2em; }
 .card{ background:#fff; padding:18px; border-radius:20px; margin-bottom:16px; box-shadow:0 4px 15px rgba(166,92,214,0.08); }
@@ -40,16 +41,16 @@ button.primary:disabled{ background:#ddd; cursor:not-allowed; box-shadow:none; }
 @keyframes gentle-beat{ 0%{transform:scale(1);opacity:0.9;} 50%{transform:scale(1.15);opacity:1;} 100%{transform:scale(1);opacity:0.9;} }
 .loading-text{ font-size:18px; color:#a65cd6; font-weight:bold; letter-spacing:2px; }
 .mini-note{ font-size:12px; color:#999; margin-top:6px; }
-.header-footer-preview{ font-size:12px; color:#999; padding:8px 12px; background:#f8f0fc; border-radius:8px; margin-top:8px; }
+.header-footer-preview{ font-size:12px; color:#999; padding:8px 12px; background:#f8f0fc; border-radius:8px; margin-top:8px; text-align:left; }
 </style>
 </head>
 <body>
 <div class="wrapper">
   <h2>お礼日記（LINE）💜</h2>
   <div class="navbar">
-    <a href="index.html" class="nav-btn">📝 写メ日記</a>
-    <a href="thanks.html" class="nav-btn active">💜 お礼日記</a>
-    <a href="profile.html" class="nav-btn">⚙️ プロフィール</a>
+    <a href="index.html" class="nav-btn"><span class="nav-ico">📝</span>写メ日記</a>
+    <a href="thanks.html" class="nav-btn active"><span class="nav-ico">💜</span>お礼日記</a>
+    <a href="profile.html" class="nav-btn"><span class="nav-ico">⚙️</span>プロフィール</a>
   </div>
   <div class="nav-note">ボタンでページを移動してください</div>
   <div class="profileInfo" id="profileInfo">読み込み中...</div>
@@ -110,7 +111,6 @@ const EPISODES = [
   "いっぱいせめた","いっぱいせめられた","ぎゅってしてくれた","また誘ってください",
   "照れてた","恥ずかしかった"
 ];
-
 let profile = null;
 let selectedType = null;
 let selectedEpisodes = [];
@@ -194,20 +194,16 @@ async function generate() {
     return;
   }
   if (!selectedType) { showModal("お客様の呼び方を選んでね"); return; }
-
   const fixedDetail  = document.getElementById("fixedDetail").value.trim();
   const todayMemo    = document.getElementById("todayMemo").value.trim();
   const contextParts = [selectedType, fixedDetail, todayMemo, ...selectedEpisodes].filter(Boolean);
   const thanksContextStr = contextParts.join("、");
-
   const loader = document.getElementById("loadingOverlay");
   loader.classList.add("active");
-
   try {
     const workerUrl = "https://openrouter-diary-api.doropbox-kyoto.workers.dev/generate-thanks";
     const headerStr = localStorage.getItem("diaryHeader") || "";
     const footerStr = localStorage.getItem("diaryFooter") || "";
-
     const response = await fetch(workerUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -220,13 +216,10 @@ async function generate() {
         footer:        footerStr
       })
     });
-
     const data = await response.json();
     if (!response.ok) throw new Error("API Error");
-
     let bodyText = data.result || data.text || "";
-    bodyText = bodyText.replace(/\r\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
-
+    bodyText = bodyText.replace(/\r\n/g,"\n").replace(/\n{3,}/g,"\n\n").trim();
     if (bodyText) {
       const container = document.getElementById("resultContainer");
       container.style.display = "block";
