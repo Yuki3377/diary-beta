@@ -4,95 +4,236 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>お礼日記をつくる</title>
-
 <style>
 html,body{ touch-action: manipulation; -webkit-text-size-adjust:100%; }
 *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
 body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif; background:#f8f0fc; color:#444; }
-
-.wrapper{ max-width:520px; margin:30px auto; padding:20px; animation:fadeUp .4s ease; }
 @keyframes fadeUp{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
 @keyframes popIn{ 0%{transform:scale(0.8); opacity:0;} 100%{transform:scale(1); opacity:1;} }
-
-h2{ margin:0 0 10px 0; color: #a65cd6; font-size: 22px; text-align: center; }
-.profileInfo{ font-size:13px; color:#999; margin-bottom:20px; text-align: center; min-height: 1.2em; }
-
-.card{ background:#fff; padding:18px; border-radius:20px; margin-bottom:16px; box-shadow:0 4px 15px rgba(166, 92, 214, 0.08); }
+.navbar{ position:sticky; top:0; z-index:100; background:#fff; border-bottom:1px solid #ebdcfc; padding:10px 16px; display:flex; justify-content:center; gap:12px; }
+.nav-btn{ padding:8px 16px; border-radius:20px; border:1px solid #ebdcfc; background:#fff; color:#a65cd6; font-size:13px; font-weight:bold; cursor:pointer; text-decoration:none; transition:0.2s; }
+.nav-btn.active{ background:#a65cd6; color:#fff; border-color:#a65cd6; }
+.nav-note{ text-align:center; font-size:11px; color:#aaa; padding:6px 0; background:#fff; border-bottom:1px solid #ebdcfc; }
+.wrapper{ max-width:520px; margin:20px auto; padding:20px; animation:fadeUp .4s ease; }
+h2{ margin:0 0 10px 0; color:#a65cd6; font-size:22px; text-align:center; }
+.profileInfo{ font-size:13px; color:#999; margin-bottom:20px; text-align:center; min-height:1.2em; }
+.card{ background:#fff; padding:18px; border-radius:20px; margin-bottom:16px; box-shadow:0 4px 15px rgba(166,92,214,0.08); }
 .card-title{ font-size:15px; font-weight:bold; color:#a65cd6; margin-bottom:14px; padding-bottom:8px; border-bottom:1px solid #ebdcfc; }
-
-label{ font-size: 14px; font-weight: bold; color: #a65cd6; display: block; margin-bottom: 10px; display:flex; align-items:center; justify-content:space-between; }
-.sub-label { font-size: 11px; color: #aaa; font-weight: normal; margin-left: 8px; }
-
-input, textarea {
-  width:100%; padding:14px; border-radius:12px; border:1px solid #f0f0f0;
-  font-size:16px; background: #fafafa; transition:0.2s; outline:none;
-  color: #444; appearance: none; line-height: 1.6;
-}
-input:focus, textarea:focus { border-color: #d09dfc; background: #fff; }
+label{ font-size:14px; font-weight:bold; color:#a65cd6; display:block; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; }
+.sub-label{ font-size:11px; color:#aaa; font-weight:normal; margin-left:8px; }
+input, textarea{ width:100%; padding:14px; border-radius:12px; border:1px solid #f0f0f0; font-size:16px; background:#fafafa; transition:0.2s; outline:none; color:#444; appearance:none; line-height:1.6; }
+input:focus, textarea:focus{ border-color:#d09dfc; background:#fff; }
 textarea{ min-height:80px; resize:vertical; }
 ::placeholder{ color:#aaa; font-size:14px; }
-
 .button-group{ display:flex; flex-wrap:wrap; gap:8px; }
 .choice-btn{ padding:8px 12px; border-radius:18px; border:1px solid #ebdcfc; background:#fff; color:#777; cursor:pointer; font-size:13px; user-select:none; transition:0.2s; }
-.choice-btn:active { transform: scale(0.95); }
-.choice-btn.active{ background:#a65cd6; color:#fff; border-color:#a65cd6; box-shadow: 0 2px 6px rgba(166, 92, 214, 0.3); }
-
-button.primary{ width:100%; padding:16px; border:none; border-radius:30px; background:linear-gradient(135deg,#a65cd6,#d485ff); color:white; margin-top:10px; font-size:16px; font-weight:bold; cursor:pointer; box-shadow: 0 4px 12px rgba(166, 92, 214, 0.3); transition:0.2s; }
-button.primary:active { transform: scale(0.98); }
-button.primary:disabled { background: #ddd; cursor: not-allowed; box-shadow: none; }
-
-.result-container { display:none; margin-top:20px; animation:popIn .3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-.nav-links { text-align: center; margin-top: 30px; margin-bottom: 30px; }
-.nav-links a { color: #a65cd6; text-decoration: none; font-size: 14px; border-bottom: 1px dotted #a65cd6; padding-bottom: 2px; }
-
-.modal{ position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(60, 60, 60, 0.9); color:#fff; padding:16px 24px; border-radius:30px; font-size:14px; opacity:0; transition:0.3s; pointer-events:none; z-index:1000; text-align:center; white-space: nowrap; }
-
-.loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(248, 240, 252, 0.92); backdrop-filter: blur(5px); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
-.loading-overlay.active { opacity: 1; pointer-events: auto; }
-.heart-icon { font-size: 70px; margin-bottom: 20px; animation: gentle-beat 2s infinite ease-in-out; }
-@keyframes gentle-beat { 0% { transform: scale(1); opacity: 0.9; } 50% { transform: scale(1.15); opacity: 1; } 100% { transform: scale(1); opacity: 0.9; } }
-.loading-text { font-size: 18px; color: #a65cd6; font-weight: bold; letter-spacing: 2px; }
-
+.choice-btn:active{ transform:scale(0.95); }
+.choice-btn.active{ background:#a65cd6; color:#fff; border-color:#a65cd6; box-shadow:0 2px 6px rgba(166,92,214,0.3); }
+button.primary{ width:100%; padding:16px; border:none; border-radius:30px; background:linear-gradient(135deg,#a65cd6,#d485ff); color:white; margin-top:10px; font-size:16px; font-weight:bold; cursor:pointer; box-shadow:0 4px 12px rgba(166,92,214,0.3); transition:0.2s; }
+button.primary:active{ transform:scale(0.98); }
+button.primary:disabled{ background:#ddd; cursor:not-allowed; box-shadow:none; }
+.result-container{ display:none; margin-top:20px; animation:popIn .3s cubic-bezier(0.175,0.885,0.32,1.275); }
+.modal{ position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(60,60,60,0.9); color:#fff; padding:16px 24px; border-radius:30px; font-size:14px; opacity:0; transition:0.3s; pointer-events:none; z-index:1000; text-align:center; white-space:nowrap; }
+.loading-overlay{ position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(248,240,252,0.92); backdrop-filter:blur(5px); z-index:9999; display:flex; flex-direction:column; justify-content:center; align-items:center; opacity:0; pointer-events:none; transition:opacity 0.3s ease; }
+.loading-overlay.active{ opacity:1; pointer-events:auto; }
+.heart-icon{ font-size:70px; margin-bottom:20px; animation:gentle-beat 2s infinite ease-in-out; }
+@keyframes gentle-beat{ 0%{transform:scale(1);opacity:0.9;} 50%{transform:scale(1.15);opacity:1;} 100%{transform:scale(1);opacity:0.9;} }
+.loading-text{ font-size:18px; color:#a65cd6; font-weight:bold; letter-spacing:2px; }
 .mini-note{ font-size:12px; color:#999; margin-top:6px; }
+.header-footer-preview{ font-size:12px; color:#999; padding:8px 12px; background:#f8f0fc; border-radius:8px; margin-top:8px; }
 </style>
 </head>
-
 <body>
+<div class="navbar">
+  <a href="index.html" class="nav-btn">📝 写メ日記</a>
+  <a href="thanks.html" class="nav-btn active">💜 お礼日記</a>
+  <a href="profile.html" class="nav-btn">⚙️ プロフィール</a>
+</div>
+<div class="nav-note">ボタンでページを移動してください</div>
 <div class="wrapper">
   <h2>お礼日記（LINE）💜</h2>
-  <div class="profileInfo" id="profileInfo">プロフィール読み込み中...</div>
-
+  <div class="profileInfo" id="profileInfo">読み込み中...</div>
+  <div class="card">
+    <div class="card-title">固定文（Header / Footer）</div>
+    <div class="header-footer-preview" id="headerPreview">Header: （未設定）</div>
+    <div class="header-footer-preview" id="footerPreview" style="margin-top:6px;">Footer: （未設定）</div>
+    <div class="mini-note">変更はプロフィール設定から行ってください</div>
+  </div>
+  <div class="card">
+    <label>お客様の呼び方<span class="sub-label">※1つ選択</span></label>
+    <div class="button-group" id="typeButtons"></div>
+  </div>
   <div class="card">
     <div class="card-title">固定情報 <span class="sub-label">※保存されます</span></div>
     <label>コース・場所など</label>
     <input id="fixedDetail" placeholder="例：120分コース / 〇〇ホテル">
     <div class="mini-note">次回以降も自動で表示されます</div>
   </div>
-
-  <div class="card">
-    <label>お客様の呼び方<span class="sub-label">※1つ選択</span></label>
-    <div class="button-group" id="typeButtons"></div>
-  </div>
-
   <div class="card">
     <div class="card-title">今日の出来事・共通体験 <span class="sub-label">※毎回入力</span></div>
-    <textarea id="todayMemo" placeholder="例：いっぱい笑った / 映画の話で盛り上がった / ずっと話してた"></textarea>
+    <textarea id="todayMemo" rows="4" placeholder="例：いっぱい笑った / 映画の話で盛り上がった / ずっと話してた / 最初緊張してたけど打ち解けた"></textarea>
     <div class="mini-note">AIの生成に反映されます</div>
   </div>
-
   <div class="card">
     <label>出来事・印象<span class="sub-label">※複数選択OK</span></label>
     <div class="button-group" id="episodeButtons"></div>
   </div>
-
   <button class="primary" id="generateBtn" onclick="generate()">メッセージをつくる</button>
-
-  <div class="nav-links">
-    <a href="index.html">← 日記作成（メイン）に戻る</a>
-  </div>
-
   <div class="result-container" id="resultContainer">
-    <div class="card" style="background:#fcf9ff; border: 2px solid #e0cbf7;">
+    <div class="card" style="background:#fcf9ff; border:2px solid #e0cbf7;">
       <label style="color:#a65cd6;">AIが書いたメッセージ<span class="sub-label">自由に修正してね</span></label>
       <textarea id="resultTextarea" rows="12"></textarea>
-      <div
+      <div class="button-group" style="margin-top:10px;">
+        <button class="choice-btn" style="width:100%; text-align:center; background:#a65cd6; color:white; border:none;" onclick="copyText()">📋 コピーする</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="loadingOverlay" class="loading-overlay">
+  <div class="heart-icon">💜</div>
+  <div class="loading-text">Writing...</div>
+</div>
+<div id="modal" class="modal"></div>
+<script>
+const CUSTOMER_TYPES = ["新規様","仲良しさん","本指名さん","お久しぶり","お兄さん","お兄様"];
+const EPISODES = [
+  "長めコース","貸切","あっという間に","いっぱい褒めてくれた","たくさんイッちゃった",
+  "いっぱいせめた","いっぱいせめられた","ぎゅってしてくれた","また誘ってください",
+  "照れてた","恥ずかしかった"
+];
+let profile = null;
+let selectedType = null;
+let selectedEpisodes = [];
+window.onload = function() {
+  loadProfile();
+  loadHeaderFooterPreview();
+  loadFixedDetail();
+  createSingleButtons("typeButtons", CUSTOMER_TYPES, (val, btn) => {
+    selectedType = val;
+    document.querySelectorAll("#typeButtons .choice-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+  });
+  createMultiButtons("episodeButtons", EPISODES, (val, btn) => {
+    if (selectedEpisodes.includes(val)) {
+      selectedEpisodes = selectedEpisodes.filter(v => v !== val);
+      btn.classList.remove("active");
+    } else {
+      selectedEpisodes.push(val);
+      btn.classList.add("active");
+    }
+  });
+};
+function createSingleButtons(containerId, list, onClick) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  list.forEach(item => {
+    const btn = document.createElement("button");
+    btn.className = "choice-btn";
+    btn.innerText = item;
+    btn.onclick = () => onClick(item, btn);
+    container.appendChild(btn);
+  });
+}
+function createMultiButtons(containerId, list, onClick) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  list.forEach(item => {
+    const btn = document.createElement("button");
+    btn.className = "choice-btn";
+    btn.innerText = item;
+    btn.onclick = () => onClick(item, btn);
+    container.appendChild(btn);
+  });
+}
+function loadProfile() {
+  try {
+    const saved = localStorage.getItem("profile");
+    const infoDiv = document.getElementById("profileInfo");
+    if (!saved) {
+      infoDiv.innerHTML = '<a href="profile.html" style="color:#a65cd6;">⚠️ プロフィール未設定です</a>';
+      return;
+    }
+    profile = JSON.parse(saved);
+    infoDiv.innerText = profile.name + "（" + (profile.character || "") + "）";
+  } catch(e) { console.error("Profile Error"); }
+}
+function loadHeaderFooterPreview() {
+  const header = localStorage.getItem("diaryHeader") || "";
+  const footer = localStorage.getItem("diaryFooter") || "";
+  document.getElementById("headerPreview").innerText = "Header: " + (header || "（未設定）");
+  document.getElementById("footerPreview").innerText = "Footer: " + (footer || "（未設定）");
+}
+function loadFixedDetail() {
+  const saved = localStorage.getItem("thanksFixedDetail") || "";
+  document.getElementById("fixedDetail").value = saved;
+  document.getElementById("fixedDetail").addEventListener("input", () => {
+    localStorage.setItem("thanksFixedDetail", document.getElementById("fixedDetail").value);
+  });
+}
+async function generate() {
+  if (!profile || !profile.name) {
+    showModal("プロフィールを設定してね💦");
+    setTimeout(() => location.href = "profile.html", 1500);
+    return;
+  }
+  if (!selectedType) { showModal("お客様の呼び方を選んでね"); return; }
+  const fixedDetail = document.getElementById("fixedDetail").value.trim();
+  const todayMemo = document.getElementById("todayMemo").value.trim();
+  const contextParts = [selectedType, fixedDetail, todayMemo, ...selectedEpisodes].filter(Boolean);
+  const thanksContextStr = contextParts.join("、");
+  const loader = document.getElementById("loadingOverlay");
+  loader.classList.add("active");
+  try {
+    const workerUrl = "https://openrouter-diary-api.doropbox-kyoto.workers.dev/generate-thanks";
+    const headerStr = localStorage.getItem("diaryHeader") || "";
+    const footerStr = localStorage.getItem("diaryFooter") || "";
+    const response = await fetch(workerUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        customer: profile.customerCall || selectedType,
+        thanksContext: thanksContextStr,
+        targetLength: 200,
+        emojiPalette: ["💕","🥺","✨","💦","💋","🤫","🍼","🔞"],
+        header: headerStr,
+        footer: footerStr
+      })
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error("API Error");
+    let bodyText = data.result || data.text || "";
+    bodyText = bodyText.replace(/\r\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+    if (bodyText) {
+      const container = document.getElementById("resultContainer");
+      container.style.display = "block";
+      document.getElementById("resultTextarea").value = bodyText;
+      container.scrollIntoView({ behavior:"smooth", block:"center" });
+    } else { throw new Error("生成失敗"); }
+  } catch (error) {
+    console.error(error);
+    showModal("ごめんね、エラーが出ちゃった💦");
+  } finally {
+    loader.classList.remove("active");
+  }
+}
+function copyText() {
+  const textarea = document.getElementById("resultTextarea");
+  if (!textarea.value) return;
+  textarea.select();
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(textarea.value).then(() => showModal("コピーしました✨"));
+  } else {
+    document.execCommand("copy");
+    showModal("コピーしました✨");
+  }
+}
+function showModal(msg) {
+  const modal = document.getElementById("modal");
+  modal.innerText = msg;
+  modal.style.opacity = "1";
+  modal.style.top = "50%";
+  setTimeout(() => { modal.style.opacity = "0"; }, 2000);
+}
+</script>
+</body>
+</html>
