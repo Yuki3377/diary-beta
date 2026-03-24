@@ -11,10 +11,11 @@
   @keyframes fadeUp{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
   @keyframes popIn{ 0%{transform:scale(0.8); opacity:0;} 100%{transform:scale(1); opacity:1;} }
   .wrapper{ max-width:520px; margin:20px auto; padding:20px; animation:fadeUp .4s ease; }
-  h2{ margin:0 0 12px 0; color:#ff5fa2; font-size:22px; text-align:center; }
-  .navbar{ display:flex; justify-content:center; gap:12px; flex-wrap:wrap; margin:0 0 8px; }
-  .nav-btn{ padding:8px 16px; border-radius:20px; border:1px solid #ffe0eb; background:#fff; color:#ff5fa2; font-size:13px; font-weight:bold; cursor:pointer; text-decoration:none; transition:0.2s; }
-  .nav-btn.active{ background:#ff5fa2; color:#fff; border-color:#ff5fa2; }
+  h2{ margin:0 0 10px 0; color:#ff5fa2; font-size:22px; text-align:center; }
+  .navbar{ display:flex; justify-content:center; gap:6px; background:#fff; border-radius:12px; padding:6px; border:1px solid #ffe0eb; margin:0 0 6px; }
+  .nav-btn{ flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; padding:7px 4px; border-radius:8px; text-decoration:none; font-size:11px; color:#ccc; font-weight:bold; transition:0.2s; }
+  .nav-btn.active{ background:#fff0f6; color:#ff5fa2; }
+  .nav-ico{ font-size:18px; }
   .nav-note{ text-align:center; font-size:11px; color:#aaa; margin:0 0 20px; }
   .profileInfo{ font-size:13px; color:#888; margin-bottom:20px; text-align:center; min-height:1.2em; }
   .card{ background:#fff; padding:18px; border-radius:20px; margin-bottom:16px; box-shadow:0 4px 15px rgba(255,95,162,0.06); }
@@ -42,10 +43,10 @@
   .modal{ position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(60,60,60,0.9); color:#fff; padding:16px 24px; border-radius:30px; font-size:14px; opacity:0; transition:0.3s; pointer-events:none; z-index:1000; text-align:center; white-space:nowrap; }
   .mini-note{ font-size:12px; color:#999; margin-top:6px; }
   .radio-group{ display:flex; flex-direction:column; gap:10px; }
-  .radio-row{ display:flex; align-items:center; gap:10px; font-size:14px; color:#666; font-weight:normal; padding:10px 12px; border-radius:10px; border:1px solid #f0f0f0; background:#fafafa; cursor:pointer; transition:0.2s; }
+  .radio-row{ display:flex; align-items:center; gap:10px; font-size:14px; color:#666; font-weight:normal; padding:10px 12px; border-radius:10px; border:1px solid #f0f0f0; background:#fafafa; cursor:pointer; transition:0.2s; justify-content:flex-start; }
   .radio-row:has(input:checked){ border-color:#ff85b3; background:#fff5f9; color:#ff5fa2; font-weight:bold; }
-  .radio-row input[type="radio"]{ width:auto; padding:0; margin:0; accent-color:#ff5fa2; }
-  .schedule-hint{ display:none; margin-top:10px; padding:10px 14px; background:#fff0f6; border-radius:10px; font-size:12px; color:#ff5fa2; border:1px dashed #ffb3d0; }
+  .radio-row input[type="radio"]{ width:auto; padding:0; margin:0; accent-color:#ff5fa2; flex-shrink:0; }
+  .schedule-hint{ display:none; margin-top:10px; padding:10px 14px; background:#fff0f6; border-radius:10px; font-size:12px; color:#ff5fa2; border:1px dashed #ffb3d0; text-align:left; }
   .schedule-hint.visible{ display:block; }
   .schedule-disabled{ opacity:0.4; pointer-events:none; }
 </style>
@@ -54,9 +55,9 @@
 <div class="wrapper">
   <h2>写メ日記をつくる</h2>
   <div class="navbar">
-    <a href="index.html" class="nav-btn active">📝 写メ日記</a>
-    <a href="thanks.html" class="nav-btn">💜 お礼日記</a>
-    <a href="profile.html" class="nav-btn">⚙️ プロフィール</a>
+    <a href="index.html" class="nav-btn active"><span class="nav-ico">📝</span>写メ日記</a>
+    <a href="thanks.html" class="nav-btn"><span class="nav-ico">💜</span>お礼日記</a>
+    <a href="profile.html" class="nav-btn"><span class="nav-ico">⚙️</span>プロフィール</a>
   </div>
   <div class="nav-note">ボタンでページを移動してください</div>
   <div class="profileInfo" id="profileInfo">読み込み中...</div>
@@ -100,7 +101,7 @@
     <div class="button-group" id="lengthButtons"></div>
   </div>
 
-  <div class="card" id="scheduleCard">
+  <div class="card">
     <label>スケジュール告知オプション<span class="sub-label">※出勤情報を自然に組み込みます</span></label>
     <div class="radio-group" id="scheduleGroup">
       <label class="radio-row">
@@ -125,8 +126,7 @@
       </label>
     </div>
     <div class="schedule-hint" id="scheduleHint">
-      CityHeavenの出勤情報を使って文章を作ります。<br>
-      プロフィール設定でID/PASSが保存済みであることを確認してください。
+      CityHeavenの出勤情報を使って文章を作ります。プロフィール設定でID/PASSが保存済みであることを確認してください。
     </div>
     <div class="mini-note" id="scheduleNote">「追加しない」以外を選ぶと、CityHeavenの出勤情報を使って文章を作ります</div>
   </div>
@@ -152,24 +152,20 @@
 
 <script>
 const WORKER_URL = "https://openrouter-diary-api.doropbox-kyoto.workers.dev";
-
 const MOOD_MAP = {
   low:   ["時間あるかな？","構って？","癒されたい","密着したい"],
   mid:   ["ムラムラ","濡れてる","イチャイチャ","我慢できない"],
   high:  ["もっと奥まで","止まらなくなっちゃう","マ○コが濡れすぎて","チ○チ○を舐めたい"],
   ultra: ["もっと奥まで","止まらなくなっちゃう","マ○コが濡れすぎて","チ○チ○を舐めたい"]
 };
-
 const SITUATIONS_TOP = ["待機中","明日出勤","退勤"];
 const SITUATIONS_BOTTOM = ["出勤前","休憩中","お休み","美容Day","お買い物","ご飯","お酒","寝る前","お散歩","早起き","雨の日","旅行"];
-
 const ERO_LEVELS = [
   { label:"清潔感 ⭐️",          value:"low"   },
   { label:"ほんのりH ⭐️⭐️",    value:"mid"   },
   { label:"過激 ⭐️⭐️⭐️",      value:"high"  },
   { label:"過激○伏せ ⭐️⭐️⭐️", value:"ultra" }
 ];
-
 const LENGTH_OPTIONS = ["短め","長め"];
 
 let profile = null;
@@ -191,7 +187,6 @@ window.onload = function() {
   catch(e) { localStorage.removeItem("diaryHistory"); renderHistory(); }
 };
 
-// ★CityHeaven認証情報がない場合スケジュールオプションを無効化
 function checkCityHeavenCredentials() {
   const { id, pass } = getCityHeavenCreds();
   if (!id || !pass) {
@@ -211,8 +206,7 @@ function safeLoadProfile() {
       return;
     }
     profile = JSON.parse(saved);
-    const charText = profile.character || "";
-    infoDiv.innerText = profile.name + "（" + charText + "）";
+    infoDiv.innerText = profile.name + "（" + (profile.character || "") + "）";
     const textarea = document.getElementById("resultTextarea");
     if (profile.textAlign === "center") { textarea.style.textAlign = "center"; }
     else { textarea.style.textAlign = "left"; }
@@ -350,40 +344,28 @@ async function generate() {
         scrapeData = await scrapeRes.json().catch(() => ({}));
       } catch(e) {
         showModal("出勤情報の取得に失敗しました。通常モードで生成します💦");
-        // ★シフト取得失敗時はスケジュールなしで生成を続行
       }
 
       if (scrapeData.ok) {
         if (scheduleType === "today" || scheduleType === "remaining") {
           const todayShift = scrapeData.todayShift || (scrapeData.nextShift?.dateLabel === "本日" ? scrapeData.nextShift : null);
-          if (!todayShift) {
-            showModal("本日の出勤情報がありません。通常モードで生成します");
-            // ★シフトなしでも生成を続行（エラー終了しない）
-          } else {
-            scheduleData = todayShift;
-          }
+          if (!todayShift) { showModal("本日の出勤情報がありません。通常モードで生成します"); }
+          else { scheduleData = todayShift; }
         } else if (scheduleType === "next") {
           const allShifts = scrapeData.allShifts || [];
           const nextShift = allShifts.find(s => s.dateLabel !== "本日") || null;
-          if (!nextShift) {
-            showModal("次回出勤情報がありません。通常モードで生成します");
-          } else {
-            scheduleData = nextShift;
-          }
+          if (!nextShift) { showModal("次回出勤情報がありません。通常モードで生成します"); }
+          else { scheduleData = nextShift; }
         } else if (scheduleType === "week") {
           const allShifts  = scrapeData.allShifts || [];
-          const weekShifts = allShifts.filter(s => s.dateLabel !== "本日").slice(0, 7);
-          if (weekShifts.length === 0) {
-            showModal("今週の出勤予定がありません。通常モードで生成します");
-          } else {
-            scheduleData = weekShifts;
-          }
+          const weekShifts = allShifts.filter(s => s.dateLabel !== "本日").slice(0,7);
+          if (weekShifts.length === 0) { showModal("今週の出勤予定がありません。通常モードで生成します"); }
+          else { scheduleData = weekShifts; }
         }
       }
       btn.innerText = "メッセージを考案中...💭";
     }
 
-    // ★シフトデータがない場合は通常ルートで生成
     const useSchedule = scheduleType && scheduleData;
     const route = useSchedule ? "/generate-with-schedule" : "/generate";
 
@@ -420,7 +402,7 @@ async function generate() {
     }
 
     let bodyText = data.result || data.finalText || data.text || "";
-    bodyText = bodyText.replace(/\r\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+    bodyText = bodyText.replace(/\r\n/g,"\n").replace(/\n{3,}/g,"\n\n").trim();
     const fullText = "【" + title + "】\n\n" + bodyText;
     const container = document.getElementById("resultContainer");
     container.style.display = "block";
@@ -520,7 +502,7 @@ function showModal(msg) {
   modal.innerText = msg;
   modal.style.opacity = "1";
   modal.style.top = "50%";
-  setTimeout(() => { modal.style.opacity = "0"; }, 2000);
+  setTimeout(() => { modal.style.opacity = "0"; }, 2500);
 }
 </script>
 </body>
