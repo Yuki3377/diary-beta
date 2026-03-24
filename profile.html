@@ -9,12 +9,12 @@
   *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
   body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif; background:#fff4f8; color:#444; }
   @keyframes fadeUp{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
-  .navbar{ position:sticky; top:0; z-index:100; background:#fff; border-bottom:1px solid #ffe0eb; padding:10px 16px; display:flex; justify-content:center; gap:12px; }
+  .wrapper{ max-width:520px; margin:20px auto; padding:20px; animation:fadeUp .4s ease; }
+  h2{ margin:0 0 12px 0; color:#ff5fa2; font-size:22px; text-align:center; }
+  .navbar{ display:flex; justify-content:center; gap:12px; flex-wrap:wrap; margin:0 0 8px; }
   .nav-btn{ padding:8px 16px; border-radius:20px; border:1px solid #ffe0eb; background:#fff; color:#ff5fa2; font-size:13px; font-weight:bold; cursor:pointer; text-decoration:none; transition:0.2s; }
   .nav-btn.active{ background:#ff5fa2; color:#fff; border-color:#ff5fa2; }
-  .nav-note{ text-align:center; font-size:11px; color:#aaa; padding:6px 0; background:#fff; border-bottom:1px solid #ffe0eb; }
-  .wrapper{ max-width:520px; margin:20px auto; padding:20px; animation:fadeUp .4s ease; }
-  h2{ margin:0 0 10px 0; color:#ff5fa2; font-size:22px; text-align:center; }
+  .nav-note{ text-align:center; font-size:11px; color:#aaa; margin:0 0 20px; }
   .card{ background:#fff; padding:18px; border-radius:20px; margin-bottom:16px; box-shadow:0 4px 15px rgba(255,95,162,0.06); }
   .card-title{ font-size:15px; font-weight:bold; color:#ff5fa2; margin-bottom:14px; padding-bottom:8px; border-bottom:1px solid #ffe0eb; }
   label{ display:block; font-size:13px; font-weight:bold; color:#ff5fa2; margin:12px 0 6px; }
@@ -30,13 +30,10 @@
   .limit-info.full{ color:#ff5fa2; }
   .align-group{ display:flex; gap:10px; margin-top:6px; }
   .align-btn{ flex:1; padding:12px; border-radius:12px; border:1px solid #ffe0eb; background:#fff; color:#666; cursor:pointer; font-size:14px; text-align:center; transition:0.2s; user-select:none; }
-  .align-btn.active{ background:#ff5fa2; color:#fff; border-color:#ff5fa2; box-shadow:0 2px 6px rgba(255,95,162,0.3); }
+  .align-btn.active{ background:#ff5fa2; color:#fff; border-color:#ff5fa2; }
   .hint{ font-size:12px; color:#999; margin-top:8px; line-height:1.6; }
   button.save-btn{ width:100%; padding:16px; border:none; border-radius:30px; background:linear-gradient(135deg,#ff5fa2,#ff85b3); color:white; font-size:16px; font-weight:bold; margin-top:10px; cursor:pointer; box-shadow:0 4px 12px rgba(255,95,162,0.3); transition:0.2s; }
   button.save-btn:active{ transform:scale(0.98); }
-  button.test-btn{ width:100%; padding:14px; border:none; border-radius:30px; background:#2f9e44; color:white; font-size:15px; font-weight:bold; margin-top:10px; cursor:pointer; transition:0.2s; }
-  button.test-btn:active{ transform:scale(0.98); }
-  .result-box{ margin-top:14px; padding:14px; border-radius:12px; background:#fafafa; border:1px solid #f0f0f0; font-size:13px; line-height:1.7; white-space:pre-wrap; display:none; }
   #statusMsg{ text-align:center; font-size:14px; margin-top:12px; height:1.2em; color:#ff5fa2; font-weight:bold; }
   .logout-btn{ width:100%; padding:12px; border-radius:12px; background:#fff; color:#ff5fa2; font-size:14px; font-weight:bold; cursor:pointer; margin-top:12px; border:1px solid #ffe0eb; transition:0.2s; }
   .logout-btn:active{ background:#fff0f6; transform:scale(0.98); }
@@ -45,14 +42,15 @@
 </style>
 </head>
 <body>
-<div class="navbar">
-  <a href="index.html" class="nav-btn">📝 写メ日記</a>
-  <a href="thanks.html" class="nav-btn">💜 お礼日記</a>
-  <a href="profile.html" class="nav-btn active">⚙️ プロフィール</a>
-</div>
-<div class="nav-note">ボタンでページを移動してください</div>
 <div class="wrapper">
   <h2>プロフィール設定</h2>
+  <div class="navbar">
+    <a href="index.html" class="nav-btn">📝 写メ日記</a>
+    <a href="thanks.html" class="nav-btn">💜 お礼日記</a>
+    <a href="profile.html" class="nav-btn active">⚙️ プロフィール</a>
+  </div>
+  <div class="nav-note">ボタンでページを移動してください</div>
+
   <div class="card">
     <div class="card-title">基本情報</div>
     <label>源氏名</label>
@@ -63,20 +61,24 @@
       <div class="align-btn" id="alignCenter" onclick="selectAlign('center')">中央揃え</div>
     </div>
   </div>
+
   <div class="card">
     <div class="card-title">お店のコンセプト</div>
     <div class="btn-group" id="storeTypeBtns"></div>
   </div>
+
   <div class="card">
     <div class="card-title">女の子のキャラクター <span class="sub-label">※3つまで</span></div>
     <div class="btn-group" id="characterBtns"></div>
     <div class="limit-info" id="charLimitInfo">あと 3 つ選べます</div>
   </div>
+
   <div class="card">
     <div class="card-title">あなたの特徴 <span class="sub-label">※4つまで</span></div>
     <div class="btn-group" id="traitBtns"></div>
     <div class="limit-info" id="traitLimitInfo">あと 4 つ選べます</div>
   </div>
+
   <div class="card">
     <div class="card-title">固定文（Header / Footer）</div>
     <label>冒頭固定挨拶（Header）</label>
@@ -86,6 +88,7 @@
     <input type="text" id="footerText" placeholder="例：会えたら嬉しいな💕">
     <div class="mini-note">写メ日記・お礼日記の両方に反映されます</div>
   </div>
+
   <div class="card">
     <div class="card-title">CityHeaven 連携</div>
     <label>ログインID（女の子ID またはメールアドレス）</label>
@@ -96,13 +99,12 @@
     <button class="logout-btn" onclick="logoutCityHeaven()">🔓 CityHeaven をログアウト</button>
     <div class="logout-msg" id="logoutMsg"></div>
   </div>
+
   <button class="save-btn" onclick="saveProfile()">保存する</button>
   <div id="statusMsg"></div>
-  <button class="test-btn" onclick="testScheduleFetch()">出勤確認テスト</button>
-  <div class="result-box" id="resultBox"></div>
 </div>
+
 <script>
-const WORKER_BASE_URL = "https://openrouter-diary-api.doropbox-kyoto.workers.dev";
 const STORE_TYPES = ["普通店","お姉さん系","妹系","清楚系","ギャル系","小悪魔系","ドS系","ドM系","天然系","クール系"];
 const CHARACTERS = [
   "甘え体質","寂しがり","かまってちゃん","尽くすタイプ","独占欲強め",
@@ -120,16 +122,19 @@ const TRAITS = [
   "痴女","巨乳","グラマー","大人の色気","ちょっぴり挑発的",
   "密着好き","お酒好き","美脚","色白","笑顔が素敵"
 ];
+
 let selectedStoreType = "普通店";
 let selectedCharacters = [];
 let selectedTraits = [];
 let selectedAlign = "left";
+
 window.onload = function() {
   renderButtons("storeTypeBtns", STORE_TYPES, "storeType");
   renderButtons("characterBtns", CHARACTERS, "character");
   renderButtons("traitBtns", TRAITS, "trait");
   loadProfile();
 };
+
 function renderButtons(containerId, list, type) {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -142,129 +147,136 @@ function renderButtons(containerId, list, type) {
     container.appendChild(btn);
   });
 }
+
 function handleBtnClick(btn, item, type) {
   if (type === "storeType") {
     document.querySelectorAll("#storeTypeBtns .choice-btn").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
     selectedStoreType = item;
+
   } else if (type === "character") {
     if (btn.classList.contains("active")) {
+      // 選択解除
       selectedCharacters = selectedCharacters.filter(v => v !== item);
       btn.classList.remove("active");
     } else {
-      if (selectedCharacters.length >= 3) { shake(btn); return; }
+      if (selectedCharacters.length >= 3) {
+        // 上限に達したら最初の選択を自動解除して新しいものを選択
+        const oldest = selectedCharacters.shift();
+        document.querySelectorAll("#characterBtns .choice-btn").forEach(b => {
+          if (b.innerText === oldest) b.classList.remove("active");
+        });
+      }
       selectedCharacters.push(item);
       btn.classList.add("active");
     }
     updateLimit("charLimitInfo", 3 - selectedCharacters.length);
+
   } else if (type === "trait") {
     if (btn.classList.contains("active")) {
       selectedTraits = selectedTraits.filter(v => v !== item);
       btn.classList.remove("active");
     } else {
-      if (selectedTraits.length >= 4) { shake(btn); return; }
+      if (selectedTraits.length >= 4) {
+        const oldest = selectedTraits.shift();
+        document.querySelectorAll("#traitBtns .choice-btn").forEach(b => {
+          if (b.innerText === oldest) b.classList.remove("active");
+        });
+      }
       selectedTraits.push(item);
       btn.classList.add("active");
     }
     updateLimit("traitLimitInfo", 4 - selectedTraits.length);
   }
 }
+
 function updateLimit(id, remaining) {
   const el = document.getElementById(id);
   if (!el) return;
   if (remaining <= 0) {
-    el.innerText = "MAX（これ以上選べません）";
+    el.innerText = "MAX（別のボタンを押すと自動で切り替わります）";
     el.classList.add("full");
   } else {
     el.innerText = "あと " + remaining + " つ選べます";
     el.classList.remove("full");
   }
 }
-function shake(btn) {
-  btn.style.transform = "translateX(3px)";
-  setTimeout(() => btn.style.transform = "translateX(-3px)", 60);
-  setTimeout(() => btn.style.transform = "none", 120);
-}
+
 function selectAlign(align) {
   selectedAlign = align;
   document.getElementById("alignLeft").classList.toggle("active", align === "left");
   document.getElementById("alignCenter").classList.toggle("active", align === "center");
 }
+
 function saveProfile() {
   const name = document.getElementById("name").value.trim();
   if (!name) { alert("源氏名を入力してください✨"); return; }
   const profileData = {
-    name, storeType: selectedStoreType,
-    character: selectedCharacters[0] || "",
+    name,
+    storeType:  selectedStoreType,
+    character:  selectedCharacters[0] || "",
     characters: selectedCharacters,
-    traits: selectedTraits, textAlign: selectedAlign,
+    traits:     selectedTraits,
+    textAlign:  selectedAlign,
   };
   localStorage.setItem("profile", JSON.stringify(profileData));
-  localStorage.setItem("diaryHeader", document.getElementById("headerText").value);
-  localStorage.setItem("diaryFooter", document.getElementById("footerText").value);
-  localStorage.setItem("cityheavenId", document.getElementById("cityheavenId").value.trim());
+  localStorage.setItem("diaryHeader",    document.getElementById("headerText").value);
+  localStorage.setItem("diaryFooter",    document.getElementById("footerText").value);
+  localStorage.setItem("cityheavenId",   document.getElementById("cityheavenId").value.trim());
   localStorage.setItem("cityheavenPass", document.getElementById("cityheavenPass").value);
   const msg = document.getElementById("statusMsg");
   msg.innerText = "保存しました✨";
   setTimeout(() => { msg.innerText = ""; }, 2000);
 }
+
 function loadProfile() {
   const saved = localStorage.getItem("profile");
   if (saved) {
     try {
       const p = JSON.parse(saved);
       document.getElementById("name").value = p.name || "";
+
       selectedStoreType = p.storeType || "普通店";
       document.querySelectorAll("#storeTypeBtns .choice-btn").forEach(btn => {
         if (btn.innerText === selectedStoreType) btn.classList.add("active");
       });
-      selectedCharacters = Array.isArray(p.characters) ? p.characters.slice(0,3) : (p.character ? [p.character] : []);
+
+      // ★バグ修正：CHARACTERSに存在する値のみ保持
+      selectedCharacters = Array.isArray(p.characters)
+        ? p.characters.map(v => String(v).trim()).filter(v => CHARACTERS.includes(v)).slice(0, 3)
+        : (p.character && CHARACTERS.includes(String(p.character).trim()) ? [String(p.character).trim()] : []);
+
       document.querySelectorAll("#characterBtns .choice-btn").forEach(btn => {
         if (selectedCharacters.includes(btn.innerText)) btn.classList.add("active");
       });
       updateLimit("charLimitInfo", 3 - selectedCharacters.length);
-      selectedTraits = Array.isArray(p.traits) ? p.traits.slice(0,4) : [];
+
+      // ★バグ修正：TRAITSに存在する値のみ保持
+      selectedTraits = Array.isArray(p.traits)
+        ? p.traits.map(v => String(v).trim()).filter(v => TRAITS.includes(v)).slice(0, 4)
+        : [];
+
       document.querySelectorAll("#traitBtns .choice-btn").forEach(btn => {
         if (selectedTraits.includes(btn.innerText)) btn.classList.add("active");
       });
       updateLimit("traitLimitInfo", 4 - selectedTraits.length);
+
       selectAlign(p.textAlign || "left");
     } catch(e) { console.error("Profile load error", e); }
   }
-  document.getElementById("headerText").value = localStorage.getItem("diaryHeader") || "";
-  document.getElementById("footerText").value = localStorage.getItem("diaryFooter") || "";
-  document.getElementById("cityheavenId").value = localStorage.getItem("cityheavenId") || "";
+  document.getElementById("headerText").value    = localStorage.getItem("diaryHeader") || "";
+  document.getElementById("footerText").value    = localStorage.getItem("diaryFooter") || "";
+  document.getElementById("cityheavenId").value   = localStorage.getItem("cityheavenId") || "";
   document.getElementById("cityheavenPass").value = localStorage.getItem("cityheavenPass") || "";
 }
+
 function logoutCityHeaven() {
   ["cityheavenId","cityheavenPass","profile_cityheavenId","profile_cityheavenPass","ch_id","ch_pass"].forEach(k => localStorage.removeItem(k));
-  document.getElementById("cityheavenId").value = "";
+  document.getElementById("cityheavenId").value   = "";
   document.getElementById("cityheavenPass").value = "";
   const msg = document.getElementById("logoutMsg");
   msg.innerText = "ログアウトしました。次回は新しいID/PASSを入力してください。";
   setTimeout(() => { msg.innerText = ""; }, 3000);
-}
-async function testScheduleFetch() {
-  const resultBox = document.getElementById("resultBox");
-  resultBox.style.display = "block";
-  resultBox.textContent = "送信中...";
-  const cityheavenId = localStorage.getItem("cityheavenId") || "";
-  const cityheavenPass = localStorage.getItem("cityheavenPass") || "";
-  if (!cityheavenId || !cityheavenPass) {
-    resultBox.textContent = "CityHeaven のID / パスワードを先に保存してください。";
-    return;
-  }
-  try {
-    const res = await fetch(WORKER_BASE_URL + "/get-schedule-msg", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ cityheavenId, cityheavenPass })
-    });
-    const text = await res.text();
-    resultBox.textContent = "HTTP " + res.status + "\n\n" + text;
-  } catch (err) {
-    resultBox.textContent = "通信エラー:\n" + err.message;
-  }
 }
 </script>
 </body>
