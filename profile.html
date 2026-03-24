@@ -154,31 +154,31 @@ function handleBtnClick(btn, item, type) {
     document.querySelectorAll("#storeTypeBtns .choice-btn").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
     selectedStoreType = item;
+
   } else if (type === "character") {
     if (btn.classList.contains("active")) {
       selectedCharacters = selectedCharacters.filter(v => v !== item);
       btn.classList.remove("active");
     } else {
       if (selectedCharacters.length >= 3) {
-        const oldest = selectedCharacters.shift();
-        document.querySelectorAll("#characterBtns .choice-btn").forEach(b => {
-          if (b.innerText === oldest) b.classList.remove("active");
-        });
+        shake(btn);
+        showLimitError("charLimitInfo", "⚠️ 3つまでしか選べません！");
+        return;
       }
       selectedCharacters.push(item);
       btn.classList.add("active");
     }
     updateLimit("charLimitInfo", 3 - selectedCharacters.length);
+
   } else if (type === "trait") {
     if (btn.classList.contains("active")) {
       selectedTraits = selectedTraits.filter(v => v !== item);
       btn.classList.remove("active");
     } else {
       if (selectedTraits.length >= 4) {
-        const oldest = selectedTraits.shift();
-        document.querySelectorAll("#traitBtns .choice-btn").forEach(b => {
-          if (b.innerText === oldest) b.classList.remove("active");
-        });
+        shake(btn);
+        showLimitError("traitLimitInfo", "⚠️ 4つまでしか選べません！");
+        return;
       }
       selectedTraits.push(item);
       btn.classList.add("active");
@@ -191,12 +191,31 @@ function updateLimit(id, remaining) {
   const el = document.getElementById(id);
   if (!el) return;
   if (remaining <= 0) {
-    el.innerText = "MAX（別のボタンを押すと自動で切り替わります）";
+    el.innerText = "MAX（これ以上選べません）";
     el.classList.add("full");
   } else {
     el.innerText = "あと " + remaining + " つ選べます";
     el.classList.remove("full");
   }
+}
+
+function showLimitError(id, message) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const prev = el.innerText;
+  el.innerText = message;
+  el.classList.add("full");
+  setTimeout(() => {
+    el.innerText = "MAX（これ以上選べません）";
+    el.classList.add("full");
+  }, 1500);
+}
+
+function shake(btn) {
+  btn.style.transform = "translateX(4px)";
+  setTimeout(() => btn.style.transform = "translateX(-4px)", 60);
+  setTimeout(() => btn.style.transform = "translateX(4px)", 120);
+  setTimeout(() => btn.style.transform = "translateX(0)", 180);
 }
 
 function selectAlign(align) {
@@ -270,3 +289,12 @@ function logoutCityHeaven() {
 </script>
 </body>
 </html>
+```
+
+**変更点**
+```
+・4つ目を押す → ボタンが震える（3回振動）
+・「⚠️ 3つまでしか選べません！」と表示
+・1.5秒後に「MAX（これ以上選べません）」に戻る
+・選択状態は変わらない
+・traits（特徴）も同様に4つ上限でエラー表示
