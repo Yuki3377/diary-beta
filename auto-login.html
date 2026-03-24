@@ -3,142 +3,86 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>自動ログイン中...</title>
+<title>CityHeaven 自動ログイン</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", sans-serif;
-    background: #fff4f8;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    color: #444;
-  }
-  .container { text-align: center; padding: 40px 20px; animation: fadeIn 0.4s ease; }
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  .icon { font-size: 48px; margin-bottom: 16px; }
-  .title { font-size: 18px; font-weight: bold; color: #ff5fa2; margin-bottom: 8px; }
-  .sub { font-size: 13px; color: #aaa; margin-bottom: 32px; }
-  .dots { display: flex; justify-content: center; gap: 8px; }
-  .dot {
-    width: 10px; height: 10px; border-radius: 50%;
-    background: #ff85b3; animation: bounce 1.2s infinite ease-in-out;
-  }
-  .dot:nth-child(1) { animation-delay: 0s; }
-  .dot:nth-child(2) { animation-delay: 0.2s; }
-  .dot:nth-child(3) { animation-delay: 0.4s; }
-  @keyframes bounce {
-    0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
-    40%           { transform: scale(1.0); opacity: 1.0; }
-  }
-  .error-box {
-    display: none; margin-top: 24px; padding: 16px 20px;
-    background: #fff0f0; border: 1px solid #ffb3b3;
-    border-radius: 14px; font-size: 13px; color: #cc4444; line-height: 1.6;
-  }
-  .btn {
-    display: inline-block; margin-top: 20px; padding: 12px 28px;
-    border-radius: 30px; background: linear-gradient(135deg, #ff5fa2, #ff85b3);
-    color: white; font-size: 14px; font-weight: bold;
-    text-decoration: none; cursor: pointer; border: none;
-    box-shadow: 0 4px 12px rgba(255, 95, 162, 0.3);
-  }
+  body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif; background:#fff4f8; display:flex; align-items:center; justify-content:center; min-height:100vh; }
+  .box{ text-align:center; padding:40px 20px; }
+  .icon{ font-size:48px; margin-bottom:16px; }
+  .msg{ font-size:16px; color:#ff5fa2; font-weight:bold; margin-bottom:8px; }
+  .sub{ font-size:13px; color:#aaa; }
+  .btn{ display:inline-block; margin-top:20px; padding:12px 24px; background:#ff5fa2; color:#fff; border-radius:20px; text-decoration:none; font-size:14px; font-weight:bold; }
 </style>
 </head>
 <body>
-
-<div class="container">
-  <div class="icon">🔐</div>
-  <div class="title" id="titleText">CityHeaven にログイン中...</div>
-  <div class="sub" id="subText">そのままお待ちください</div>
-  <div class="dots" id="dots">
-    <div class="dot"></div>
-    <div class="dot"></div>
-    <div class="dot"></div>
-  </div>
-  <div class="error-box" id="errorBox"></div>
+<div class="box">
+  <div class="icon" id="icon">⏳</div>
+  <div class="msg" id="msg">CityHeaven に接続中...</div>
+  <div class="sub" id="sub">しばらくお待ちください</div>
+  <div id="linkArea"></div>
 </div>
-
-<form
-  id="loginForm"
-  method="POST"
-  action="https://spgirl.cityheaven.net/J1Login.php"
-  style="display:none;"
->
-  <input type="hidden" name="txt_account"  id="f_account">
-  <input type="hidden" name="txt_password" id="f_password">
-  <input type="hidden" name="login"        value="ログイン">
-  <input type="hidden" name="tranparam"    id="f_tranparam">
-</form>
 
 <script>
 const WORKER_URL = "https://openrouter-diary-api.doropbox-kyoto.workers.dev";
 
-async function autoLogin() {
-  const cityheavenId =
-    localStorage.getItem("cityheavenId") ||
-    localStorage.getItem("profile_cityheavenId") ||
-    localStorage.getItem("ch_id") || "";
-  const cityheavenPass =
-    localStorage.getItem("cityheavenPass") ||
-    localStorage.getItem("profile_cityheavenPass") ||
-    localStorage.getItem("ch_pass") || "";
+async function run() {
+  const icon   = document.getElementById("icon");
+  const msg    = document.getElementById("msg");
+  const sub    = document.getElementById("sub");
+  const linkArea = document.getElementById("linkArea");
 
-  if (!cityheavenId || !cityheavenPass) {
-    showError(
-      "CityHeavenのID・パスワードが保存されていません。<br>プロフィール設定で保存してからお試しください。",
-      "profile.html"
-    );
+  // ★ログアウト確認：認証情報がない場合はプロフィールへ誘導
+  const id   = localStorage.getItem("cityheavenId")   || localStorage.getItem("profile_cityheavenId")   || "";
+  const pass = localStorage.getItem("cityheavenPass") || localStorage.getItem("profile_cityheavenPass") || "";
+
+  if (!id || !pass) {
+    icon.innerText = "⚠️";
+    msg.innerText  = "ログイン情報がありません";
+    sub.innerText  = "プロフィール設定からID/PASSを登録してください";
+    linkArea.innerHTML = '<a href="profile.html" class="btn">プロフィール設定へ</a>';
     return;
   }
 
-  let tranparam = "";
   try {
-    const res  = await fetch(`${WORKER_URL}/get-tranparam`);
+    // tranparamを取得
+    const res  = await fetch(WORKER_URL + "/get-tranparam", { method: "GET" });
     const data = await res.json();
-    if (!data.ok || !data.tranparam) throw new Error("tranparam の取得に失敗しました");
-    tranparam = data.tranparam;
+
+    if (!data.ok || !data.tranparam) {
+      throw new Error("tranparam取得失敗");
+    }
+
+    // フォームを作成してCityHeavenへPOST
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = "https://spgirl.cityheaven.net/J1Login.php";
+
+    const fields = {
+      txt_account: id,
+      txt_password: pass,
+      login: "ログイン",
+      tranparam: data.tranparam
+    };
+
+    Object.entries(fields).forEach(([name, value]) => {
+      const input = document.createElement("input");
+      input.type  = "hidden";
+      input.name  = name;
+      input.value = value;
+      form.appendChild(input);
+    });
+
+    document.body.appendChild(form);
+    form.submit();
+
   } catch(e) {
-    showError(
-      "サーバーとの通信に失敗しました。<br>時間をおいて再度お試しください。<br><small>" + e.message + "</small>",
-      null
-    );
-    return;
-  }
-
-  document.getElementById("f_account").value   = cityheavenId;
-  document.getElementById("f_password").value  = cityheavenPass;
-  document.getElementById("f_tranparam").value = tranparam;
-
-  document.getElementById("titleText").innerText = "ログイン中...✨";
-  document.getElementById("subText").innerText   = "CityHeavenに接続しています";
-
-  setTimeout(() => {
-    document.getElementById("loginForm").submit();
-  }, 600);
-}
-
-function showError(message, backUrl) {
-  document.getElementById("dots").style.display = "none";
-  document.getElementById("titleText").innerText = "ログインできませんでした";
-  document.getElementById("subText").innerText   = "";
-  const errorBox = document.getElementById("errorBox");
-  errorBox.style.display = "block";
-  errorBox.innerHTML = message;
-  if (backUrl) {
-    const btn = document.createElement("a");
-    btn.className = "btn";
-    btn.href      = backUrl;
-    btn.innerText = "設定画面へ";
-    errorBox.appendChild(btn);
+    icon.innerText = "❌";
+    msg.innerText  = "接続に失敗しました";
+    sub.innerText  = "時間をおいて再度お試しください";
+    linkArea.innerHTML = '<a href="profile.html" class="btn">プロフィール設定へ</a>';
   }
 }
 
-window.onload = autoLogin;
+run();
 </script>
 </body>
 </html>
