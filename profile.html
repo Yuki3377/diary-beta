@@ -10,10 +10,11 @@
   body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif; background:#fff4f8; color:#444; }
   @keyframes fadeUp{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
   .wrapper{ max-width:520px; margin:20px auto; padding:20px; animation:fadeUp .4s ease; }
-  h2{ margin:0 0 12px 0; color:#ff5fa2; font-size:22px; text-align:center; }
-  .navbar{ display:flex; justify-content:center; gap:12px; flex-wrap:wrap; margin:0 0 8px; }
-  .nav-btn{ padding:8px 16px; border-radius:20px; border:1px solid #ffe0eb; background:#fff; color:#ff5fa2; font-size:13px; font-weight:bold; cursor:pointer; text-decoration:none; transition:0.2s; }
-  .nav-btn.active{ background:#ff5fa2; color:#fff; border-color:#ff5fa2; }
+  h2{ margin:0 0 10px 0; color:#ff5fa2; font-size:22px; text-align:center; }
+  .navbar{ display:flex; justify-content:center; gap:6px; background:#fff; border-radius:12px; padding:6px; border:1px solid #ffe0eb; margin:0 0 6px; }
+  .nav-btn{ flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; padding:7px 4px; border-radius:8px; text-decoration:none; font-size:11px; color:#ccc; font-weight:bold; transition:0.2s; }
+  .nav-btn.active{ background:#fff0f6; color:#ff5fa2; }
+  .nav-ico{ font-size:18px; }
   .nav-note{ text-align:center; font-size:11px; color:#aaa; margin:0 0 20px; }
   .card{ background:#fff; padding:18px; border-radius:20px; margin-bottom:16px; box-shadow:0 4px 15px rgba(255,95,162,0.06); }
   .card-title{ font-size:15px; font-weight:bold; color:#ff5fa2; margin-bottom:14px; padding-bottom:8px; border-bottom:1px solid #ffe0eb; }
@@ -45,9 +46,9 @@
 <div class="wrapper">
   <h2>プロフィール設定</h2>
   <div class="navbar">
-    <a href="index.html" class="nav-btn">📝 写メ日記</a>
-    <a href="thanks.html" class="nav-btn">💜 お礼日記</a>
-    <a href="profile.html" class="nav-btn active">⚙️ プロフィール</a>
+    <a href="index.html" class="nav-btn"><span class="nav-ico">📝</span>写メ日記</a>
+    <a href="thanks.html" class="nav-btn"><span class="nav-ico">💜</span>お礼日記</a>
+    <a href="profile.html" class="nav-btn active"><span class="nav-ico">⚙️</span>プロフィール</a>
   </div>
   <div class="nav-note">ボタンでページを移動してください</div>
 
@@ -153,15 +154,12 @@ function handleBtnClick(btn, item, type) {
     document.querySelectorAll("#storeTypeBtns .choice-btn").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
     selectedStoreType = item;
-
   } else if (type === "character") {
     if (btn.classList.contains("active")) {
-      // 選択解除
       selectedCharacters = selectedCharacters.filter(v => v !== item);
       btn.classList.remove("active");
     } else {
       if (selectedCharacters.length >= 3) {
-        // 上限に達したら最初の選択を自動解除して新しいものを選択
         const oldest = selectedCharacters.shift();
         document.querySelectorAll("#characterBtns .choice-btn").forEach(b => {
           if (b.innerText === oldest) b.classList.remove("active");
@@ -171,7 +169,6 @@ function handleBtnClick(btn, item, type) {
       btn.classList.add("active");
     }
     updateLimit("charLimitInfo", 3 - selectedCharacters.length);
-
   } else if (type === "trait") {
     if (btn.classList.contains("active")) {
       selectedTraits = selectedTraits.filter(v => v !== item);
@@ -235,32 +232,24 @@ function loadProfile() {
     try {
       const p = JSON.parse(saved);
       document.getElementById("name").value = p.name || "";
-
       selectedStoreType = p.storeType || "普通店";
       document.querySelectorAll("#storeTypeBtns .choice-btn").forEach(btn => {
         if (btn.innerText === selectedStoreType) btn.classList.add("active");
       });
-
-      // ★バグ修正：CHARACTERSに存在する値のみ保持
       selectedCharacters = Array.isArray(p.characters)
-        ? p.characters.map(v => String(v).trim()).filter(v => CHARACTERS.includes(v)).slice(0, 3)
+        ? p.characters.map(v => String(v).trim()).filter(v => CHARACTERS.includes(v)).slice(0,3)
         : (p.character && CHARACTERS.includes(String(p.character).trim()) ? [String(p.character).trim()] : []);
-
       document.querySelectorAll("#characterBtns .choice-btn").forEach(btn => {
         if (selectedCharacters.includes(btn.innerText)) btn.classList.add("active");
       });
       updateLimit("charLimitInfo", 3 - selectedCharacters.length);
-
-      // ★バグ修正：TRAITSに存在する値のみ保持
       selectedTraits = Array.isArray(p.traits)
-        ? p.traits.map(v => String(v).trim()).filter(v => TRAITS.includes(v)).slice(0, 4)
+        ? p.traits.map(v => String(v).trim()).filter(v => TRAITS.includes(v)).slice(0,4)
         : [];
-
       document.querySelectorAll("#traitBtns .choice-btn").forEach(btn => {
         if (selectedTraits.includes(btn.innerText)) btn.classList.add("active");
       });
       updateLimit("traitLimitInfo", 4 - selectedTraits.length);
-
       selectAlign(p.textAlign || "left");
     } catch(e) { console.error("Profile load error", e); }
   }
