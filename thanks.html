@@ -10,12 +10,12 @@ html,body{ touch-action: manipulation; -webkit-text-size-adjust:100%; }
 body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif; background:#f8f0fc; color:#444; }
 @keyframes fadeUp{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
 @keyframes popIn{ 0%{transform:scale(0.8); opacity:0;} 100%{transform:scale(1); opacity:1;} }
-.navbar{ position:sticky; top:0; z-index:100; background:#fff; border-bottom:1px solid #ebdcfc; padding:10px 16px; display:flex; justify-content:center; gap:12px; }
+.wrapper{ max-width:520px; margin:20px auto; padding:20px; animation:fadeUp .4s ease; }
+h2{ margin:0 0 12px 0; color:#a65cd6; font-size:22px; text-align:center; }
+.navbar{ display:flex; justify-content:center; gap:12px; flex-wrap:wrap; margin:0 0 8px; }
 .nav-btn{ padding:8px 16px; border-radius:20px; border:1px solid #ebdcfc; background:#fff; color:#a65cd6; font-size:13px; font-weight:bold; cursor:pointer; text-decoration:none; transition:0.2s; }
 .nav-btn.active{ background:#a65cd6; color:#fff; border-color:#a65cd6; }
-.nav-note{ text-align:center; font-size:11px; color:#aaa; padding:6px 0; background:#fff; border-bottom:1px solid #ebdcfc; }
-.wrapper{ max-width:520px; margin:20px auto; padding:20px; animation:fadeUp .4s ease; }
-h2{ margin:0 0 10px 0; color:#a65cd6; font-size:22px; text-align:center; }
+.nav-note{ text-align:center; font-size:11px; color:#aaa; margin:0 0 20px; }
 .profileInfo{ font-size:13px; color:#999; margin-bottom:20px; text-align:center; min-height:1.2em; }
 .card{ background:#fff; padding:18px; border-radius:20px; margin-bottom:16px; box-shadow:0 4px 15px rgba(166,92,214,0.08); }
 .card-title{ font-size:15px; font-weight:bold; color:#a65cd6; margin-bottom:14px; padding-bottom:8px; border-bottom:1px solid #ebdcfc; }
@@ -44,41 +44,48 @@ button.primary:disabled{ background:#ddd; cursor:not-allowed; box-shadow:none; }
 </style>
 </head>
 <body>
-<div class="navbar">
-  <a href="index.html" class="nav-btn">📝 写メ日記</a>
-  <a href="thanks.html" class="nav-btn active">💜 お礼日記</a>
-  <a href="profile.html" class="nav-btn">⚙️ プロフィール</a>
-</div>
-<div class="nav-note">ボタンでページを移動してください</div>
 <div class="wrapper">
   <h2>お礼日記（LINE）💜</h2>
+  <div class="navbar">
+    <a href="index.html" class="nav-btn">📝 写メ日記</a>
+    <a href="thanks.html" class="nav-btn active">💜 お礼日記</a>
+    <a href="profile.html" class="nav-btn">⚙️ プロフィール</a>
+  </div>
+  <div class="nav-note">ボタンでページを移動してください</div>
   <div class="profileInfo" id="profileInfo">読み込み中...</div>
+
   <div class="card">
     <div class="card-title">固定文（Header / Footer）</div>
     <div class="header-footer-preview" id="headerPreview">Header: （未設定）</div>
     <div class="header-footer-preview" id="footerPreview" style="margin-top:6px;">Footer: （未設定）</div>
     <div class="mini-note">変更はプロフィール設定から行ってください</div>
   </div>
+
   <div class="card">
     <label>お客様の呼び方<span class="sub-label">※1つ選択</span></label>
     <div class="button-group" id="typeButtons"></div>
   </div>
+
   <div class="card">
     <div class="card-title">固定情報 <span class="sub-label">※保存されます</span></div>
     <label>コース・場所など</label>
     <input id="fixedDetail" placeholder="例：120分コース / 〇〇ホテル">
     <div class="mini-note">次回以降も自動で表示されます</div>
   </div>
+
   <div class="card">
     <div class="card-title">今日の出来事・共通体験 <span class="sub-label">※毎回入力</span></div>
     <textarea id="todayMemo" rows="4" placeholder="例：いっぱい笑った / 映画の話で盛り上がった / ずっと話してた / 最初緊張してたけど打ち解けた"></textarea>
     <div class="mini-note">AIの生成に反映されます</div>
   </div>
+
   <div class="card">
     <label>出来事・印象<span class="sub-label">※複数選択OK</span></label>
     <div class="button-group" id="episodeButtons"></div>
   </div>
+
   <button class="primary" id="generateBtn" onclick="generate()">メッセージをつくる</button>
+
   <div class="result-container" id="resultContainer">
     <div class="card" style="background:#fcf9ff; border:2px solid #e0cbf7;">
       <label style="color:#a65cd6;">AIが書いたメッセージ<span class="sub-label">自由に修正してね</span></label>
@@ -89,11 +96,13 @@ button.primary:disabled{ background:#ddd; cursor:not-allowed; box-shadow:none; }
     </div>
   </div>
 </div>
+
 <div id="loadingOverlay" class="loading-overlay">
   <div class="heart-icon">💜</div>
   <div class="loading-text">Writing...</div>
 </div>
 <div id="modal" class="modal"></div>
+
 <script>
 const CUSTOMER_TYPES = ["新規様","仲良しさん","本指名さん","お久しぶり","お兄さん","お兄様"];
 const EPISODES = [
@@ -101,9 +110,11 @@ const EPISODES = [
   "いっぱいせめた","いっぱいせめられた","ぎゅってしてくれた","また誘ってください",
   "照れてた","恥ずかしかった"
 ];
+
 let profile = null;
 let selectedType = null;
 let selectedEpisodes = [];
+
 window.onload = function() {
   loadProfile();
   loadHeaderFooterPreview();
@@ -123,6 +134,7 @@ window.onload = function() {
     }
   });
 };
+
 function createSingleButtons(containerId, list, onClick) {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -134,6 +146,7 @@ function createSingleButtons(containerId, list, onClick) {
     container.appendChild(btn);
   });
 }
+
 function createMultiButtons(containerId, list, onClick) {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -145,6 +158,7 @@ function createMultiButtons(containerId, list, onClick) {
     container.appendChild(btn);
   });
 }
+
 function loadProfile() {
   try {
     const saved = localStorage.getItem("profile");
@@ -157,12 +171,14 @@ function loadProfile() {
     infoDiv.innerText = profile.name + "（" + (profile.character || "") + "）";
   } catch(e) { console.error("Profile Error"); }
 }
+
 function loadHeaderFooterPreview() {
   const header = localStorage.getItem("diaryHeader") || "";
   const footer = localStorage.getItem("diaryFooter") || "";
   document.getElementById("headerPreview").innerText = "Header: " + (header || "（未設定）");
   document.getElementById("footerPreview").innerText = "Footer: " + (footer || "（未設定）");
 }
+
 function loadFixedDetail() {
   const saved = localStorage.getItem("thanksFixedDetail") || "";
   document.getElementById("fixedDetail").value = saved;
@@ -170,6 +186,7 @@ function loadFixedDetail() {
     localStorage.setItem("thanksFixedDetail", document.getElementById("fixedDetail").value);
   });
 }
+
 async function generate() {
   if (!profile || !profile.name) {
     showModal("プロフィールを設定してね💦");
@@ -177,32 +194,39 @@ async function generate() {
     return;
   }
   if (!selectedType) { showModal("お客様の呼び方を選んでね"); return; }
-  const fixedDetail = document.getElementById("fixedDetail").value.trim();
-  const todayMemo = document.getElementById("todayMemo").value.trim();
+
+  const fixedDetail  = document.getElementById("fixedDetail").value.trim();
+  const todayMemo    = document.getElementById("todayMemo").value.trim();
   const contextParts = [selectedType, fixedDetail, todayMemo, ...selectedEpisodes].filter(Boolean);
   const thanksContextStr = contextParts.join("、");
+
   const loader = document.getElementById("loadingOverlay");
   loader.classList.add("active");
+
   try {
     const workerUrl = "https://openrouter-diary-api.doropbox-kyoto.workers.dev/generate-thanks";
     const headerStr = localStorage.getItem("diaryHeader") || "";
     const footerStr = localStorage.getItem("diaryFooter") || "";
+
     const response = await fetch(workerUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        customer: profile.customerCall || selectedType,
+        customer:      profile.customerCall || selectedType,
         thanksContext: thanksContextStr,
-        targetLength: 200,
-        emojiPalette: ["💕","🥺","✨","💦","💋","🤫","🍼","🔞"],
-        header: headerStr,
-        footer: footerStr
+        targetLength:  200,
+        emojiPalette:  ["💕","🥺","✨","💦","💋","🤫","🍼","🔞"],
+        header:        headerStr,
+        footer:        footerStr
       })
     });
+
     const data = await response.json();
     if (!response.ok) throw new Error("API Error");
+
     let bodyText = data.result || data.text || "";
     bodyText = bodyText.replace(/\r\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+
     if (bodyText) {
       const container = document.getElementById("resultContainer");
       container.style.display = "block";
@@ -216,6 +240,7 @@ async function generate() {
     loader.classList.remove("active");
   }
 }
+
 function copyText() {
   const textarea = document.getElementById("resultTextarea");
   if (!textarea.value) return;
@@ -227,6 +252,7 @@ function copyText() {
     showModal("コピーしました✨");
   }
 }
+
 function showModal(msg) {
   const modal = document.getElementById("modal");
   modal.innerText = msg;
