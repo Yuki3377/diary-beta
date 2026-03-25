@@ -64,18 +64,18 @@
   </div>
 
   <div class="card">
-    <div class="card-title">お店のコンセプト</div>
+    <div class="card-title">お店のコンセプト <span class="sub-label">※1つ選択</span></div>
     <div class="btn-group" id="storeTypeBtns"></div>
   </div>
 
   <div class="card">
-    <div class="card-title">女の子のキャラクター <span class="sub-label">※3つまで</span></div>
+    <div class="card-title">性格・キャラクター <span class="sub-label">※3つまで</span></div>
     <div class="btn-group" id="characterBtns"></div>
     <div class="limit-info" id="charLimitInfo">あと 3 つ選べます</div>
   </div>
 
   <div class="card">
-    <div class="card-title">あなたの特徴 <span class="sub-label">※4つまで</span></div>
+    <div class="card-title">見た目・スタイル <span class="sub-label">※4つまで</span></div>
     <div class="btn-group" id="traitBtns"></div>
     <div class="limit-info" id="traitLimitInfo">あと 4 つ選べます</div>
   </div>
@@ -116,12 +116,9 @@ const CHARACTERS = [
   "S気質","M気質","痴女気質","積極的","受け身"
 ];
 const TRAITS = [
-  "S気質","M気質","甘え体質","寂しがり","ツンデレ",
-  "恥ずかしがり","聞き上手","かまってちゃん","優しい","天然",
-  "癒やし系","ノリがいい","家庭的","尽くすタイプ","褒め上手",
-  "負けず嫌い","マイペース","勉強熱心","多趣味","連絡マメ",
-  "痴女","巨乳","グラマー","大人の色気","ちょっぴり挑発的",
-  "密着好き","お酒好き","美脚","色白","笑顔が素敵"
+  "巨乳","貧乳","細身","グラマー","色白",
+  "日焼け","美脚","大人の色気","ちょっぴり挑発的",
+  "密着好き","お酒好き","笑顔が素敵","痴女"
 ];
 
 let selectedStoreType = "普通店";
@@ -154,7 +151,6 @@ function handleBtnClick(btn, item, type) {
     document.querySelectorAll("#storeTypeBtns .choice-btn").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
     selectedStoreType = item;
-
   } else if (type === "character") {
     if (btn.classList.contains("active")) {
       selectedCharacters = selectedCharacters.filter(v => v !== item);
@@ -169,7 +165,6 @@ function handleBtnClick(btn, item, type) {
       btn.classList.add("active");
     }
     updateLimit("charLimitInfo", 3 - selectedCharacters.length);
-
   } else if (type === "trait") {
     if (btn.classList.contains("active")) {
       selectedTraits = selectedTraits.filter(v => v !== item);
@@ -202,7 +197,6 @@ function updateLimit(id, remaining) {
 function showLimitError(id, message) {
   const el = document.getElementById(id);
   if (!el) return;
-  const prev = el.innerText;
   el.innerText = message;
   el.classList.add("full");
   setTimeout(() => {
