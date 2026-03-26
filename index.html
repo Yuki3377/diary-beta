@@ -89,9 +89,9 @@
   <div class="card">
     <label>ちょっぴり大人のスパイス<span class="sub-label">※文章の攻め具合</span></label>
     <div class="button-group" id="eroButtons"></div>
-  </div>
-
-  <div class="card">
+    
+    <div class="divider" style="margin: 16px 0;"></div>
+    
     <label>文章の構成例<span class="sub-label">※こんなテイストの文章が入ります</span></label>
     <div class="button-group" id="moodButtons" style="pointer-events: none; opacity: 0.8;"></div>
   </div>
@@ -155,8 +155,8 @@ const WORKER_URL = "https://openrouter-diary-api.doropbox-kyoto.workers.dev";
 const MOOD_MAP = {
   low:   ["時間あるかな？","構って？","癒されたい","密着したい"],
   mid:   ["ムラムラ","濡れてる","イチャイチャ","我慢できない"],
-  high:  ["もっと奥まで","止まらなくなっちゃう","マ○コが濡れすぎて","チ○チ○を舐めたい"],
-  ultra: ["もっと奥まで","止まらなくなっちゃう","マ○コが濡れすぎて","チ○チ○を舐めたい"]
+  high:  ["もっと奥まで","止まらなくなっちゃう","濡れすぎちゃって💦","欲求不満で大変"],
+  ultra: ["マ○コが濡れすぎて","チ○チ○を舐めたい","アソコがベ○ャベ○ャになってる","ムラムラし過ぎてマ○コを触って欲しいの"]
 };
 const SITUATIONS_TOP = ["待機中","明日出勤","退勤"];
 const SITUATIONS_BOTTOM = ["出勤前","休憩中","お休み","美容Day","お買い物","ご飯","お酒","寝る前","お散歩","早起き","雨の日","旅行"];
@@ -362,7 +362,6 @@ async function generate() {
     const useSchedule = scheduleType && scheduleData;
     const route = useSchedule ? "/generate-with-schedule" : "/generate";
 
-    // 選択機能がなくなったため、moodプロパティを削除（またはデフォルト値を設定）しています
     const postBody = {
       mode:         "diary",
       storeType:    profile.storeType    || "普通店",
