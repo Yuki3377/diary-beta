@@ -49,6 +49,10 @@
   .schedule-hint{ display:none; margin-top:10px; padding:10px 14px; background:#fff0f6; border-radius:10px; font-size:12px; color:#ff5fa2; border:1px dashed #ffb3d0; text-align:left; }
   .schedule-hint.visible{ display:block; }
   .schedule-disabled{ opacity:0.4; pointer-events:none; }
+  .mic-btn { border-radius:20px; border:1px solid #ffb3d0; background:#fff; color:#ff5fa2; padding:8px 16px; font-size:13px; font-weight:bold; cursor:pointer; transition:0.2s; display:inline-flex; align-items:center; gap:4px; }
+  .mic-btn:active { transform:scale(0.95); }
+  .mic-btn.recording { background:#fff0f6; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0% { box-shadow:0 0 0 0 rgba(255,95,162,0.4); } 70% { box-shadow:0 0 0 10px rgba(255,95,162,0); } 100% { box-shadow:0 0 0 0 rgba(255,95,162,0); } }
 </style>
 </head>
 <body>
@@ -77,6 +81,15 @@
     <label>末尾固定署名（Footer）<span class="sub-label">※一度入れたら保存されます</span></label>
     <input id="footer" type="text" placeholder="例：会えたら嬉しいな💕">
     <div class="mini-note">次回以降も自動で表示されます</div>
+  </div>
+
+  <div class="card">
+    <label>今日の出来事（フリー入力）<span class="sub-label">※AIが内容を汲み取ります</span></label>
+    <textarea id="freeText" rows="3" placeholder="例：スタバの新作飲んで美味しかった〜！&#10;Nさんシャンパンありがとう✨"></textarea>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+      <div class="mini-note" id="micStatus" style="margin-top:0; color:#ff5fa2; display:none;">● 録音中...喋ってください</div>
+      <button type="button" id="micBtn" class="mic-btn" onclick="toggleSpeechRecognition()">🎤 音声で入力する</button>
+    </div>
   </div>
 
   <div class="card">
@@ -173,6 +186,73 @@ let selectedEro = "low";
 let selectedSituation = null;
 let selectedLength = "長め";
 
+// --- 音声入力用の設定 ---
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null;
+let isRecording = false;
+
+if (SpeechRecognition) {
+  recognition = new SpeechRecognition();
+  recognition.lang = 'ja-JP';
+  recognition.interimResults = false; // 確定した文章だけ入力する
+  recognition.continuous = false;
+
+  recognition.onstart = function() {
+    isRecording = true;
+    const btn = document.getElementById("micBtn");
+    btn.innerText = "🛑 録音を停止する";
+    btn.classList.add("recording");
+    document.getElementById("micStatus").style.display = "block";
+  };
+
+  recognition.onresult = function(event) {
+    let finalTranscript = '';
+    for (let i = event.resultIndex; i < event.results.length; ++i) {
+      if (event.results[i].isFinal) {
+        finalTranscript += event.results[i][0].transcript;
+      }
+    }
+    if (finalTranscript) {
+      const ta = document.getElementById("freeText");
+      const currentVal = ta.value;
+      ta.value = currentVal ? currentVal + "\n" + finalTranscript : finalTranscript;
+    }
+  };
+
+  recognition.onend = function() {
+    isRecording = false;
+    const btn = document.getElementById("micBtn");
+    btn.innerText = "🎤 音声で入力する";
+    btn.classList.remove("recording");
+    document.getElementById("micStatus").style.display = "none";
+  };
+
+  recognition.onerror = function(event) {
+    console.error(event.error);
+    isRecording = false;
+    const btn = document.getElementById("micBtn");
+    btn.innerText = "🎤 音声で入力する";
+    btn.classList.remove("recording");
+    document.getElementById("micStatus").style.display = "none";
+    if (event.error !== 'no-speech') {
+      showModal("音声入力エラー💦: " + event.error);
+    }
+  };
+}
+
+function toggleSpeechRecognition() {
+  if (!SpeechRecognition) {
+    showModal("お使いのブラウザは音声入力に未対応です💦");
+    return;
+  }
+  if (isRecording) {
+    recognition.stop();
+  } else {
+    recognition.start();
+  }
+}
+// -----------------------
+
 window.onload = function() {
   safeLoadProfile();
   loadHeaderFooter();
@@ -254,7 +334,6 @@ function createEroButtons() {
   });
 }
 
-// 構成例を表示するのみに変更（クリック不可）
 function renderMoodButtons(spiceLevel) {
   const container = document.getElementById("moodButtons");
   if (!container) return;
@@ -377,6 +456,7 @@ async function generate() {
       header:       document.getElementById("header").value.trim(),
       footer:       document.getElementById("footer").value.trim(),
       title:        title,
+      freeText:     document.getElementById("freeText").value.trim(), // ★自由入力のデータを追加
       scheduleType: useSchedule ? scheduleType : "",
       scheduleData: scheduleData
     };
