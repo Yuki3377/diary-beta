@@ -20,8 +20,8 @@
   .card-title{ font-size:15px; font-weight:bold; color:#ff5fa2; margin-bottom:14px; padding-bottom:8px; border-bottom:1px solid #ffe0eb; }
   label{ display:block; font-size:13px; font-weight:bold; color:#ff5fa2; margin:12px 0 6px; }
   .sub-label{ font-size:11px; color:#aaa; font-weight:normal; margin-left:5px; }
-  input, textarea{ width:100%; padding:14px; border-radius:12px; border:1px solid #f0f0f0; font-size:16px; background:#fafafa; outline:none; appearance:none; color:#444; transition:0.2s; line-height:1.6; }
-  input:focus, textarea:focus{ border-color:#ff85b3; background:#fff; }
+  input{ width:100%; padding:14px; border-radius:12px; border:1px solid #f0f0f0; font-size:16px; background:#fafafa; outline:none; appearance:none; color:#444; transition:0.2s; line-height:1.6; }
+  input:focus{ border-color:#ff85b3; background:#fff; }
   ::placeholder{ color:#aaa; font-size:14px; }
   .btn-group{ display:flex; flex-wrap:wrap; gap:8px; margin-top:6px; }
   .choice-btn{ padding:8px 12px; border-radius:18px; border:1px solid #ffe0eb; background:#fff; color:#666; cursor:pointer; font-size:13px; user-select:none; transition:0.2s; }
@@ -33,6 +33,7 @@
   .align-btn{ flex:1; padding:12px; border-radius:12px; border:1px solid #ffe0eb; background:#fff; color:#666; cursor:pointer; font-size:14px; text-align:center; transition:0.2s; user-select:none; }
   .align-btn.active{ background:#ff5fa2; color:#fff; border-color:#ff5fa2; }
   .hint{ font-size:12px; color:#999; margin-top:8px; line-height:1.6; }
+  .section-label{ font-size:11px; color:#ff85b3; font-weight:bold; margin:12px 0 6px; padding:4px 10px; background:#fff0f6; border-radius:8px; display:inline-block; }
   button.save-btn{ width:100%; padding:16px; border:none; border-radius:30px; background:linear-gradient(135deg,#ff5fa2,#ff85b3); color:white; font-size:16px; font-weight:bold; margin-top:10px; cursor:pointer; box-shadow:0 4px 12px rgba(255,95,162,0.3); transition:0.2s; }
   button.save-btn:active{ transform:scale(0.98); }
   #statusMsg{ text-align:center; font-size:14px; margin-top:12px; height:1.2em; color:#ff5fa2; font-weight:bold; }
@@ -40,6 +41,7 @@
   .logout-btn:active{ background:#fff0f6; transform:scale(0.98); }
   .logout-msg{ font-size:12px; color:#ff5fa2; text-align:center; margin-top:6px; min-height:1.2em; }
   .mini-note{ font-size:12px; color:#999; margin-top:6px; }
+  .divider{ width:100%; height:1px; background:#f8f0f8; margin:10px 0; }
 </style>
 </head>
 <body>
@@ -69,15 +71,18 @@
   </div>
 
   <div class="card">
-    <div class="card-title">性格・キャラクター <span class="sub-label">※3つまで</span></div>
-    <div class="btn-group" id="characterBtns"></div>
-    <div class="limit-info" id="charLimitInfo">あと 3 つ選べます</div>
-  </div>
+    <div class="card-title">私のキャラクター <span class="sub-label">※3つまで</span></div>
+    <div class="mini-note" style="margin-bottom:10px;">性格・見た目どちらでもOK。AIの文章の味付けに使います。</div>
 
-  <div class="card">
-    <div class="card-title">見た目・スタイル <span class="sub-label">※4つまで</span></div>
+    <div class="section-label">性格・内面</div>
+    <div class="btn-group" id="characterBtns"></div>
+
+    <div class="divider"></div>
+
+    <div class="section-label">見た目・スタイル</div>
     <div class="btn-group" id="traitBtns"></div>
-    <div class="limit-info" id="traitLimitInfo">あと 4 つ選べます</div>
+
+    <div class="limit-info" id="charLimitInfo">あと 3 つ選べます</div>
   </div>
 
   <div class="card">
@@ -107,23 +112,24 @@
 
 <script>
 const STORE_TYPES = ["普通店","お姉さん系","妹系","清楚系","ギャル系","小悪魔系","ドS系","ドM系","天然系","クール系"];
+
 const CHARACTERS = [
   "甘え体質","寂しがり","かまってちゃん","尽くすタイプ","独占欲強め",
   "癒やし系","聞き上手","家庭的","優しい","褒め上手",
-  "ノリがいい","笑顔が素敵","多趣味","マイペース","天然",
-  "ツンデレ","恥ずかしがり","クール","負けず嫌い","連絡マメ",
-  "大人の色気","ちょっぴり挑発的","小悪魔","色っぽい","ミステリアス",
-  "S気質","M気質","痴女気質","積極的","受け身"
+  "ノリがいい","多趣味","マイペース","天然","ツンデレ",
+  "恥ずかしがり","クール","負けず嫌い","連絡マメ",
+  "小悪魔","色っぽい","ミステリアス","S気質","M気質","積極的","受け身"
 ];
+
 const TRAITS = [
   "巨乳","貧乳","細身","グラマー","色白",
   "日焼け","美脚","大人の色気","ちょっぴり挑発的",
   "密着好き","お酒好き","笑顔が素敵","痴女"
 ];
 
+const MAX_CHARS = 3;
 let selectedStoreType = "普通店";
 let selectedCharacters = [];
-let selectedTraits = [];
 let selectedAlign = "left";
 
 window.onload = function() {
@@ -151,40 +157,28 @@ function handleBtnClick(btn, item, type) {
     document.querySelectorAll("#storeTypeBtns .choice-btn").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
     selectedStoreType = item;
-  } else if (type === "character") {
-    if (btn.classList.contains("active")) {
-      selectedCharacters = selectedCharacters.filter(v => v !== item);
-      btn.classList.remove("active");
-    } else {
-      if (selectedCharacters.length >= 3) {
-        shake(btn);
-        showLimitError("charLimitInfo", "⚠️ 3つまでしか選べません！");
-        return;
-      }
-      selectedCharacters.push(item);
-      btn.classList.add("active");
-    }
-    updateLimit("charLimitInfo", 3 - selectedCharacters.length);
-  } else if (type === "trait") {
-    if (btn.classList.contains("active")) {
-      selectedTraits = selectedTraits.filter(v => v !== item);
-      btn.classList.remove("active");
-    } else {
-      if (selectedTraits.length >= 4) {
-        shake(btn);
-        showLimitError("traitLimitInfo", "⚠️ 4つまでしか選べません！");
-        return;
-      }
-      selectedTraits.push(item);
-      btn.classList.add("active");
-    }
-    updateLimit("traitLimitInfo", 4 - selectedTraits.length);
+    return;
   }
+  // character / trait は同じプールで管理
+  if (btn.classList.contains("active")) {
+    selectedCharacters = selectedCharacters.filter(v => v !== item);
+    btn.classList.remove("active");
+  } else {
+    if (selectedCharacters.length >= MAX_CHARS) {
+      shake(btn);
+      showLimitError("⚠️ 3つまでしか選べません！");
+      return;
+    }
+    selectedCharacters.push(item);
+    btn.classList.add("active");
+  }
+  updateLimit();
 }
 
-function updateLimit(id, remaining) {
-  const el = document.getElementById(id);
+function updateLimit() {
+  const el = document.getElementById("charLimitInfo");
   if (!el) return;
+  const remaining = MAX_CHARS - selectedCharacters.length;
   if (remaining <= 0) {
     el.innerText = "MAX（これ以上選べません）";
     el.classList.add("full");
@@ -194,8 +188,8 @@ function updateLimit(id, remaining) {
   }
 }
 
-function showLimitError(id, message) {
-  const el = document.getElementById(id);
+function showLimitError(message) {
+  const el = document.getElementById("charLimitInfo");
   if (!el) return;
   el.innerText = message;
   el.classList.add("full");
@@ -226,7 +220,7 @@ function saveProfile() {
     storeType:  selectedStoreType,
     character:  selectedCharacters[0] || "",
     characters: selectedCharacters,
-    traits:     selectedTraits,
+    traits:     [],
     textAlign:  selectedAlign,
   };
   localStorage.setItem("profile", JSON.stringify(profileData));
@@ -245,24 +239,27 @@ function loadProfile() {
     try {
       const p = JSON.parse(saved);
       document.getElementById("name").value = p.name || "";
+
       selectedStoreType = p.storeType || "普通店";
       document.querySelectorAll("#storeTypeBtns .choice-btn").forEach(btn => {
         if (btn.innerText === selectedStoreType) btn.classList.add("active");
       });
-      selectedCharacters = Array.isArray(p.characters)
-        ? p.characters.map(v => String(v).trim()).filter(v => CHARACTERS.includes(v)).slice(0,3)
-        : (p.character && CHARACTERS.includes(String(p.character).trim()) ? [String(p.character).trim()] : []);
-      document.querySelectorAll("#characterBtns .choice-btn").forEach(btn => {
+
+      // 旧characters + 旧traits を統合して読み込む
+      const allSaved = [
+        ...(Array.isArray(p.characters) ? p.characters : (p.character ? [p.character] : [])),
+        ...(Array.isArray(p.traits) ? p.traits : [])
+      ];
+      const allItems = [...CHARACTERS, ...TRAITS];
+      selectedCharacters = allSaved
+        .map(v => String(v).trim())
+        .filter(v => allItems.includes(v))
+        .slice(0, MAX_CHARS);
+
+      document.querySelectorAll("#characterBtns .choice-btn, #traitBtns .choice-btn").forEach(btn => {
         if (selectedCharacters.includes(btn.innerText)) btn.classList.add("active");
       });
-      updateLimit("charLimitInfo", 3 - selectedCharacters.length);
-      selectedTraits = Array.isArray(p.traits)
-        ? p.traits.map(v => String(v).trim()).filter(v => TRAITS.includes(v)).slice(0,4)
-        : [];
-      document.querySelectorAll("#traitBtns .choice-btn").forEach(btn => {
-        if (selectedTraits.includes(btn.innerText)) btn.classList.add("active");
-      });
-      updateLimit("traitLimitInfo", 4 - selectedTraits.length);
+      updateLimit();
       selectAlign(p.textAlign || "left");
     } catch(e) { console.error("Profile load error", e); }
   }
@@ -283,3 +280,15 @@ function logoutCityHeaven() {
 </script>
 </body>
 </html>
+```
+
+---
+
+**変更点**
+```
+・「性格・キャラクター」+「見た目・スタイル」→「私のキャラクター」に統合
+・合計3つまで（性格・見た目どちらから選んでもOK）
+・上段：性格・内面ラベル
+・下段：見た目・スタイルラベル
+・制限カウンターは1つに統合
+・旧データの自動マイグレーション対応
