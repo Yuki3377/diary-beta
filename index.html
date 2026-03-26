@@ -92,8 +92,8 @@
   </div>
 
   <div class="card">
-    <label>今の気分<span class="sub-label">※スパイスに応じて切り替わります</span></label>
-    <div class="button-group" id="moodButtons"></div>
+    <label>文章の構成例<span class="sub-label">※こんなテイストの文章が入ります</span></label>
+    <div class="button-group" id="moodButtons" style="pointer-events: none; opacity: 0.8;"></div>
   </div>
 
   <div class="card">
@@ -161,7 +161,7 @@ const MOOD_MAP = {
 const SITUATIONS_TOP = ["待機中","明日出勤","退勤"];
 const SITUATIONS_BOTTOM = ["出勤前","休憩中","お休み","美容Day","お買い物","ご飯","お酒","寝る前","お散歩","早起き","雨の日","旅行"];
 const ERO_LEVELS = [
-  { label:"清潔感 ⭐️",          value:"low"   },
+  { label:"清潔感 ⭐️",         value:"low"   },
   { label:"ほんのりH ⭐️⭐️",    value:"mid"   },
   { label:"過激 ⭐️⭐️⭐️",      value:"high"  },
   { label:"過激○伏せ ⭐️⭐️⭐️", value:"ultra" }
@@ -169,9 +169,8 @@ const ERO_LEVELS = [
 const LENGTH_OPTIONS = ["短め","長め"];
 
 let profile = null;
-let selectedMood = MOOD_MAP.low[0];
-let selectedSituation = null;
 let selectedEro = "low";
+let selectedSituation = null;
 let selectedLength = "長め";
 
 window.onload = function() {
@@ -255,22 +254,17 @@ function createEroButtons() {
   });
 }
 
+// 構成例を表示するのみに変更（クリック不可）
 function renderMoodButtons(spiceLevel) {
   const container = document.getElementById("moodButtons");
   if (!container) return;
   container.innerHTML = "";
   const moods = MOOD_MAP[spiceLevel] || [];
-  selectedMood = moods[0] || null;
-  moods.forEach((item, index) => {
-    const btn = document.createElement("button");
+  moods.forEach((item) => {
+    const btn = document.createElement("div");
     btn.className = "choice-btn";
+    btn.style.cursor = "default";
     btn.innerText = item;
-    if (index === 0) btn.classList.add("active");
-    btn.onclick = () => {
-      [...container.children].forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      selectedMood = item;
-    };
     container.appendChild(btn);
   });
 }
@@ -316,7 +310,6 @@ async function generate() {
   const title = document.getElementById("title").value.trim();
   if (!title) { showModal("題名を入力してね"); return; }
   if (!selectedSituation) { showModal("日記の状況を選んでね"); return; }
-  if (!selectedMood) { showModal("今の気分を選んでね"); return; }
 
   const scheduleType = getSelectedScheduleType();
   const { id: cityheavenId, pass: cityheavenPass } = getCityHeavenCreds();
@@ -369,6 +362,7 @@ async function generate() {
     const useSchedule = scheduleType && scheduleData;
     const route = useSchedule ? "/generate-with-schedule" : "/generate";
 
+    // 選択機能がなくなったため、moodプロパティを削除（またはデフォルト値を設定）しています
     const postBody = {
       mode:         "diary",
       storeType:    profile.storeType    || "普通店",
@@ -377,7 +371,6 @@ async function generate() {
       characters:   profile.characters   || [],
       traits:       profile.traits       || [],
       situation:    selectedSituation,
-      mood:         selectedMood,
       spiceLevel:   selectedEro,
       targetLength: selectedLength === "短め" ? 140 : 220,
       emojiPalette: ["💕","🥺","✨","💦","💋","🤫","🍼","🔞"],
