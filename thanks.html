@@ -42,10 +42,9 @@ button.primary:disabled{ background:#ddd; cursor:not-allowed; box-shadow:none; }
 .loading-text{ font-size:18px; color:#a65cd6; font-weight:bold; letter-spacing:2px; }
 .mini-note{ font-size:12px; color:#999; margin-top:6px; }
 .header-footer-preview{ font-size:12px; color:#999; padding:8px 12px; background:#f8f0fc; border-radius:8px; margin-top:8px; text-align:left; }
-/* イニシャル表示 */
-.initial-badge{ display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; border-radius:50%; background:#f8f0fc; border:2px solid #d09dfc; color:#a65cd6; font-size:16px; font-weight:bold; margin-top:8px; letter-spacing:1px; min-width:44px; }
-.initial-row{ display:flex; align-items:center; gap:12px; margin-top:8px; }
-.initial-input{ flex:1; }
+.initial-input-wrap{ display:flex; gap:8px; align-items:center; margin-top:10px; }
+.initial-input-wrap input{ flex:1; }
+.initial-hint{ font-size:12px; color:#aaa; margin-top:6px; }
 </style>
 </head>
 <body>
@@ -67,15 +66,15 @@ button.primary:disabled{ background:#ddd; cursor:not-allowed; box-shadow:none; }
   </div>
 
   <div class="card">
-    <div class="card-title">お客様の情報</div>
-    <label>お客様の呼び方 <span class="sub-label">※1つ選択</span></label>
+    <div class="card-title">お客様の呼び方</div>
+    <label>種類を選択 <span class="sub-label">※1つ選択</span></label>
     <div class="button-group" id="typeButtons"></div>
-    <label style="margin-top:16px;">イニシャル <span class="sub-label">※任意・例：T.Kさん</span></label>
-    <div class="initial-row">
-      <input type="text" id="initialInput" placeholder="例：T.K" class="initial-input" maxlength="6" oninput="updateInitialBadge()">
-      <div class="initial-badge" id="initialBadge">？</div>
+    <div id="initialInputArea" style="display:none; margin-top:12px;">
+      <div class="initial-hint">イニシャルまたは名前を入力してください</div>
+      <div class="initial-input-wrap">
+        <input type="text" id="customerInitial" placeholder="例：N、Kさん、田中さん" maxlength="20">
+      </div>
     </div>
-    <div class="mini-note">入力すると文章に「T.Kさん」のように組み込まれます</div>
   </div>
 
   <div class="card">
@@ -116,7 +115,7 @@ button.primary:disabled{ background:#ddd; cursor:not-allowed; box-shadow:none; }
 <div id="modal" class="modal"></div>
 
 <script>
-const CUSTOMER_TYPES = ["新規様","仲良しさん","本指名さん","お久しぶり","お兄さん","お兄様"];
+const CUSTOMER_TYPES = ["新規様","仲良しさん","本指名さん","お久しぶり","お兄さん","お兄様","イニシャル・名前で呼ぶ"];
 const EPISODES = [
   "長めコース","貸切","あっという間に","いっぱい褒めてくれた","たくさんイッちゃった",
   "いっぱいせめた","いっぱいせめられた","ぎゅってしてくれた","また誘ってください",
@@ -135,6 +134,13 @@ window.onload = function() {
     selectedType = val;
     document.querySelectorAll("#typeButtons .choice-btn").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
+    const initialArea = document.getElementById("initialInputArea");
+    if (val === "イニシャル・名前で呼ぶ") {
+      initialArea.style.display = "block";
+    } else {
+      initialArea.style.display = "none";
+      document.getElementById("customerInitial").value = "";
+    }
   });
   createMultiButtons("episodeButtons", EPISODES, (val, btn) => {
     if (selectedEpisodes.includes(val)) {
@@ -146,12 +152,6 @@ window.onload = function() {
     }
   });
 };
-
-function updateInitialBadge() {
-  const val = document.getElementById("initialInput").value.trim();
-  const badge = document.getElementById("initialBadge");
-  badge.innerText = val || "？";
-}
 
 function createSingleButtons(containerId, list, onClick) {
   const container = document.getElementById(containerId);
@@ -205,6 +205,14 @@ function loadFixedDetail() {
   });
 }
 
+function getCustomerLabel() {
+  if (selectedType === "イニシャル・名前で呼ぶ") {
+    const initial = document.getElementById("customerInitial").value.trim();
+    return initial ? initial + "さん" : "お客様";
+  }
+  return selectedType || "お客様";
+}
+
 async function generate() {
   if (!profile || !profile.name) {
     showModal("プロフィールを設定してね💦");
@@ -212,12 +220,15 @@ async function generate() {
     return;
   }
   if (!selectedType) { showModal("お客様の呼び方を選んでね"); return; }
+  if (selectedType === "イニシャル・名前で呼ぶ") {
+    const initial = document.getElementById("customerInitial").value.trim();
+    if (!initial) { showModal("イニシャルまたは名前を入力してね"); return; }
+  }
 
-  const initial      = document.getElementById("initialInput").value.trim();
-  const fixedDetail  = document.getElementById("fixedDetail").value.trim();
-  const todayMemo    = document.getElementById("todayMemo").value.trim();
-  const customerLabel = initial ? selectedType + "（" + initial + "さん）" : selectedType;
-  const contextParts = [customerLabel, fixedDetail, todayMemo, ...selectedEpisodes].filter(Boolean);
+  const customerLabel  = getCustomerLabel();
+  const fixedDetail    = document.getElementById("fixedDetail").value.trim();
+  const todayMemo      = document.getElementById("todayMemo").value.trim();
+  const contextParts   = [customerLabel, fixedDetail, todayMemo, ...selectedEpisodes].filter(Boolean);
   const thanksContextStr = contextParts.join("、");
 
   const loader = document.getElementById("loadingOverlay");
@@ -227,7 +238,6 @@ async function generate() {
     const workerUrl = "https://openrouter-diary-api.doropbox-kyoto.workers.dev/generate-thanks";
     const headerStr = localStorage.getItem("diaryHeader") || "";
     const footerStr = localStorage.getItem("diaryFooter") || "";
-
     const response = await fetch(workerUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -240,20 +250,16 @@ async function generate() {
         footer:        footerStr
       })
     });
-
     const data = await response.json();
     if (!response.ok) throw new Error("API Error");
-
     let bodyText = data.result || data.text || "";
     bodyText = bodyText.replace(/\r\n/g,"\n").replace(/\n{3,}/g,"\n\n").trim();
-
     if (bodyText) {
       const container = document.getElementById("resultContainer");
       container.style.display = "block";
       document.getElementById("resultTextarea").value = bodyText;
       container.scrollIntoView({ behavior:"smooth", block:"center" });
     } else { throw new Error("生成失敗"); }
-
   } catch (error) {
     console.error(error);
     showModal("ごめんね、エラーが出ちゃった💦");
@@ -286,13 +292,10 @@ function showModal(msg) {
 </html>
 ```
 
----
-
-**追加した内容**
+**変更点**
 ```
-イニシャル入力欄を追加
-・テキスト入力（例：T.K）
-・右側に丸いバッジでリアルタイムプレビュー
-・入力すると「新規様（T.Kさん）」として
-　AIプロンプトに組み込まれる
-・未入力でも問題なし
+・お客様の呼び方に「イニシャル・名前で呼ぶ」を追加
+・選択するとテキスト入力欄が表示される
+・入力した名前に「さん」を自動付与
+　例：「N」→「Nさん」
+・未入力のまま生成しようとするとエラー表示
