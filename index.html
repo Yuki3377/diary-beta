@@ -194,7 +194,7 @@ let isRecording = false;
 if (SpeechRecognition) {
   recognition = new SpeechRecognition();
   recognition.lang = 'ja-JP';
-  recognition.interimResults = false; // 確定した文章だけ入力する
+  recognition.interimResults = false; 
   recognition.continuous = false;
 
   recognition.onstart = function() {
@@ -220,24 +220,35 @@ if (SpeechRecognition) {
   };
 
   recognition.onend = function() {
-    isRecording = false;
-    const btn = document.getElementById("micBtn");
-    btn.innerText = "🎤 音声で入力する";
-    btn.classList.remove("recording");
-    document.getElementById("micStatus").style.display = "none";
+    resetMicUI();
   };
 
   recognition.onerror = function(event) {
     console.error(event.error);
-    isRecording = false;
-    const btn = document.getElementById("micBtn");
-    btn.innerText = "🎤 音声で入力する";
-    btn.classList.remove("recording");
-    document.getElementById("micStatus").style.display = "none";
-    if (event.error !== 'no-speech') {
+    resetMicUI();
+    if (event.error !== 'no-speech' && event.error !== 'aborted') {
       showModal("音声入力エラー💦: " + event.error);
     }
   };
+}
+
+function resetMicUI() {
+  isRecording = false;
+  const btn = document.getElementById("micBtn");
+  btn.innerText = "🎤 音声で入力する";
+  btn.classList.remove("recording");
+  document.getElementById("micStatus").style.display = "none";
+}
+
+// iOSのマイク掴みっぱなしを強制解除する処理
+function forceStopMic() {
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(stream => {
+        stream.getTracks().forEach(track => track.stop());
+      })
+      .catch(err => console.log("Mic cleanup error:", err));
+  }
 }
 
 function toggleSpeechRecognition() {
@@ -245,8 +256,13 @@ function toggleSpeechRecognition() {
     showModal("お使いのブラウザは音声入力に未対応です💦");
     return;
   }
+  
   if (isRecording) {
-    recognition.stop();
+    // 通常のstopではなく、強制終了のabortを使用
+    recognition.abort(); 
+    resetMicUI();
+    // 少し遅らせてiOSのマイクセッションを強制開放
+    setTimeout(forceStopMic, 300);
   } else {
     recognition.start();
   }
@@ -456,7 +472,7 @@ async function generate() {
       header:       document.getElementById("header").value.trim(),
       footer:       document.getElementById("footer").value.trim(),
       title:        title,
-      freeText:     document.getElementById("freeText").value.trim(), // ★自由入力のデータを追加
+      freeText:     document.getElementById("freeText").value.trim(), 
       scheduleType: useSchedule ? scheduleType : "",
       scheduleData: scheduleData
     };
