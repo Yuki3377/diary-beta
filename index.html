@@ -60,11 +60,8 @@
   .heart-icon{ font-size:70px; margin-bottom:20px; animation:gentle-beat 2s infinite ease-in-out; }
   @keyframes gentle-beat{ 0%{transform:scale(1);opacity:0.9;} 50%{transform:scale(1.15);opacity:1;} 100%{transform:scale(1);opacity:0.9;} }
   .loading-text{ font-size:18px; color:#ff5fa2; font-weight:bold; letter-spacing:2px; }
-  /* 季節UI */
   .season-month-wrap{ margin-bottom:12px; transition:opacity 0.2s; }
   .season-month-wrap.disabled{ opacity:0.35; pointer-events:none; }
-  .season-month-select{ padding:10px 14px; font-size:15px; }
-  .season-assist-note{ font-size:11px; color:#ff85b3; margin-top:8px; }
 </style>
 </head>
 <body>
@@ -119,40 +116,23 @@
     <div class="button-group" id="lengthButtons"></div>
   </div>
 
-  <!-- 季節・時期（文章のボリュームの下・スケジュールの直上） -->
   <div class="card">
     <div class="card-title">季節・時期の指定<span class="sub-label">※日記に季節感を反映します</span></div>
-    <div class="season-month-wrap" id="seasonMonthWrap">
-      <select id="targetMonth" class="season-month-select">
+    <div class="season-month-wrap disabled" id="seasonMonthWrap">
+      <select id="targetMonth">
         <option value="1">1月</option><option value="2">2月</option><option value="3">3月</option>
         <option value="4">4月</option><option value="5">5月</option><option value="6">6月</option>
         <option value="7">7月</option><option value="8">8月</option><option value="9">9月</option>
         <option value="10">10月</option><option value="11">11月</option><option value="12">12月</option>
       </select>
     </div>
-    <div class="radio-group" id="seasonGroup">
-      <label class="radio-row">
-        <input type="radio" name="timeCategory" value="" checked onchange="onSeasonChange()">
-        <span>使わない</span>
-      </label>
-      <label class="radio-row">
-        <input type="radio" name="timeCategory" value="月初" onchange="onSeasonChange()">
-        <span>📅 月初</span>
-      </label>
-      <label class="radio-row">
-        <input type="radio" name="timeCategory" value="月末" onchange="onSeasonChange()">
-        <span>📅 月末</span>
-      </label>
-      <label class="radio-row">
-        <input type="radio" name="timeCategory" value="週末" onchange="onSeasonChange()">
-        <span>📅 週末</span>
-      </label>
-      <label class="radio-row">
-        <input type="radio" name="timeCategory" value="週明け" onchange="onSeasonChange()">
-        <span>📅 週明け</span>
-      </label>
+    <div class="radio-group">
+      <label class="radio-row"><input type="radio" name="timeCategory" value="" checked onchange="onSeasonChange()"><span>使わない</span></label>
+      <label class="radio-row"><input type="radio" name="timeCategory" value="月初" onchange="onSeasonChange()"><span>📅 月初</span></label>
+      <label class="radio-row"><input type="radio" name="timeCategory" value="月末" onchange="onSeasonChange()"><span>📅 月末</span></label>
+      <label class="radio-row"><input type="radio" name="timeCategory" value="週末" onchange="onSeasonChange()"><span>📅 週末</span></label>
+      <label class="radio-row"><input type="radio" name="timeCategory" value="週明け" onchange="onSeasonChange()"><span>📅 週明け</span></label>
     </div>
-    <div class="season-assist-note" id="seasonAssistNote"></div>
   </div>
 
   <div class="card">
@@ -276,51 +256,16 @@ function toggleSpeechRecognition() {
   }
 }
 
-// 要件3：新しいアシストロジック
-function getSeasonAssist() {
-  const now     = new Date();
-  const day     = now.getDate();
-  const dow     = now.getDay(); // 0=日,1=月,5=金,6=土
-  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-
-  if (day <= 3)                        return { value:"月初",  note:"📅 月初（1〜3日）を自動選択しました" };
-  if (day >= lastDay - 2)              return { value:"月末",  note:"📅 月末を自動選択しました" };
-  if (dow === 5 || dow === 6 || dow === 0) return { value:"週末",  note:"📅 週末（金・土・日）を自動選択しました" };
-  if (dow === 1)                       return { value:"週明け", note:"📅 週明け（月曜）を自動選択しました" };
-  return { value:"", note:"" };
-}
-
-function initSeasonUI() {
-  const now = new Date();
-  document.getElementById("targetMonth").value = now.getMonth() + 1;
-  const assist = getSeasonAssist();
-  if (assist.value) {
-    const radio = document.querySelector(`input[name="timeCategory"][value="${assist.value}"]`);
-    if (radio) radio.checked = true;
-    document.getElementById("seasonAssistNote").innerText = assist.note;
-  }
-  updateSeasonMonthState();
-}
-
-// 要件4：使わない選択時にセレクトをグレーアウト
-function onSeasonChange() {
-  updateSeasonMonthState();
-  document.getElementById("seasonAssistNote").innerText = "（手動で変更されました）";
-}
-
-function updateSeasonMonthState() {
-  const val  = getSelectedTimeCategory();
-  const wrap = document.getElementById("seasonMonthWrap");
-  if (val === "") {
-    wrap.classList.add("disabled");
-  } else {
-    wrap.classList.remove("disabled");
-  }
-}
-
 function getSelectedTimeCategory() {
   const checked = document.querySelector('input[name="timeCategory"]:checked');
   return checked ? checked.value : "";
+}
+
+function onSeasonChange() {
+  const val  = getSelectedTimeCategory();
+  const wrap = document.getElementById("seasonMonthWrap");
+  if (val === "") wrap.classList.add("disabled");
+  else wrap.classList.remove("disabled");
 }
 
 function loadHeaderFooter() {
@@ -334,7 +279,7 @@ window.onload = function() {
   safeLoadProfile();
   loadHeaderFooter();
   checkCityHeavenCredentials();
-  initSeasonUI();
+  document.getElementById("targetMonth").value = new Date().getMonth() + 1;
   createButtons(SITUATIONS_TOP,    "situationButtonsTop",    (v) => selectedSituation = v);
   createButtons(SITUATIONS_BOTTOM, "situationButtonsBottom", (v) => selectedSituation = v);
   createEroButtons();
@@ -462,9 +407,8 @@ async function generate() {
     return;
   }
 
-  // 要件5：使わない場合は空文字
-  const targetMonth  = parseInt(document.getElementById("targetMonth").value, 10);
-  const timeCategory = getSelectedTimeCategory(); // "" or "月初" etc
+  const timeCategory = getSelectedTimeCategory();
+  const targetMonth  = timeCategory ? parseInt(document.getElementById("targetMonth").value, 10) : null;
 
   const loader = document.getElementById("loadingOverlay");
   loader.classList.add("active");
@@ -525,7 +469,7 @@ async function generate() {
       freeText:      document.getElementById("freeText").value.trim(),
       scheduleType:  useSchedule ? scheduleType : "",
       scheduleData:  scheduleData,
-      target_month:  timeCategory ? targetMonth : null,
+      target_month:  targetMonth,
       time_category: timeCategory
     };
 
