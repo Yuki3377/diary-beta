@@ -19,6 +19,7 @@
   .nav-note{ text-align:center; font-size:11px; color:#aaa; margin:0 0 20px; }
   .profileInfo{ font-size:13px; color:#888; margin-bottom:20px; text-align:center; min-height:1.2em; }
   .card{ background:#fff; padding:18px; border-radius:20px; margin-bottom:16px; box-shadow:0 4px 15px rgba(255,95,162,0.06); }
+  .card-title{ font-size:15px; font-weight:bold; color:#ff5fa2; margin-bottom:14px; padding-bottom:8px; border-bottom:1px solid #ffe0eb; }
   label{ font-size:14px; font-weight:bold; color:#ff5fa2; display:block; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; }
   .sub-label{ font-size:11px; color:#aaa; font-weight:normal; margin-left:8px; }
   input, textarea, select{ width:100%; padding:14px; border-radius:12px; border:1px solid #f0f0f0; font-size:16px; background:#fafafa; transition:0.2s; outline:none; color:#444; appearance:none; line-height:1.6; }
@@ -49,10 +50,22 @@
   .schedule-hint{ display:none; margin-top:10px; padding:10px 14px; background:#fff0f6; border-radius:10px; font-size:12px; color:#ff5fa2; border:1px dashed #ffb3d0; text-align:left; }
   .schedule-hint.visible{ display:block; }
   .schedule-disabled{ opacity:0.4; pointer-events:none; }
-  .mic-btn { border-radius:20px; border:1px solid #ffb3d0; background:#fff; color:#ff5fa2; padding:8px 16px; font-size:13px; font-weight:bold; cursor:pointer; transition:0.2s; display:inline-flex; align-items:center; gap:4px; }
-  .mic-btn:active { transform:scale(0.95); }
-  .mic-btn.recording { background:#fff0f6; animation: pulse 1.5s infinite; }
-  @keyframes pulse { 0% { box-shadow:0 0 0 0 rgba(255,95,162,0.4); } 70% { box-shadow:0 0 0 10px rgba(255,95,162,0); } 100% { box-shadow:0 0 0 0 rgba(255,95,162,0); } }
+  .mic-btn{ border-radius:20px; border:1px solid #ffb3d0; background:#fff; color:#ff5fa2; padding:8px 16px; font-size:13px; font-weight:bold; cursor:pointer; transition:0.2s; display:inline-flex; align-items:center; gap:4px; }
+  .mic-btn:active{ transform:scale(0.95); }
+  .mic-btn.recording{ background:#fff0f6; animation: pulse 1.5s infinite; }
+  @keyframes pulse{ 0%{ box-shadow:0 0 0 0 rgba(255,95,162,0.4); } 70%{ box-shadow:0 0 0 10px rgba(255,95,162,0); } 100%{ box-shadow:0 0 0 0 rgba(255,95,162,0); } }
+  /* ▼ 要件1: thanks.htmlと統一したHeader/Footerプレビューカード */
+  .header-footer-preview{ font-size:12px; color:#999; padding:8px 12px; background:#fff0f6; border-radius:8px; margin-top:8px; text-align:left; }
+  /* ▼ 要件2: 季節・時期セレクトボックス */
+  .select-row{ display:flex; gap:10px; margin-bottom:8px; }
+  .select-row select{ flex:1; }
+  .season-assist-note{ font-size:11px; color:#ff85b3; margin-top:4px; }
+  /* ▼ ローディング（thanks.htmlと統一） */
+  .loading-overlay{ position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,244,248,0.92); backdrop-filter:blur(5px); z-index:9999; display:flex; flex-direction:column; justify-content:center; align-items:center; opacity:0; pointer-events:none; transition:opacity 0.3s ease; }
+  .loading-overlay.active{ opacity:1; pointer-events:auto; }
+  .heart-icon{ font-size:70px; margin-bottom:20px; animation:gentle-beat 2s infinite ease-in-out; }
+  @keyframes gentle-beat{ 0%{transform:scale(1);opacity:0.9;} 50%{transform:scale(1.15);opacity:1;} 100%{transform:scale(1);opacity:0.9;} }
+  .loading-text{ font-size:18px; color:#ff5fa2; font-weight:bold; letter-spacing:2px; }
 </style>
 </head>
 <body>
@@ -71,16 +84,46 @@
     <input id="title" placeholder="例：久々の美容室（AIの文章にも反映されます）">
   </div>
 
+  <!-- ▼ 要件1: thanks.htmlと統一したHeader/Footerカード -->
   <div class="card">
-    <label>冒頭固定挨拶（Header）<span class="sub-label">※一度入れたら保存されます</span></label>
+    <div class="card-title">固定文（Header / Footer）<span class="sub-label">※保存されます</span></div>
+    <label>冒頭固定挨拶（Header）</label>
     <input id="header" type="text" placeholder="例：こんばんは💕">
-    <div class="mini-note">次回以降も自動で表示されます</div>
+    <div class="header-footer-preview" id="headerPreview">Header: （未設定）</div>
+    <div style="margin-top:14px;">
+      <label>末尾固定署名（Footer）</label>
+      <input id="footer" type="text" placeholder="例：会えたら嬉しいな💕">
+      <div class="header-footer-preview" id="footerPreview" style="margin-top:6px;">Footer: （未設定）</div>
+    </div>
+    <div class="mini-note">入力すると自動保存・次回以降も表示されます</div>
   </div>
 
+  <!-- ▼ 要件2: 季節・時期KV指定UI -->
   <div class="card">
-    <label>末尾固定署名（Footer）<span class="sub-label">※一度入れたら保存されます</span></label>
-    <input id="footer" type="text" placeholder="例：会えたら嬉しいな💕">
-    <div class="mini-note">次回以降も自動で表示されます</div>
+    <div class="card-title">季節・時期の指定<span class="sub-label">※日記に季節感を反映します</span></div>
+    <div class="select-row">
+      <select id="targetMonth">
+        <option value="1">1月</option><option value="2">2月</option><option value="3">3月</option>
+        <option value="4">4月</option><option value="5">5月</option><option value="6">6月</option>
+        <option value="7">7月</option><option value="8">8月</option><option value="9">9月</option>
+        <option value="10">10月</option><option value="11">11月</option><option value="12">12月</option>
+      </select>
+      <select id="timeCategory">
+        <option value="指定なし">指定なし（汎用）</option>
+        <option value="月初">月初</option>
+        <option value="月末">月末</option>
+        <option value="月半ば">月半ば</option>
+        <option value="季節の変わり目">季節の変わり目</option>
+        <option value="イベント">イベント</option>
+        <option value="繁忙期">繁忙期</option>
+        <option value="閑散期">閑散期</option>
+        <option value="週末">週末</option>
+        <option value="週明け">週明け</option>
+        <option value="昼夜の挨拶">昼夜の挨拶</option>
+        <option value="次月への期待">次月への期待</option>
+      </select>
+    </div>
+    <div class="season-assist-note" id="seasonAssistNote"></div>
   </div>
 
   <div class="card">
@@ -102,9 +145,7 @@
   <div class="card">
     <label>ちょっぴり大人のスパイス<span class="sub-label">※文章の攻め具合</span></label>
     <div class="button-group" id="eroButtons"></div>
-    
     <div class="divider" style="margin: 16px 0;"></div>
-    
     <label>文章の構成例<span class="sub-label">※こんなテイストの文章が入ります</span></label>
     <div class="button-group" id="moodButtons" style="pointer-events: none; opacity: 0.8;"></div>
   </div>
@@ -161,6 +202,12 @@
     <div id="historyList"></div>
   </div>
 </div>
+
+<!-- ▼ thanks.htmlと統一したローディング -->
+<div id="loadingOverlay" class="loading-overlay">
+  <div class="heart-icon">💕</div>
+  <div class="loading-text">Writing...</div>
+</div>
 <div id="modal" class="modal"></div>
 
 <script>
@@ -171,7 +218,7 @@ const MOOD_MAP = {
   high:  ["もっと奥まで","止まらなくなっちゃう","濡れすぎちゃって💦","欲求不満で大変"],
   ultra: ["マ○コが濡れすぎて","チ○チ○を舐めたい","アソコがベ○ャベ○ャになってる","ムラムラし過ぎてマ○コを触って欲しいの"]
 };
-const SITUATIONS_TOP = ["待機中","明日出勤","退勤"];
+const SITUATIONS_TOP    = ["待機中","明日出勤","退勤"];
 const SITUATIONS_BOTTOM = ["出勤前","休憩中","お休み","美容Day","お買い物","ご飯","お酒","寝る前","お散歩","早起き","雨の日","旅行"];
 const ERO_LEVELS = [
   { label:"清潔感 ⭐️",         value:"low"   },
@@ -181,12 +228,12 @@ const ERO_LEVELS = [
 ];
 const LENGTH_OPTIONS = ["短め","長め"];
 
-let profile = null;
-let selectedEro = "low";
+let profile         = null;
+let selectedEro     = "low";
 let selectedSituation = null;
-let selectedLength = "長め";
+let selectedLength  = "長め";
 
-// --- 音声入力用の設定 ---
+// --- 音声入力 ---
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition = null;
 let isRecording = false;
@@ -194,9 +241,8 @@ let isRecording = false;
 if (SpeechRecognition) {
   recognition = new SpeechRecognition();
   recognition.lang = 'ja-JP';
-  recognition.interimResults = false; 
+  recognition.interimResults = false;
   recognition.continuous = false;
-
   recognition.onstart = function() {
     isRecording = true;
     const btn = document.getElementById("micBtn");
@@ -204,31 +250,21 @@ if (SpeechRecognition) {
     btn.classList.add("recording");
     document.getElementById("micStatus").style.display = "block";
   };
-
   recognition.onresult = function(event) {
     let finalTranscript = '';
     for (let i = event.resultIndex; i < event.results.length; ++i) {
-      if (event.results[i].isFinal) {
-        finalTranscript += event.results[i][0].transcript;
-      }
+      if (event.results[i].isFinal) finalTranscript += event.results[i][0].transcript;
     }
     if (finalTranscript) {
       const ta = document.getElementById("freeText");
-      const currentVal = ta.value;
-      ta.value = currentVal ? currentVal + "\n" + finalTranscript : finalTranscript;
+      ta.value = ta.value ? ta.value + "\n" + finalTranscript : finalTranscript;
     }
   };
-
-  recognition.onend = function() {
-    resetMicUI();
-  };
-
+  recognition.onend  = function() { resetMicUI(); };
   recognition.onerror = function(event) {
     console.error(event.error);
     resetMicUI();
-    if (event.error !== 'no-speech' && event.error !== 'aborted') {
-      showModal("音声入力エラー💦: " + event.error);
-    }
+    if (event.error !== 'no-speech' && event.error !== 'aborted') showModal("音声入力エラー💦: " + event.error);
   };
 }
 
@@ -240,40 +276,64 @@ function resetMicUI() {
   document.getElementById("micStatus").style.display = "none";
 }
 
-// iOSのマイク掴みっぱなしを強制解除する処理
 function forceStopMic() {
   if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
     navigator.mediaDevices.getUserMedia({ audio: true })
-      .then(stream => {
-        stream.getTracks().forEach(track => track.stop());
-      })
+      .then(stream => stream.getTracks().forEach(track => track.stop()))
       .catch(err => console.log("Mic cleanup error:", err));
   }
 }
 
 function toggleSpeechRecognition() {
-  if (!SpeechRecognition) {
-    showModal("お使いのブラウザは音声入力に未対応です💦");
-    return;
-  }
-  
+  if (!SpeechRecognition) { showModal("お使いのブラウザは音声入力に未対応です💦"); return; }
   if (isRecording) {
-    // 通常のstopではなく、強制終了のabortを使用
-    recognition.abort(); 
+    recognition.abort();
     resetMicUI();
-    // 少し遅らせてiOSのマイクセッションを強制開放
     setTimeout(forceStopMic, 300);
   } else {
     recognition.start();
   }
 }
-// -----------------------
+
+// ▼ 要件2: 季節アシストロジック
+function getSeasonAssist() {
+  const now  = new Date();
+  const day  = now.getDate();
+  const dow  = now.getDay(); // 0=日, 6=土
+  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+
+  if (day <= 5)               return { value: "月初",  note: "📅 月初（1〜5日）を自動選択しました" };
+  if (day >= lastDay - 4)     return { value: "月末",  note: "📅 月末を自動選択しました" };
+  if (dow === 0 || dow === 6) return { value: "週末",  note: "📅 週末を自動選択しました" };
+  if (dow === 1)               return { value: "週明け",note: "📅 週明けを自動選択しました" };
+  if (day >= 11 && day <= 20) return { value: "月半ば",note: "📅 月半ばを自動選択しました" };
+  return { value: "指定なし", note: "" };
+}
+
+function initSeasonUI() {
+  const now = new Date();
+  // 対象月：現在の月をデフォルト
+  document.getElementById("targetMonth").value = now.getMonth() + 1;
+
+  // 時期：アシストロジックで自動判定
+  const assist = getSeasonAssist();
+  const select = document.getElementById("timeCategory");
+  select.value = assist.value;
+  const note = document.getElementById("seasonAssistNote");
+  note.innerText = assist.note;
+
+  // 手動変更時はノートを消す
+  select.addEventListener("change", () => {
+    document.getElementById("seasonAssistNote").innerText = "（手動で変更されました）";
+  });
+}
 
 window.onload = function() {
   safeLoadProfile();
   loadHeaderFooter();
   checkCityHeavenCredentials();
-  createButtons(SITUATIONS_TOP, "situationButtonsTop", (v) => selectedSituation = v);
+  initSeasonUI(); // ▼ 季節UI初期化
+  createButtons(SITUATIONS_TOP,    "situationButtonsTop",    (v) => selectedSituation = v);
   createButtons(SITUATIONS_BOTTOM, "situationButtonsBottom", (v) => selectedSituation = v);
   createEroButtons();
   renderMoodButtons(selectedEro);
@@ -303,8 +363,8 @@ function safeLoadProfile() {
     profile = JSON.parse(saved);
     infoDiv.innerText = profile.name + "（" + (profile.character || "") + "）";
     const textarea = document.getElementById("resultTextarea");
-    if (profile.textAlign === "center") { textarea.style.textAlign = "center"; }
-    else { textarea.style.textAlign = "left"; }
+    if (profile.textAlign === "center") textarea.style.textAlign = "center";
+    else textarea.style.textAlign = "left";
   } catch(e) {
     infoDiv.innerHTML = '<a href="profile.html" style="color:#ff5fa2; text-decoration:underline;">⚠️ プロフィールを設定し直してください</a>';
   }
@@ -354,8 +414,7 @@ function renderMoodButtons(spiceLevel) {
   const container = document.getElementById("moodButtons");
   if (!container) return;
   container.innerHTML = "";
-  const moods = MOOD_MAP[spiceLevel] || [];
-  moods.forEach((item) => {
+  (MOOD_MAP[spiceLevel] || []).forEach((item) => {
     const btn = document.createElement("div");
     btn.className = "choice-btn";
     btn.style.cursor = "default";
@@ -367,8 +426,8 @@ function renderMoodButtons(spiceLevel) {
 function onScheduleChange() {
   const scheduleType = getSelectedScheduleType();
   const hint = document.getElementById("scheduleHint");
-  if (scheduleType) { hint.classList.add("visible"); }
-  else { hint.classList.remove("visible"); }
+  if (scheduleType) hint.classList.add("visible");
+  else hint.classList.remove("visible");
 }
 
 function getSelectedScheduleType() {
@@ -382,18 +441,25 @@ function getCityHeavenCreds() {
   return { id, pass };
 }
 
+// ▼ 要件1: thanks.htmlと統一したHeader/Footer処理
 function saveHeaderFooter() {
-  localStorage.setItem("diaryHeader", document.getElementById("header").value);
-  localStorage.setItem("diaryFooter", document.getElementById("footer").value);
+  const hVal = document.getElementById("header").value;
+  const fVal = document.getElementById("footer").value;
+  localStorage.setItem("diaryHeader", hVal);
+  localStorage.setItem("diaryFooter", fVal);
+  document.getElementById("headerPreview").innerText = "Header: " + (hVal || "（未設定）");
+  document.getElementById("footerPreview").innerText = "Footer: " + (fVal || "（未設定）");
 }
 
 function loadHeaderFooter() {
+  const hVal = localStorage.getItem("diaryHeader") || "";
+  const fVal = localStorage.getItem("diaryFooter") || "";
   const headerEl = document.getElementById("header");
   const footerEl = document.getElementById("footer");
-  if (headerEl) headerEl.value = localStorage.getItem("diaryHeader") || "";
-  if (footerEl) footerEl.value = localStorage.getItem("diaryFooter") || "";
-  if (headerEl) headerEl.addEventListener("input", saveHeaderFooter);
-  if (footerEl) footerEl.addEventListener("input", saveHeaderFooter);
+  if (headerEl) { headerEl.value = hVal; headerEl.addEventListener("input", saveHeaderFooter); }
+  if (footerEl) { footerEl.value = fVal; footerEl.addEventListener("input", saveHeaderFooter); }
+  document.getElementById("headerPreview").innerText = "Header: " + (hVal || "（未設定）");
+  document.getElementById("footerPreview").innerText = "Footer: " + (fVal || "（未設定）");
 }
 
 async function generate() {
@@ -415,8 +481,14 @@ async function generate() {
     return;
   }
 
+  // ▼ 要件2: 選択値を取得
+  const targetMonth   = parseInt(document.getElementById("targetMonth").value, 10);
+  const timeCategory  = document.getElementById("timeCategory").value;
+
+  const loader = document.getElementById("loadingOverlay");
+  loader.classList.add("active");
+
   const btn = document.getElementById("generateBtn");
-  btn.innerText = scheduleType ? "出勤情報を取得中...📅" : "メッセージを考案中...💭";
   btn.disabled = true;
 
   try {
@@ -435,163 +507,3 @@ async function generate() {
       }
 
       if (scrapeData.ok) {
-        if (scheduleType === "today" || scheduleType === "remaining") {
-          const todayShift = scrapeData.todayShift || (scrapeData.nextShift?.dateLabel === "本日" ? scrapeData.nextShift : null);
-          if (!todayShift) { showModal("本日の出勤情報がありません。通常モードで生成します"); }
-          else { scheduleData = todayShift; }
-        } else if (scheduleType === "next") {
-          const allShifts = scrapeData.allShifts || [];
-          const nextShift = allShifts.find(s => s.dateLabel !== "本日") || null;
-          if (!nextShift) { showModal("次回出勤情報がありません。通常モードで生成します"); }
-          else { scheduleData = nextShift; }
-        } else if (scheduleType === "week") {
-          const allShifts  = scrapeData.allShifts || [];
-          const weekShifts = allShifts.filter(s => s.dateLabel !== "本日").slice(0,7);
-          if (weekShifts.length === 0) { showModal("今週の出勤予定がありません。通常モードで生成します"); }
-          else { scheduleData = weekShifts; }
-        }
-      }
-      btn.innerText = "メッセージを考案中...💭";
-    }
-
-    const useSchedule = scheduleType && scheduleData;
-    const route = useSchedule ? "/generate-with-schedule" : "/generate";
-
-    const postBody = {
-      mode:         "diary",
-      storeType:    profile.storeType    || "普通店",
-      name:         profile.name         || "",
-      character:    profile.character    || "",
-      characters:   profile.characters   || [],
-      traits:       profile.traits       || [],
-      situation:    selectedSituation,
-      spiceLevel:   selectedEro,
-      targetLength: selectedLength === "短め" ? 140 : 220,
-      emojiPalette: ["💕","🥺","✨","💦","💋","🤫","🍼","🔞"],
-      customer:     profile.customerCall || "お客様",
-      header:       document.getElementById("header").value.trim(),
-      footer:       document.getElementById("footer").value.trim(),
-      title:        title,
-      freeText:     document.getElementById("freeText").value.trim(), 
-      scheduleType: useSchedule ? scheduleType : "",
-      scheduleData: scheduleData
-    };
-
-    const response = await fetch(WORKER_URL + route, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(postBody)
-    });
-
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok || !data.ok) {
-      showModal(data.message || data.error || "生成エラー💦");
-      return;
-    }
-
-    let bodyText = data.result || data.finalText || data.text || "";
-    bodyText = bodyText.replace(/\r\n/g,"\n").replace(/\n{3,}/g,"\n\n").trim();
-    const fullText = "【" + title + "】\n\n" + bodyText;
-    const container = document.getElementById("resultContainer");
-    container.style.display = "block";
-    const textarea = document.getElementById("resultTextarea");
-    textarea.value = fullText;
-    if (profile.textAlign === "center") { textarea.style.textAlign = "center"; }
-    else { textarea.style.textAlign = "left"; }
-    addToHistory(fullText);
-    container.scrollIntoView({ behavior:"smooth", block:"center" });
-
-  } catch (error) {
-    console.error(error);
-    showModal("通信エラー💦");
-  } finally {
-    btn.innerText = "日記をつくる";
-    btn.disabled = false;
-  }
-}
-
-function migrateHistoryIfNeeded() {
-  let raw = localStorage.getItem("diaryHistory");
-  if (!raw) return;
-  try {
-    let history = JSON.parse(raw);
-    if (history.length > 0 && (typeof history[0] === "string" || !history[0].id)) {
-      const newFormat = history.map(item => {
-        const text = (typeof item === "string") ? item : (item.text || "");
-        return { text, fav: false, id: Date.now() + Math.random() };
-      });
-      localStorage.setItem("diaryHistory", JSON.stringify(newFormat));
-    }
-  } catch(e) { localStorage.removeItem("diaryHistory"); }
-}
-
-function addToHistory(text) {
-  let history = getHistory();
-  history.unshift({ text, fav: false, id: Date.now() });
-  if (history.length > 20) history = history.slice(0, 20);
-  saveHistory(history);
-  renderHistory();
-}
-
-function toggleFav(id) {
-  let history = getHistory();
-  const index = history.findIndex(h => h.id === id);
-  if (index !== -1) {
-    history[index].fav = !history[index].fav;
-    saveHistory(history);
-    renderHistory();
-  }
-}
-
-function getHistory() { try { return JSON.parse(localStorage.getItem("diaryHistory") || "[]"); } catch(e) { return []; } }
-function saveHistory(history) { localStorage.setItem("diaryHistory", JSON.stringify(history)); }
-
-function renderHistory() {
-  const history = getHistory();
-  const list = document.getElementById("historyList");
-  list.innerHTML = "";
-  if (history.length === 0) {
-    list.innerHTML = '<div style="text-align:center; font-size:12px; color:#aaa;">まだ履歴はありません</div>';
-    return;
-  }
-  history.forEach(item => {
-    const div = document.createElement("div");
-    div.className = "history-item";
-    const preview = (item.text || "").split("\n")[0] || "無題";
-    const heartClass = item.fav ? "active" : "";
-    div.innerHTML = '<div class="history-text">' + preview + '</div><button class="fav-btn ' + heartClass + '" onclick="event.stopPropagation(); toggleFav(' + item.id + ')">♥</button>';
-    div.onclick = () => {
-      const container = document.getElementById("resultContainer");
-      container.style.display = "block";
-      const textarea = document.getElementById("resultTextarea");
-      textarea.value = item.text || "";
-      if (profile && profile.textAlign === "center") { textarea.style.textAlign = "center"; }
-      else { textarea.style.textAlign = "left"; }
-      container.scrollIntoView({ behavior:"smooth", block:"center" });
-    };
-    list.appendChild(div);
-  });
-}
-
-function copyText() {
-  const textarea = document.getElementById("resultTextarea");
-  if (!textarea.value) return;
-  textarea.select();
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(textarea.value).then(() => showModal("コピーしました✨"));
-  } else {
-    document.execCommand("copy");
-    showModal("コピーしました✨");
-  }
-}
-
-function showModal(msg) {
-  const modal = document.getElementById("modal");
-  modal.innerText = msg;
-  modal.style.opacity = "1";
-  modal.style.top = "50%";
-  setTimeout(() => { modal.style.opacity = "0"; }, 2500);
-}
-</script>
-</body>
-</html>
