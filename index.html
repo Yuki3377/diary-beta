@@ -52,15 +52,12 @@
   .schedule-disabled{ opacity:0.4; pointer-events:none; }
   .mic-btn{ border-radius:20px; border:1px solid #ffb3d0; background:#fff; color:#ff5fa2; padding:8px 16px; font-size:13px; font-weight:bold; cursor:pointer; transition:0.2s; display:inline-flex; align-items:center; gap:4px; }
   .mic-btn:active{ transform:scale(0.95); }
-  .mic-btn.recording{ background:#fff0f6; animation: pulse 1.5s infinite; }
-  @keyframes pulse{ 0%{ box-shadow:0 0 0 0 rgba(255,95,162,0.4); } 70%{ box-shadow:0 0 0 10px rgba(255,95,162,0); } 100%{ box-shadow:0 0 0 0 rgba(255,95,162,0); } }
-  /* ▼ 要件1: thanks.htmlと統一したHeader/Footerプレビューカード */
+  .mic-btn.recording{ background:#fff0f6; animation:pulse 1.5s infinite; }
+  @keyframes pulse{ 0%{box-shadow:0 0 0 0 rgba(255,95,162,0.4);} 70%{box-shadow:0 0 0 10px rgba(255,95,162,0);} 100%{box-shadow:0 0 0 0 rgba(255,95,162,0);} }
   .header-footer-preview{ font-size:12px; color:#999; padding:8px 12px; background:#fff0f6; border-radius:8px; margin-top:8px; text-align:left; }
-  /* ▼ 要件2: 季節・時期セレクトボックス */
   .select-row{ display:flex; gap:10px; margin-bottom:8px; }
   .select-row select{ flex:1; }
   .season-assist-note{ font-size:11px; color:#ff85b3; margin-top:4px; }
-  /* ▼ ローディング（thanks.htmlと統一） */
   .loading-overlay{ position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,244,248,0.92); backdrop-filter:blur(5px); z-index:9999; display:flex; flex-direction:column; justify-content:center; align-items:center; opacity:0; pointer-events:none; transition:opacity 0.3s ease; }
   .loading-overlay.active{ opacity:1; pointer-events:auto; }
   .heart-icon{ font-size:70px; margin-bottom:20px; animation:gentle-beat 2s infinite ease-in-out; }
@@ -84,7 +81,6 @@
     <input id="title" placeholder="例：久々の美容室（AIの文章にも反映されます）">
   </div>
 
-  <!-- ▼ 要件1: thanks.htmlと統一したHeader/Footerカード -->
   <div class="card">
     <div class="card-title">固定文（Header / Footer）<span class="sub-label">※保存されます</span></div>
     <label>冒頭固定挨拶（Header）</label>
@@ -98,7 +94,6 @@
     <div class="mini-note">入力すると自動保存・次回以降も表示されます</div>
   </div>
 
-  <!-- ▼ 要件2: 季節・時期KV指定UI -->
   <div class="card">
     <div class="card-title">季節・時期の指定<span class="sub-label">※日記に季節感を反映します</span></div>
     <div class="select-row">
@@ -145,9 +140,9 @@
   <div class="card">
     <label>ちょっぴり大人のスパイス<span class="sub-label">※文章の攻め具合</span></label>
     <div class="button-group" id="eroButtons"></div>
-    <div class="divider" style="margin: 16px 0;"></div>
+    <div class="divider" style="margin:16px 0;"></div>
     <label>文章の構成例<span class="sub-label">※こんなテイストの文章が入ります</span></label>
-    <div class="button-group" id="moodButtons" style="pointer-events: none; opacity: 0.8;"></div>
+    <div class="button-group" id="moodButtons" style="pointer-events:none; opacity:0.8;"></div>
   </div>
 
   <div class="card">
@@ -158,30 +153,13 @@
   <div class="card">
     <label>スケジュール告知オプション<span class="sub-label">※出勤情報を自然に組み込みます</span></label>
     <div class="radio-group" id="scheduleGroup">
-      <label class="radio-row">
-        <input type="radio" name="scheduleType" value="" checked onchange="onScheduleChange()">
-        <span>追加しない</span>
-      </label>
-      <label class="radio-row">
-        <input type="radio" name="scheduleType" value="today" onchange="onScheduleChange()">
-        <span>🕐 今日の出勤</span>
-      </label>
-      <label class="radio-row">
-        <input type="radio" name="scheduleType" value="remaining" onchange="onScheduleChange()">
-        <span>⏳ 残り時間</span>
-      </label>
-      <label class="radio-row">
-        <input type="radio" name="scheduleType" value="next" onchange="onScheduleChange()">
-        <span>📅 次回出勤</span>
-      </label>
-      <label class="radio-row">
-        <input type="radio" name="scheduleType" value="week" onchange="onScheduleChange()">
-        <span>📆 今週の出勤予定</span>
-      </label>
+      <label class="radio-row"><input type="radio" name="scheduleType" value="" checked onchange="onScheduleChange()"><span>追加しない</span></label>
+      <label class="radio-row"><input type="radio" name="scheduleType" value="today" onchange="onScheduleChange()"><span>🕐 今日の出勤</span></label>
+      <label class="radio-row"><input type="radio" name="scheduleType" value="remaining" onchange="onScheduleChange()"><span>⏳ 残り時間</span></label>
+      <label class="radio-row"><input type="radio" name="scheduleType" value="next" onchange="onScheduleChange()"><span>📅 次回出勤</span></label>
+      <label class="radio-row"><input type="radio" name="scheduleType" value="week" onchange="onScheduleChange()"><span>📆 今週の出勤予定</span></label>
     </div>
-    <div class="schedule-hint" id="scheduleHint">
-      CityHeavenの出勤情報を使って文章を作ります。プロフィール設定でID/PASSが保存済みであることを確認してください。
-    </div>
+    <div class="schedule-hint" id="scheduleHint">CityHeavenの出勤情報を使って文章を作ります。プロフィール設定でID/PASSが保存済みであることを確認してください。</div>
     <div class="mini-note" id="scheduleNote">「追加しない」以外を選ぶと、CityHeavenの出勤情報を使って文章を作ります</div>
   </div>
 
@@ -203,7 +181,6 @@
   </div>
 </div>
 
-<!-- ▼ thanks.htmlと統一したローディング -->
 <div id="loadingOverlay" class="loading-overlay">
   <div class="heart-icon">💕</div>
   <div class="loading-text">Writing...</div>
@@ -228,12 +205,11 @@ const ERO_LEVELS = [
 ];
 const LENGTH_OPTIONS = ["短め","長め"];
 
-let profile         = null;
-let selectedEro     = "low";
+let profile = null;
+let selectedEro = "low";
 let selectedSituation = null;
-let selectedLength  = "長め";
+let selectedLength = "長め";
 
-// --- 音声入力 ---
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition = null;
 let isRecording = false;
@@ -295,34 +271,26 @@ function toggleSpeechRecognition() {
   }
 }
 
-// ▼ 要件2: 季節アシストロジック
 function getSeasonAssist() {
-  const now  = new Date();
-  const day  = now.getDate();
-  const dow  = now.getDay(); // 0=日, 6=土
+  const now = new Date();
+  const day = now.getDate();
+  const dow = now.getDay();
   const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-
-  if (day <= 5)               return { value: "月初",  note: "📅 月初（1〜5日）を自動選択しました" };
-  if (day >= lastDay - 4)     return { value: "月末",  note: "📅 月末を自動選択しました" };
-  if (dow === 0 || dow === 6) return { value: "週末",  note: "📅 週末を自動選択しました" };
-  if (dow === 1)               return { value: "週明け",note: "📅 週明けを自動選択しました" };
-  if (day >= 11 && day <= 20) return { value: "月半ば",note: "📅 月半ばを自動選択しました" };
-  return { value: "指定なし", note: "" };
+  if (day <= 5)             return { value:"月初",  note:"📅 月初（1〜5日）を自動選択しました" };
+  if (day >= lastDay - 4)  return { value:"月末",  note:"📅 月末を自動選択しました" };
+  if (dow === 0 || dow === 6) return { value:"週末",  note:"📅 週末を自動選択しました" };
+  if (dow === 1)            return { value:"週明け", note:"📅 週明けを自動選択しました" };
+  if (day >= 11 && day <= 20) return { value:"月半ば", note:"📅 月半ばを自動選択しました" };
+  return { value:"指定なし", note:"" };
 }
 
 function initSeasonUI() {
   const now = new Date();
-  // 対象月：現在の月をデフォルト
   document.getElementById("targetMonth").value = now.getMonth() + 1;
-
-  // 時期：アシストロジックで自動判定
   const assist = getSeasonAssist();
   const select = document.getElementById("timeCategory");
   select.value = assist.value;
-  const note = document.getElementById("seasonAssistNote");
-  note.innerText = assist.note;
-
-  // 手動変更時はノートを消す
+  document.getElementById("seasonAssistNote").innerText = assist.note;
   select.addEventListener("change", () => {
     document.getElementById("seasonAssistNote").innerText = "（手動で変更されました）";
   });
@@ -332,7 +300,7 @@ window.onload = function() {
   safeLoadProfile();
   loadHeaderFooter();
   checkCityHeavenCredentials();
-  initSeasonUI(); // ▼ 季節UI初期化
+  initSeasonUI();
   createButtons(SITUATIONS_TOP,    "situationButtonsTop",    (v) => selectedSituation = v);
   createButtons(SITUATIONS_BOTTOM, "situationButtonsBottom", (v) => selectedSituation = v);
   createEroButtons();
@@ -360,313 +328,4 @@ function safeLoadProfile() {
       infoDiv.innerHTML = '<a href="profile.html" style="color:#ff5fa2; text-decoration:underline;">⚠️ プロフィールを設定してください</a>';
       return;
     }
-    profile = JSON.parse(saved);
-    infoDiv.innerText = profile.name + "（" + (profile.character || "") + "）";
-    const textarea = document.getElementById("resultTextarea");
-    if (profile.textAlign === "center") textarea.style.textAlign = "center";
-    else textarea.style.textAlign = "left";
-  } catch(e) {
-    infoDiv.innerHTML = '<a href="profile.html" style="color:#ff5fa2; text-decoration:underline;">⚠️ プロフィールを設定し直してください</a>';
-  }
-}
-
-function createButtons(list, containerId, callback) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-  list.forEach(item => {
-    const btn = document.createElement("button");
-    btn.className = "choice-btn";
-    btn.innerText = item;
-    if (containerId === "lengthButtons" && item === "長め") btn.classList.add("active");
-    btn.onclick = () => {
-      if (containerId.includes("situation")) {
-        document.querySelectorAll("#situationButtonsTop .choice-btn, #situationButtonsBottom .choice-btn").forEach(b => b.classList.remove("active"));
-      } else {
-        [...container.children].forEach(b => b.classList.remove("active"));
-      }
-      btn.classList.add("active");
-      callback(item);
-    };
-    container.appendChild(btn);
-  });
-}
-
-function createEroButtons() {
-  const container = document.getElementById("eroButtons");
-  if (!container) return;
-  container.innerHTML = "";
-  ERO_LEVELS.forEach((item) => {
-    const btn = document.createElement("button");
-    btn.className = "choice-btn";
-    btn.innerText = item.label;
-    if (item.value === selectedEro) btn.classList.add("active");
-    btn.onclick = () => {
-      [...container.children].forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      selectedEro = item.value;
-      renderMoodButtons(selectedEro);
-    };
-    container.appendChild(btn);
-  });
-}
-
-function renderMoodButtons(spiceLevel) {
-  const container = document.getElementById("moodButtons");
-  if (!container) return;
-  container.innerHTML = "";
-  (MOOD_MAP[spiceLevel] || []).forEach((item) => {
-    const btn = document.createElement("div");
-    btn.className = "choice-btn";
-    btn.style.cursor = "default";
-    btn.innerText = item;
-    container.appendChild(btn);
-  });
-}
-
-function onScheduleChange() {
-  const scheduleType = getSelectedScheduleType();
-  const hint = document.getElementById("scheduleHint");
-  if (scheduleType) hint.classList.add("visible");
-  else hint.classList.remove("visible");
-}
-
-function getSelectedScheduleType() {
-  const checked = document.querySelector('input[name="scheduleType"]:checked');
-  return checked ? checked.value : "";
-}
-
-function getCityHeavenCreds() {
-  const id   = localStorage.getItem("cityheavenId")   || localStorage.getItem("profile_cityheavenId")   || localStorage.getItem("ch_id")   || "";
-  const pass = localStorage.getItem("cityheavenPass") || localStorage.getItem("profile_cityheavenPass") || localStorage.getItem("ch_pass") || "";
-  return { id, pass };
-}
-
-// ▼ 要件1: thanks.htmlと統一したHeader/Footer処理
-function saveHeaderFooter() {
-  const hVal = document.getElementById("header").value;
-  const fVal = document.getElementById("footer").value;
-  localStorage.setItem("diaryHeader", hVal);
-  localStorage.setItem("diaryFooter", fVal);
-  document.getElementById("headerPreview").innerText = "Header: " + (hVal || "（未設定）");
-  document.getElementById("footerPreview").innerText = "Footer: " + (fVal || "（未設定）");
-}
-
-function loadHeaderFooter() {
-  const hVal = localStorage.getItem("diaryHeader") || "";
-  const fVal = localStorage.getItem("diaryFooter") || "";
-  const headerEl = document.getElementById("header");
-  const footerEl = document.getElementById("footer");
-  if (headerEl) { headerEl.value = hVal; headerEl.addEventListener("input", saveHeaderFooter); }
-  if (footerEl) { footerEl.value = fVal; footerEl.addEventListener("input", saveHeaderFooter); }
-  document.getElementById("headerPreview").innerText = "Header: " + (hVal || "（未設定）");
-  document.getElementById("footerPreview").innerText = "Footer: " + (fVal || "（未設定）");
-}
-
-async function generate() {
-  if (!profile || !profile.name) {
-    showModal("プロフィール設定がまだのようです💦");
-    setTimeout(() => location.href = "profile.html", 1500);
-    return;
-  }
-  const title = document.getElementById("title").value.trim();
-  if (!title) { showModal("題名を入力してね"); return; }
-  if (!selectedSituation) { showModal("日記の状況を選んでね"); return; }
-
-  const scheduleType = getSelectedScheduleType();
-  const { id: cityheavenId, pass: cityheavenPass } = getCityHeavenCreds();
-
-  if (scheduleType && (!cityheavenId || !cityheavenPass)) {
-    showModal("プロフィール設定でCityHeaven情報を保存してください");
-    setTimeout(() => location.href = "profile.html", 2000);
-    return;
-  }
-
-  // ▼ 要件2: 選択値を取得
-  const targetMonth   = parseInt(document.getElementById("targetMonth").value, 10);
-  const timeCategory  = document.getElementById("timeCategory").value;
-
-  const loader = document.getElementById("loadingOverlay");
-  loader.classList.add("active");
-
-  const btn = document.getElementById("generateBtn");
-  btn.disabled = true;
-
-  try {
-    let scheduleData = null;
-    if (scheduleType) {
-      let scrapeData = {};
-      try {
-        const scrapeRes = await fetch(WORKER_URL + "/get-schedule-msg", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ cityheavenId, cityheavenPass })
-        });
-        scrapeData = await scrapeRes.json().catch(() => ({}));
-      } catch(e) {
-        showModal("出勤情報の取得に失敗しました。通常モードで生成します💦");
-      }
-
-      if (scrapeData.ok) {
-        if (scheduleType === "today" || scheduleType === "remaining") {
-          const todayShift = scrapeData.todayShift || (scrapeData.nextShift?.dateLabel === "本日" ? scrapeData.nextShift : null);
-          if (!todayShift) showModal("本日の出勤情報がありません。通常モードで生成します");
-          else scheduleData = todayShift;
-        } else if (scheduleType === "next") {
-          const allShifts = scrapeData.allShifts || [];
-          const nextShift = allShifts.find(s => s.dateLabel !== "本日") || null;
-          if (!nextShift) showModal("次回出勤情報がありません。通常モードで生成します");
-          else scheduleData = nextShift;
-        } else if (scheduleType === "week") {
-          const weekShifts = (scrapeData.allShifts || []).filter(s => s.dateLabel !== "本日").slice(0, 7);
-          if (weekShifts.length === 0) showModal("今週の出勤予定がありません。通常モードで生成します");
-          else scheduleData = weekShifts;
-        }
-      }
-    }
-
-    const useSchedule = scheduleType && scheduleData;
-    const route = useSchedule ? "/generate-with-schedule" : "/generate";
-
-    // ▼ 要件3: target_month / time_category をペイロードに追加
-    const postBody = {
-      mode:         "diary",
-      storeType:    profile.storeType    || "普通店",
-      name:         profile.name         || "",
-      character:    profile.character    || "",
-      characters:   profile.characters   || [],
-      traits:       profile.traits       || [],
-      situation:    selectedSituation,
-      spiceLevel:   selectedEro,
-      targetLength: selectedLength === "短め" ? 140 : 220,
-      emojiPalette: ["💕","🥺","✨","💦","💋","🤫","🍼","🔞"],
-      customer:     profile.customerCall || "お客様",
-      header:       document.getElementById("header").value.trim(),
-      footer:       document.getElementById("footer").value.trim(),
-      title:        title,
-      freeText:     document.getElementById("freeText").value.trim(),
-      scheduleType: useSchedule ? scheduleType : "",
-      scheduleData: scheduleData,
-      target_month: targetMonth,   // ▼ 追加
-      time_category: timeCategory  // ▼ 追加
-    };
-
-    const response = await fetch(WORKER_URL + route, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(postBody)
-    });
-
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok || !data.ok) {
-      showModal(data.message || data.error || "生成エラー💦");
-      return;
-    }
-
-    let bodyText = data.result || data.finalText || data.text || "";
-    bodyText = bodyText.replace(/\r\n/g,"\n").replace(/\n{3,}/g,"\n\n").trim();
-    const fullText = "【" + title + "】\n\n" + bodyText;
-    const container = document.getElementById("resultContainer");
-    container.style.display = "block";
-    const textarea = document.getElementById("resultTextarea");
-    textarea.value = fullText;
-    if (profile.textAlign === "center") textarea.style.textAlign = "center";
-    else textarea.style.textAlign = "left";
-    addToHistory(fullText);
-    container.scrollIntoView({ behavior:"smooth", block:"center" });
-
-  } catch (error) {
-    console.error(error);
-    showModal("通信エラー💦");
-  } finally {
-    loader.classList.remove("active");
-    btn.innerText = "日記をつくる";
-    btn.disabled = false;
-  }
-}
-
-function migrateHistoryIfNeeded() {
-  let raw = localStorage.getItem("diaryHistory");
-  if (!raw) return;
-  try {
-    let history = JSON.parse(raw);
-    if (history.length > 0 && (typeof history[0] === "string" || !history[0].id)) {
-      const newFormat = history.map(item => {
-        const text = (typeof item === "string") ? item : (item.text || "");
-        return { text, fav: false, id: Date.now() + Math.random() };
-      });
-      localStorage.setItem("diaryHistory", JSON.stringify(newFormat));
-    }
-  } catch(e) { localStorage.removeItem("diaryHistory"); }
-}
-
-function addToHistory(text) {
-  let history = getHistory();
-  history.unshift({ text, fav: false, id: Date.now() });
-  if (history.length > 20) history = history.slice(0, 20);
-  saveHistory(history);
-  renderHistory();
-}
-
-function toggleFav(id) {
-  let history = getHistory();
-  const index = history.findIndex(h => h.id === id);
-  if (index !== -1) {
-    history[index].fav = !history[index].fav;
-    saveHistory(history);
-    renderHistory();
-  }
-}
-
-function getHistory() { try { return JSON.parse(localStorage.getItem("diaryHistory") || "[]"); } catch(e) { return []; } }
-function saveHistory(history) { localStorage.setItem("diaryHistory", JSON.stringify(history)); }
-
-function renderHistory() {
-  const history = getHistory();
-  const list = document.getElementById("historyList");
-  list.innerHTML = "";
-  if (history.length === 0) {
-    list.innerHTML = '<div style="text-align:center; font-size:12px; color:#aaa;">まだ履歴はありません</div>';
-    return;
-  }
-  history.forEach(item => {
-    const div = document.createElement("div");
-    div.className = "history-item";
-    const preview = (item.text || "").split("\n")[0] || "無題";
-    const heartClass = item.fav ? "active" : "";
-    div.innerHTML = '<div class="history-text">' + preview + '</div><button class="fav-btn ' + heartClass + '" onclick="event.stopPropagation(); toggleFav(' + item.id + ')">♥</button>';
-    div.onclick = () => {
-      const container = document.getElementById("resultContainer");
-      container.style.display = "block";
-      const textarea = document.getElementById("resultTextarea");
-      textarea.value = item.text || "";
-      if (profile && profile.textAlign === "center") textarea.style.textAlign = "center";
-      else textarea.style.textAlign = "left";
-      container.scrollIntoView({ behavior:"smooth", block:"center" });
-    };
-    list.appendChild(div);
-  });
-}
-
-function copyText() {
-  const textarea = document.getElementById("resultTextarea");
-  if (!textarea.value) return;
-  textarea.select();
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(textarea.value).then(() => showModal("コピーしました✨"));
-  } else {
-    document.execCommand("copy");
-    showModal("コピーしました✨");
-  }
-}
-
-function showModal(msg) {
-  const modal = document.getElementById("modal");
-  modal.innerText = msg;
-  modal.style.opacity = "1";
-  modal.style.top = "50%";
-  setTimeout(() => { modal.style.opacity = "0"; }, 2500);
-}
-</script>
-</body>
-</html>
-```
+    profile = JSON.parse(saved
