@@ -27,7 +27,8 @@ input:focus, textarea:focus{ border-color:#d09dfc; background:#fff; }
 textarea{ min-height:80px; resize:vertical; }
 ::placeholder{ color:#aaa; font-size:14px; }
 .button-group{ display:flex; flex-wrap:wrap; gap:8px; }
-.choice-btn{ padding:8px 12px; border-radius:18px; border:1px solid #ebdcfc; background:#fff; color:#777; cursor:pointer; font-size:13px; user-select:none; transition:0.2s; }
+.divider{ width:100%; height:1px; background:#f0f0f0; margin:10px 0; }
+.choice-btn{ padding:10px 12px; border-radius:18px; border:1px solid #ebdcfc; background:#fff; color:#777; cursor:pointer; font-size:13px; user-select:none; transition:0.2s; text-align:center; }
 .choice-btn:active{ transform:scale(0.95); }
 .choice-btn.active{ background:#a65cd6; color:#fff; border-color:#a65cd6; box-shadow:0 2px 6px rgba(166,92,214,0.3); }
 button.primary{ width:100%; padding:16px; border:none; border-radius:30px; background:linear-gradient(135deg,#a65cd6,#d485ff); color:white; margin-top:10px; font-size:16px; font-weight:bold; cursor:pointer; box-shadow:0 4px 12px rgba(166,92,214,0.3); transition:0.2s; }
@@ -49,6 +50,10 @@ button.primary:disabled{ background:#ddd; cursor:not-allowed; box-shadow:none; }
 .radio-row{ display:flex; align-items:center; gap:10px; font-size:14px; color:#666; font-weight:normal; padding:10px 12px; border-radius:10px; border:1px solid #f0f0f0; background:#fafafa; cursor:pointer; transition:0.2s; justify-content:flex-start; }
 .radio-row:has(input:checked){ border-color:#d09dfc; background:#fdf6ff; color:#a65cd6; font-weight:bold; }
 .radio-row input[type="radio"]{ width:auto; padding:0; margin:0; accent-color:#a65cd6; flex-shrink:0; }
+.structure-box{ background:#fdf6ff; border-radius:12px; padding:14px 16px; margin-top:8px; }
+.structure-row{ display:flex; align-items:flex-start; gap:10px; padding:6px 0; border-bottom:1px solid #ebdcfc; font-size:13px; color:#666; }
+.structure-row:last-child{ border-bottom:none; }
+.structure-tag{ font-size:11px; font-weight:bold; color:#a65cd6; background:#f0e4ff; padding:2px 8px; border-radius:10px; white-space:nowrap; flex-shrink:0; }
 </style>
 </head>
 <body>
@@ -100,6 +105,19 @@ button.primary:disabled{ background:#ddd; cursor:not-allowed; box-shadow:none; }
   </div>
 
   <div class="card">
+    <label>ちょっぴり大人のスパイス<span class="sub-label">※文章の攻め具合</span></label>
+    <div class="button-group" id="eroButtons"></div>
+    <div class="divider" style="margin:16px 0;"></div>
+    <label>文章の構成例<span class="sub-label">※お礼日記の流れ</span></label>
+    <div class="structure-box">
+      <div class="structure-row"><span class="structure-tag">冒頭</span><span>挨拶 ＋ 今日会えた感謝</span></div>
+      <div class="structure-row"><span class="structure-tag">中盤</span><span>接客中の具体的なエピソード（自由入力の内容）</span></div>
+      <div class="structure-row"><span class="structure-tag">終盤</span><span>スパイスを効かせた余韻 ＋ 次回の指名への匂わせ</span></div>
+      <div class="structure-row"><span class="structure-tag">末尾</span><span>定型署名（Footer）</span></div>
+    </div>
+  </div>
+
+  <div class="card">
     <label>文章のボリューム<span class="sub-label">※毎回少し変動します</span></label>
     <div class="radio-group">
       <label class="radio-row"><input type="radio" name="thanksLength" value="140" checked><span>短め</span></label>
@@ -134,10 +152,17 @@ const EPISODES = [
   "いっぱいせめた","いっぱいせめられた","ぎゅってしてくれた","また誘ってください",
   "照れてた","恥ずかしかった"
 ];
+const ERO_LEVELS = [
+  { label:"清潔感 ⭐️",         value:"low"   },
+  { label:"ほんのりH ⭐️⭐️",    value:"mid"   },
+  { label:"過激 ⭐️⭐️⭐️",      value:"high"  },
+  { label:"過激○伏せ ⭐️⭐️⭐️", value:"ultra" }
+];
 
 let profile          = null;
 let selectedType     = null;
 let selectedEpisodes = [];
+let selectedEro      = "low";
 
 window.onload = function() {
   loadProfile();
@@ -164,6 +189,7 @@ window.onload = function() {
       btn.classList.add("active");
     }
   });
+  createEroButtons();
 };
 
 function createSingleButtons(containerId, list, onClick) {
@@ -186,6 +212,24 @@ function createMultiButtons(containerId, list, onClick) {
     btn.className = "choice-btn";
     btn.innerText = item;
     btn.onclick = () => onClick(item, btn);
+    container.appendChild(btn);
+  });
+}
+
+function createEroButtons() {
+  const container = document.getElementById("eroButtons");
+  if (!container) return;
+  container.innerHTML = "";
+  ERO_LEVELS.forEach((item) => {
+    const btn = document.createElement("button");
+    btn.className = "choice-btn";
+    btn.innerText = item.label;
+    if (item.value === selectedEro) btn.classList.add("active");
+    btn.onclick = () => {
+      [...container.children].forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      selectedEro = item.value;
+    };
     container.appendChild(btn);
   });
 }
@@ -263,6 +307,7 @@ async function generate() {
         mode:          "thanks",
         customer:      customerLabel,
         thanksContext: thanksContext,
+        spiceLevel:    selectedEro,
         targetLength:  targetLength,
         emojiPalette:  ["💕","🥺","✨","💦","💋","🤫","🍼","🔞"],
         header:        localStorage.getItem("diaryHeader") || "",
