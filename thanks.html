@@ -13,8 +13,8 @@ body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Goth
 .wrapper{ max-width:520px; margin:20px auto; padding:20px; animation:fadeUp .4s ease; }
 h2{ margin:0 0 10px 0; color:#a65cd6; font-size:22px; text-align:center; }
 .navbar{ display:flex; justify-content:center; gap:6px; background:#fff; border-radius:12px; padding:6px; border:1px solid #ebdcfc; margin:0 0 6px; }
-.nav-btn{ flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; padding:7px 4px; border-radius:8px; text-decoration:none; font-size:11px; color:#ccc; font-weight:bold; transition:0.2s; }
-.nav-btn.active{ background:#f8f0fc; color:#a65cd6; }
+.nav-btn{ flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; padding:7px 4px; border-radius:8px; text-decoration:none; font-size:11px; color:#ccc; font-weight:bold; transition:0.2s; -webkit-tap-highlight-color:transparent; cursor:pointer; }
+.nav-btn.active{ background:#f8f0fc; color:#a65cd6; pointer-events:none; }
 .nav-ico{ font-size:18px; }
 .nav-note{ text-align:center; font-size:11px; color:#aaa; margin:0 0 20px; }
 .profileInfo{ font-size:13px; color:#999; margin-bottom:20px; text-align:center; min-height:1.2em; }
@@ -127,7 +127,7 @@ button.primary:disabled{ background:#ddd; cursor:not-allowed; box-shadow:none; }
 <div id="modal" class="modal"></div>
 
 <script>
-const WORKER_URL    = "https://openrouter-diary-api.doropbox-kyoto.workers.dev";
+const WORKER_URL     = "https://openrouter-diary-api.doropbox-kyoto.workers.dev";
 const CUSTOMER_TYPES = ["新規様","仲良しさん","本指名さん","お久しぶり","お兄さん","お兄様","イニシャル・名前で呼ぶ"];
 const EPISODES = [
   "長めコース","貸切","あっという間に","いっぱい褒めてくれた","たくさんイッちゃった",
@@ -243,12 +243,12 @@ async function generate() {
     if (!initial) { showModal("イニシャルまたは名前を入力してね"); return; }
   }
 
-  const customerLabel  = getCustomerLabel();
-  const fixedDetail    = document.getElementById("fixedDetail").value.trim();
-  const todayMemo      = document.getElementById("todayMemo").value.trim();
-  const contextParts   = [fixedDetail, todayMemo, ...selectedEpisodes].filter(Boolean);
-  const thanksContext  = contextParts.join("、") || customerLabel;
-  const targetLength   = getTargetLength();
+  const customerLabel = getCustomerLabel();
+  const fixedDetail   = document.getElementById("fixedDetail").value.trim();
+  const todayMemo     = document.getElementById("todayMemo").value.trim();
+  const contextParts  = [fixedDetail, todayMemo, ...selectedEpisodes].filter(Boolean);
+  const thanksContext = contextParts.join("、") || customerLabel;
+  const targetLength  = getTargetLength();
 
   const loader = document.getElementById("loadingOverlay");
   const btn    = document.getElementById("generateBtn");
@@ -271,7 +271,6 @@ async function generate() {
     });
 
     const data = await response.json().catch(() => ({}));
-
     if (!response.ok || !data.ok) {
       showModal(data.message || data.error || "生成エラー💦");
       return;
@@ -279,5 +278,41 @@ async function generate() {
 
     let bodyText = data.result || data.text || "";
     bodyText = bodyText.replace(/\r\n/g,"\n").replace(/\n{3,}/g,"\n\n").trim();
+    if (!bodyText) { showModal("生成結果が空でした💦"); return; }
 
-    if (!bodyText) {
+    const container = document.getElementById("resultContainer");
+    container.style.display = "block";
+    document.getElementById("resultTextarea").value = bodyText;
+    container.scrollIntoView({ behavior:"smooth", block:"center" });
+
+  } catch (error) {
+    console.error(error);
+    showModal("通信エラー💦");
+  } finally {
+    loader.classList.remove("active");
+    btn.disabled = false;
+  }
+}
+
+function copyText() {
+  const textarea = document.getElementById("resultTextarea");
+  if (!textarea.value) return;
+  textarea.select();
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(textarea.value).then(() => showModal("コピーしました✨"));
+  } else {
+    document.execCommand("copy");
+    showModal("コピーしました✨");
+  }
+}
+
+function showModal(msg) {
+  const modal = document.getElementById("modal");
+  modal.innerText = msg;
+  modal.style.opacity = "1";
+  modal.style.top = "50%";
+  setTimeout(() => { modal.style.opacity = "0"; }, 2500);
+}
+</script>
+</body>
+</html>
