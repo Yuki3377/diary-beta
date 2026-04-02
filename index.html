@@ -26,8 +26,9 @@
   input:focus, textarea:focus, select:focus{ border-color:#ff85b3; background:#fff; }
   ::placeholder{ color:#aaa; font-size:14px; }
   .button-group{ display:flex; flex-wrap:wrap; gap:8px; }
+  .situation-group{ display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; }
   .divider{ width:100%; height:1px; background:#f0f0f0; margin:10px 0; }
-  .choice-btn{ padding:8px 12px; border-radius:18px; border:1px solid #ffe0eb; background:#fff; color:#666; cursor:pointer; font-size:13px; user-select:none; transition:0.2s; }
+  .choice-btn{ padding:10px 12px; border-radius:18px; border:1px solid #ffe0eb; background:#fff; color:#666; cursor:pointer; font-size:13px; user-select:none; transition:0.2s; text-align:center; }
   .choice-btn:active{ transform:scale(0.95); }
   .choice-btn.active{ background:#ff5fa2; color:#fff; border-color:#ff5fa2; box-shadow:0 2px 6px rgba(255,95,162,0.3); }
   button.primary{ width:100%; padding:16px; border:none; border-radius:30px; background:linear-gradient(135deg,#ff5fa2,#ff85b3); color:white; margin-top:10px; font-size:16px; font-weight:bold; cursor:pointer; box-shadow:0 4px 12px rgba(255,95,162,0.3); transition:0.2s; }
@@ -107,9 +108,7 @@
 
   <div class="card">
     <label>日記の状況<span class="sub-label">※内容のベースになります</span></label>
-    <div class="button-group" id="situationButtonsTop"></div>
-    <div class="divider"></div>
-    <div class="button-group" id="situationButtonsBottom"></div>
+    <div class="situation-group" id="situationButtons"></div>
   </div>
 
   <div class="card">
@@ -196,8 +195,7 @@ const MOOD_MAP = {
   high:  ["もっと奥まで","止まらなくなっちゃう","濡れすぎちゃって💦","欲求不満で大変"],
   ultra: ["マ○コが濡れすぎて","チ○チ○を舐めたい","アソコがベ○ャベ○ャになってる","ムラムラし過ぎてマ○コを触って欲しいの"]
 };
-const SITUATIONS_TOP    = ["待機中","明日出勤","退勤"];
-const SITUATIONS_BOTTOM = ["出勤前","休憩中","お休み","美容Day","お買い物","ご飯","お酒","寝る前","お散歩","早起き","雨の日","旅行"];
+const SITUATIONS = ["待機中","出勤前","退勤","明日出勤","お休み"];
 const ERO_LEVELS = [
   { label:"清潔感 ⭐️",         value:"low"   },
   { label:"ほんのりH ⭐️⭐️",    value:"mid"   },
@@ -297,14 +295,29 @@ window.onload = function() {
   loadHeaderFooter();
   checkCityHeavenCredentials();
   document.getElementById("targetMonth").value = new Date().getMonth() + 1;
-  createButtons(SITUATIONS_TOP,    "situationButtonsTop",    (v) => selectedSituation = v);
-  createButtons(SITUATIONS_BOTTOM, "situationButtonsBottom", (v) => selectedSituation = v);
+  createSituationButtons();
   createEroButtons();
   renderMoodButtons(selectedEro);
   createButtons(LENGTH_OPTIONS, "lengthButtons", (v) => selectedLength = v);
   try { migrateHistoryIfNeeded(); renderHistory(); }
   catch(e) { localStorage.removeItem("diaryHistory"); renderHistory(); }
 };
+
+function createSituationButtons() {
+  const container = document.getElementById("situationButtons");
+  if (!container) return;
+  SITUATIONS.forEach(item => {
+    const btn = document.createElement("button");
+    btn.className = "choice-btn";
+    btn.innerText = item;
+    btn.onclick = () => {
+      document.querySelectorAll("#situationButtons .choice-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      selectedSituation = item;
+    };
+    container.appendChild(btn);
+  });
+}
 
 function checkCityHeavenCredentials() {
   const { id, pass } = getCityHeavenCreds();
@@ -349,11 +362,7 @@ function createButtons(list, containerId, callback) {
     btn.innerText = item;
     if (containerId === "lengthButtons" && item === "長め") btn.classList.add("active");
     btn.onclick = () => {
-      if (containerId.includes("situation")) {
-        document.querySelectorAll("#situationButtonsTop .choice-btn, #situationButtonsBottom .choice-btn").forEach(b => b.classList.remove("active"));
-      } else {
-        [...container.children].forEach(b => b.classList.remove("active"));
-      }
+      [...container.children].forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
       callback(item);
     };
