@@ -3,704 +3,298 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>写メ日記をつくる</title>
+<title>プロフィール設定</title>
 <style>
   html,body{ touch-action: manipulation; -webkit-text-size-adjust:100%; }
   *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
   body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif; background:#fff4f8; color:#444; }
   @keyframes fadeUp{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
-  @keyframes popIn{ 0%{transform:scale(0.8); opacity:0;} 100%{transform:scale(1); opacity:1;} }
   .wrapper{ max-width:520px; margin:20px auto; padding:20px; animation:fadeUp .4s ease; }
   h2{ margin:0 0 10px 0; color:#ff5fa2; font-size:22px; text-align:center; }
   .navbar{ display:flex; justify-content:center; gap:6px; background:#fff; border-radius:12px; padding:6px; border:1px solid #ffe0eb; margin:0 0 6px; }
-  .nav-btn{ flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; padding:7px 4px; border-radius:8px; text-decoration:none; font-size:11px; color:#ccc; font-weight:bold; transition:0.2s; }
-  .nav-btn.active{ background:#fff0f6; color:#ff5fa2; }
+  .nav-btn{ flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; padding:7px 4px; border-radius:8px; text-decoration:none; font-size:11px; color:#ccc; font-weight:bold; transition:0.2s; -webkit-tap-highlight-color:transparent; cursor:pointer; }
+  .nav-btn.active{ background:#fff0f6; color:#ff5fa2; pointer-events:none; }
   .nav-ico{ font-size:18px; }
   .nav-note{ text-align:center; font-size:11px; color:#aaa; margin:0 0 20px; }
-  .profileInfo{ font-size:13px; color:#888; margin-bottom:20px; text-align:center; min-height:1.2em; }
   .card{ background:#fff; padding:18px; border-radius:20px; margin-bottom:16px; box-shadow:0 4px 15px rgba(255,95,162,0.06); }
   .card-title{ font-size:15px; font-weight:bold; color:#ff5fa2; margin-bottom:14px; padding-bottom:8px; border-bottom:1px solid #ffe0eb; }
-  label{ font-size:14px; font-weight:bold; color:#ff5fa2; display:block; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; }
-  .sub-label{ font-size:11px; color:#aaa; font-weight:normal; margin-left:8px; }
-  input, textarea, select{ width:100%; padding:14px; border-radius:12px; border:1px solid #f0f0f0; font-size:16px; background:#fafafa; transition:0.2s; outline:none; color:#444; appearance:none; line-height:1.6; }
-  input:focus, textarea:focus, select:focus{ border-color:#ff85b3; background:#fff; }
+  label{ display:block; font-size:13px; font-weight:bold; color:#ff5fa2; margin:12px 0 6px; }
+  .sub-label{ font-size:11px; color:#aaa; font-weight:normal; margin-left:5px; }
+  input, textarea{ width:100%; padding:14px; border-radius:12px; border:1px solid #f0f0f0; font-size:16px; background:#fafafa; outline:none; appearance:none; color:#444; transition:0.2s; line-height:1.6; }
+  input:focus, textarea:focus{ border-color:#ff85b3; background:#fff; }
   ::placeholder{ color:#aaa; font-size:14px; }
-  .button-group{ display:flex; flex-wrap:wrap; gap:8px; }
-  .divider{ width:100%; height:1px; background:#f0f0f0; margin:10px 0; }
+  .btn-group{ display:flex; flex-wrap:wrap; gap:8px; margin-top:6px; }
   .choice-btn{ padding:8px 12px; border-radius:18px; border:1px solid #ffe0eb; background:#fff; color:#666; cursor:pointer; font-size:13px; user-select:none; transition:0.2s; }
   .choice-btn:active{ transform:scale(0.95); }
   .choice-btn.active{ background:#ff5fa2; color:#fff; border-color:#ff5fa2; box-shadow:0 2px 6px rgba(255,95,162,0.3); }
-  button.primary{ width:100%; padding:16px; border:none; border-radius:30px; background:linear-gradient(135deg,#ff5fa2,#ff85b3); color:white; margin-top:10px; font-size:16px; font-weight:bold; cursor:pointer; box-shadow:0 4px 12px rgba(255,95,162,0.3); transition:0.2s; }
-  button.primary:active{ transform:scale(0.98); }
-  button.primary:disabled{ background:#ddd; cursor:not-allowed; box-shadow:none; }
-  .result-container{ display:none; margin-top:20px; animation:popIn .3s cubic-bezier(0.175,0.885,0.32,1.275); }
-  .history{ margin-top:40px; border-top:2px dashed #ffe0eb; padding-top:20px; }
-  .history h3{ font-size:16px; color:#888; margin-bottom:15px; text-align:center; }
-  .history-item{ background:#fff; padding:12px 14px; border-radius:12px; margin-bottom:10px; font-size:13px; border:1px solid #f8f8f8; display:flex; justify-content:space-between; align-items:center; cursor:pointer; transition:0.2s; }
-  .history-item:active{ background:#fff0f6; }
-  .history-text{ flex:1; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; color:#555; }
-  .fav-btn{ background:none; border:none; font-size:18px; color:#ddd; cursor:pointer; padding:0 0 0 10px; margin-left:8px; transition:color 0.2s; }
-  .fav-btn.active{ color:#ff5fa2; }
-  .modal{ position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(60,60,60,0.9); color:#fff; padding:16px 24px; border-radius:30px; font-size:14px; opacity:0; transition:0.3s; pointer-events:none; z-index:1000; text-align:center; white-space:nowrap; }
+  .limit-info{ font-size:12px; color:#aaa; margin-top:8px; text-align:right; }
+  .limit-info.full{ color:#ff5fa2; }
+  .align-group{ display:flex; gap:10px; margin-top:6px; }
+  .align-btn{ flex:1; padding:12px; border-radius:12px; border:1px solid #ffe0eb; background:#fff; color:#666; cursor:pointer; font-size:14px; text-align:center; transition:0.2s; user-select:none; }
+  .align-btn.active{ background:#ff5fa2; color:#fff; border-color:#ff5fa2; }
+  .hint{ font-size:12px; color:#999; margin-top:8px; line-height:1.6; }
+  button.save-btn{ width:100%; padding:16px; border:none; border-radius:30px; background:linear-gradient(135deg,#ff5fa2,#ff85b3); color:white; font-size:16px; font-weight:bold; margin-top:10px; cursor:pointer; box-shadow:0 4px 12px rgba(255,95,162,0.3); transition:0.2s; }
+  button.save-btn:active{ transform:scale(0.98); }
+  #statusMsg{ text-align:center; font-size:14px; margin-top:12px; height:1.2em; color:#ff5fa2; font-weight:bold; }
+  .logout-btn{ width:100%; padding:12px; border-radius:12px; background:#fff; color:#ff5fa2; font-size:14px; font-weight:bold; cursor:pointer; margin-top:12px; border:1px solid #ffe0eb; transition:0.2s; }
+  .logout-btn:active{ background:#fff0f6; transform:scale(0.98); }
+  .logout-msg{ font-size:12px; color:#ff5fa2; text-align:center; margin-top:6px; min-height:1.2em; }
   .mini-note{ font-size:12px; color:#999; margin-top:6px; }
-  .radio-group{ display:flex; flex-direction:column; gap:10px; }
-  .radio-row{ display:flex; align-items:center; gap:10px; font-size:14px; color:#666; font-weight:normal; padding:10px 12px; border-radius:10px; border:1px solid #f0f0f0; background:#fafafa; cursor:pointer; transition:0.2s; justify-content:flex-start; }
-  .radio-row:has(input:checked){ border-color:#ff85b3; background:#fff5f9; color:#ff5fa2; font-weight:bold; }
-  .radio-row input[type="radio"]{ width:auto; padding:0; margin:0; accent-color:#ff5fa2; flex-shrink:0; }
-  .schedule-disabled{ opacity:0.4; pointer-events:none; }
-  .mic-btn{ border-radius:20px; border:1px solid #ffb3d0; background:#fff; color:#ff5fa2; padding:8px 16px; font-size:13px; font-weight:bold; cursor:pointer; transition:0.2s; display:inline-flex; align-items:center; gap:4px; }
-  .mic-btn:active{ transform:scale(0.95); }
-  .mic-btn.recording{ background:#fff0f6; animation:pulse 1.5s infinite; }
-  @keyframes pulse{ 0%{box-shadow:0 0 0 0 rgba(255,95,162,0.4);} 70%{box-shadow:0 0 0 10px rgba(255,95,162,0);} 100%{box-shadow:0 0 0 0 rgba(255,95,162,0);} }
-  .header-footer-preview{ font-size:12px; color:#999; padding:8px 12px; background:#fff0f6; border-radius:8px; margin-top:8px; text-align:left; }
-  .loading-overlay{ position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,244,248,0.92); backdrop-filter:blur(5px); z-index:9999; display:flex; flex-direction:column; justify-content:center; align-items:center; opacity:0; pointer-events:none; transition:opacity 0.3s ease; }
-  .loading-overlay.active{ opacity:1; pointer-events:auto; }
-  .heart-icon{ font-size:70px; margin-bottom:20px; animation:gentle-beat 2s infinite ease-in-out; }
-  @keyframes gentle-beat{ 0%{transform:scale(1);opacity:0.9;} 50%{transform:scale(1.15);opacity:1;} 100%{transform:scale(1);opacity:0.9;} }
-  .loading-text{ font-size:18px; color:#ff5fa2; font-weight:bold; letter-spacing:2px; }
-  .season-month-wrap{ margin-bottom:12px; transition:opacity 0.2s; }
-  .season-month-wrap.disabled{ opacity:0.35; pointer-events:none; }
-  /* シフトプレビュー */
-  .shift-fetch-btn{ width:100%; padding:12px; border:2px dashed #ffb3d0; border-radius:12px; background:#fff; color:#ff5fa2; font-size:14px; font-weight:bold; cursor:pointer; transition:0.2s; margin-top:12px; }
-  .shift-fetch-btn:active{ background:#fff0f6; }
-  .shift-fetch-btn:disabled{ opacity:0.4; cursor:not-allowed; }
-  .shift-preview{ margin-top:12px; padding:12px 14px; background:#fff0f6; border-radius:10px; border:1px solid #ffb3d0; font-size:13px; display:none; }
-  .shift-preview.visible{ display:block; }
-  .shift-preview-title{ font-size:12px; color:#ff5fa2; font-weight:bold; margin-bottom:6px; }
-  .shift-preview-item{ padding:4px 0; color:#555; border-bottom:1px solid #ffe0eb; }
-  .shift-preview-item:last-child{ border-bottom:none; }
-  .shift-status{ font-size:12px; margin-top:8px; }
-  .shift-status.ok{ color:#22c55e; }
-  .shift-status.error{ color:#ef4444; }
 </style>
 </head>
 <body>
 <div class="wrapper">
-  <h2>写メ日記をつくる</h2>
+  <h2>プロフィール設定</h2>
   <div class="navbar">
-    <a href="index.html" class="nav-btn active"><span class="nav-ico">📝</span>写メ日記</a>
+    <a href="index.html" class="nav-btn"><span class="nav-ico">📝</span>写メ日記</a>
     <a href="thanks.html" class="nav-btn"><span class="nav-ico">💜</span>お礼日記</a>
-    <a href="profile.html" class="nav-btn"><span class="nav-ico">⚙️</span>プロフィール</a>
+    <a href="profile.html" class="nav-btn active"><span class="nav-ico">⚙️</span>プロフィール</a>
   </div>
   <div class="nav-note">ボタンでページを移動してください</div>
-  <div class="profileInfo" id="profileInfo">読み込み中...</div>
 
   <div class="card">
-    <label>題名</label>
-    <input id="title" placeholder="例：久々の美容室（AIの文章にも反映されます）">
+    <div class="card-title">基本情報</div>
+    <label>源氏名</label>
+    <input type="text" id="name" placeholder="例：あみ">
+    <label>文字の寄せ方</label>
+    <div class="align-group">
+      <div class="align-btn active" id="alignLeft" onclick="selectAlign('left')">← 左寄せ</div>
+      <div class="align-btn" id="alignCenter" onclick="selectAlign('center')">中央揃え</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">お店のコンセプト</div>
+    <div class="btn-group" id="storeTypeBtns"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">女の子のキャラクター <span class="sub-label">※3つまで</span></div>
+    <div class="btn-group" id="characterBtns"></div>
+    <div class="limit-info" id="charLimitInfo">あと 3 つ選べます</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">あなたの特徴 <span class="sub-label">※4つまで</span></div>
+    <div class="btn-group" id="traitBtns"></div>
+    <div class="limit-info" id="traitLimitInfo">あと 4 つ選べます</div>
   </div>
 
   <div class="card">
     <div class="card-title">固定文（Header / Footer）</div>
-    <div class="header-footer-preview" id="headerPreview">Header: （未設定）</div>
-    <div class="header-footer-preview" id="footerPreview" style="margin-top:6px;">Footer: （未設定）</div>
-    <div class="mini-note">変更はプロフィール設定から行ってください</div>
+    <label>冒頭固定挨拶（Header）</label>
+    <input type="text" id="headerText" placeholder="例：こんばんは💕">
+    <div class="mini-note">写メ日記・お礼日記の両方に反映されます</div>
+    <label>末尾固定署名（Footer）</label>
+    <input type="text" id="footerText" placeholder="例：会えたら嬉しいな💕">
+    <div class="mini-note">写メ日記・お礼日記の両方に反映されます</div>
   </div>
 
   <div class="card">
-    <label>今日の出来事（フリー入力）<span class="sub-label">※AIが内容を汲み取ります</span></label>
-    <textarea id="freeText" rows="3" placeholder="例：スタバの新作飲んで美味しかった〜！&#10;Nさんシャンパンありがとう✨"></textarea>
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
-      <div class="mini-note" id="micStatus" style="margin-top:0; color:#ff5fa2; display:none;">● 録音中...喋ってください</div>
-      <button type="button" id="micBtn" class="mic-btn" onclick="toggleSpeechRecognition()">🎤 音声で入力する</button>
-    </div>
+    <div class="card-title">CityHeaven 連携</div>
+    <label>ログインID（女の子ID またはメールアドレス）</label>
+    <input type="text" id="cityheavenId" placeholder="例：30526273">
+    <label>パスワード</label>
+    <input type="password" id="cityheavenPass" placeholder="パスワードを入力">
+    <div class="hint">在籍店舗が変わった場合は、新しいID/PASSを入力して保存してください。</div>
+    <button class="logout-btn" onclick="logoutCityHeaven()">🔓 CityHeaven をログアウト</button>
+    <div class="logout-msg" id="logoutMsg"></div>
   </div>
 
-  <div class="card">
-    <label>日記の状況<span class="sub-label">※内容のベースになります</span></label>
-    <div class="button-group" id="situationButtonsTop"></div>
-    <div class="divider"></div>
-    <div class="button-group" id="situationButtonsBottom"></div>
-  </div>
-
-  <div class="card">
-    <label>ちょっぴり大人のスパイス<span class="sub-label">※文章の攻め具合</span></label>
-    <div class="button-group" id="eroButtons"></div>
-    <div class="divider" style="margin:16px 0;"></div>
-    <label>文章の構成例<span class="sub-label">※こんなテイストの文章が入ります</span></label>
-    <div class="button-group" id="moodButtons" style="pointer-events:none; opacity:0.8;"></div>
-  </div>
-
-  <div class="card">
-    <label>文章のボリューム<span class="sub-label">※毎回少し変動します</span></label>
-    <div class="button-group" id="lengthButtons"></div>
-  </div>
-
-  <!-- シフト告知オプション -->
-  <div class="card">
-    <label>シフト告知オプション<span class="sub-label">※出勤情報を自然に組み込みます</span></label>
-    <div class="radio-group" id="scheduleGroup">
-      <label class="radio-row"><input type="radio" name="scheduleType" value="" checked onchange="onScheduleChange()"><span>使わない</span></label>
-      <label class="radio-row"><input type="radio" name="scheduleType" value="today" onchange="onScheduleChange()"><span>🕐 今日の出勤</span></label>
-      <label class="radio-row"><input type="radio" name="scheduleType" value="remaining" onchange="onScheduleChange()"><span>⏳ 残り時間</span></label>
-      <label class="radio-row"><input type="radio" name="scheduleType" value="next" onchange="onScheduleChange()"><span>📅 次回出勤</span></label>
-      <label class="radio-row"><input type="radio" name="scheduleType" value="week" onchange="onScheduleChange()"><span>📆 今週の出勤予定</span></label>
-    </div>
-
-    <div id="shiftFetchArea" style="display:none;">
-      <button type="button" class="shift-fetch-btn" id="shiftFetchBtn" onclick="fetchShiftData()">📡 シフト情報を取得する</button>
-      <div class="shift-preview" id="shiftPreview">
-        <div class="shift-preview-title">📋 取得したシフト情報</div>
-        <div id="shiftPreviewContent"></div>
-        <div class="shift-status ok" id="shiftStatusMsg"></div>
-      </div>
-    </div>
-    <div class="mini-note" id="scheduleNote">「使わない」以外を選ぶと、CityHeavenの出勤情報を使って文章を作ります</div>
-  </div>
-
-  <!-- 季節・時期の表示オプション -->
-  <div class="card">
-    <div class="card-title">季節・時期の表示オプション<span class="sub-label">※日記に季節感を反映します</span></div>
-    <div class="season-month-wrap disabled" id="seasonMonthWrap">
-      <select id="targetMonth">
-        <option value="1">1月</option><option value="2">2月</option><option value="3">3月</option>
-        <option value="4">4月</option><option value="5">5月</option><option value="6">6月</option>
-        <option value="7">7月</option><option value="8">8月</option><option value="9">9月</option>
-        <option value="10">10月</option><option value="11">11月</option><option value="12">12月</option>
-      </select>
-    </div>
-    <div class="radio-group">
-      <label class="radio-row"><input type="radio" name="timeCategory" value="" checked onchange="onSeasonChange()"><span>使わない</span></label>
-      <label class="radio-row"><input type="radio" name="timeCategory" value="月初" onchange="onSeasonChange()"><span>📅 月初</span></label>
-      <label class="radio-row"><input type="radio" name="timeCategory" value="月末" onchange="onSeasonChange()"><span>📅 月末</span></label>
-      <label class="radio-row"><input type="radio" name="timeCategory" value="週末" onchange="onSeasonChange()"><span>📅 週末</span></label>
-      <label class="radio-row"><input type="radio" name="timeCategory" value="週明け" onchange="onSeasonChange()"><span>📅 週明け</span></label>
-    </div>
-  </div>
-
-  <button class="primary" id="generateBtn" onclick="generate()">日記をつくる</button>
-
-  <div class="result-container" id="resultContainer">
-    <div class="card" style="background:#fff9fc; border:2px solid #ffdeeb;">
-      <label style="color:#ff5fa2;">AIが書いた日記<span class="sub-label">自由に修正してね</span></label>
-      <textarea id="resultTextarea" rows="18"></textarea>
-      <div class="button-group" style="margin-top:10px;">
-        <button class="choice-btn" style="width:100%; text-align:center; background:#ff5fa2; color:white; border:none;" onclick="copyText()">📋 文章をコピーする</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="history">
-    <h3>最近の履歴（20件）</h3>
-    <div id="historyList"></div>
-  </div>
+  <button class="save-btn" onclick="saveProfile()">保存する</button>
+  <div id="statusMsg"></div>
 </div>
-
-<div id="loadingOverlay" class="loading-overlay">
-  <div class="heart-icon">💕</div>
-  <div class="loading-text">Writing...</div>
-</div>
-<div id="modal" class="modal"></div>
 
 <script>
-const WORKER_URL = "https://openrouter-diary-api.doropbox-kyoto.workers.dev";
-const MOOD_MAP = {
-  low:   ["時間あるかな？","構って？","癒されたい","密着したい"],
-  mid:   ["ムラムラ","濡れてる","イチャイチャ","我慢できない"],
-  high:  ["もっと奥まで","止まらなくなっちゃう","濡れすぎちゃって💦","欲求不満で大変"],
-  ultra: ["マ○コが濡れすぎて","チ○チ○を舐めたい","アソコがベ○ャベ○ャになってる","ムラムラし過ぎてマ○コを触って欲しいの"]
-};
-const SITUATIONS_TOP    = ["待機中","明日出勤","退勤"];
-const SITUATIONS_BOTTOM = ["出勤前","休憩中","お休み","美容Day","お買い物","ご飯","お酒","寝る前","お散歩","早起き","雨の日","旅行"];
-const ERO_LEVELS = [
-  { label:"清潔感 ⭐️",         value:"low"   },
-  { label:"ほんのりH ⭐️⭐️",    value:"mid"   },
-  { label:"過激 ⭐️⭐️⭐️",      value:"high"  },
-  { label:"過激○伏せ ⭐️⭐️⭐️", value:"ultra" }
+const STORE_TYPES = ["普通店","お姉さん系","妹系","清楚系","ギャル系","小悪魔系","ドS系","ドM系","天然系","クール系"];
+const CHARACTERS = [
+  "甘え体質","寂しがり","かまってちゃん","尽くすタイプ","独占欲強め",
+  "癒やし系","聞き上手","家庭的","優しい","褒め上手",
+  "ノリがいい","笑顔が素敵","多趣味","マイペース","天然",
+  "ツンデレ","恥ずかしがり","クール","負けず嫌い","連絡マメ",
+  "大人の色気","ちょっぴり挑発的","小悪魔","色っぽい","ミステリアス",
+  "S気質","M気質","痴女気質","積極的","受け身"
 ];
-const LENGTH_OPTIONS = ["短め","長め"];
+const TRAITS = [
+  "S気質","M気質","甘え体質","寂しがり","ツンデレ",
+  "恥ずかしがり","聞き上手","かまってちゃん","優しい","天然",
+  "癒やし系","ノリがいい","家庭的","尽くすタイプ","褒め上手",
+  "負けず嫌い","マイペース","勉強熱心","多趣味","連絡マメ",
+  "痴女","巨乳","グラマー","大人の色気","ちょっぴり挑発的",
+  "密着好き","お酒好き","美脚","色白","笑顔が素敵"
+];
 
-let profile           = null;
-let selectedEro       = "low";
-let selectedSituation = null;
-let selectedLength    = "長め";
-let fetchedShiftData  = null; // 取得済みシフトデータを保持
+let selectedStoreType  = "普通店";
+let selectedCharacters = [];
+let selectedTraits     = [];
+let selectedAlign      = "left";
 
-// =========================
-// 音声入力
-// =========================
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-let recognition = null;
-let isRecording = false;
-
-if (SpeechRecognition) {
-  recognition = new SpeechRecognition();
-  recognition.lang = 'ja-JP';
-  recognition.interimResults = false;
-  recognition.continuous = false;
-  recognition.onstart = function() {
-    isRecording = true;
-    const btn = document.getElementById("micBtn");
-    btn.innerText = "🛑 録音を停止する";
-    btn.classList.add("recording");
-    document.getElementById("micStatus").style.display = "block";
-  };
-  recognition.onresult = function(event) {
-    let finalTranscript = '';
-    for (let i = event.resultIndex; i < event.results.length; ++i) {
-      if (event.results[i].isFinal) finalTranscript += event.results[i][0].transcript;
-    }
-    if (finalTranscript) {
-      const ta = document.getElementById("freeText");
-      ta.value = ta.value ? ta.value + "\n" + finalTranscript : finalTranscript;
-    }
-  };
-  recognition.onend  = function() { resetMicUI(); };
-  recognition.onerror = function(event) {
-    console.error(event.error);
-    resetMicUI();
-    if (event.error !== 'no-speech' && event.error !== 'aborted') showModal("音声入力エラー💦: " + event.error);
-  };
-}
-
-function resetMicUI() {
-  isRecording = false;
-  const btn = document.getElementById("micBtn");
-  btn.innerText = "🎤 音声で入力する";
-  btn.classList.remove("recording");
-  document.getElementById("micStatus").style.display = "none";
-}
-
-function forceStopMic() {
-  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-    navigator.mediaDevices.getUserMedia({ audio: true })
-      .then(stream => stream.getTracks().forEach(track => track.stop()))
-      .catch(err => console.log("Mic cleanup error:", err));
-  }
-}
-
-function toggleSpeechRecognition() {
-  if (!SpeechRecognition) { showModal("お使いのブラウザは音声入力に未対応です💦"); return; }
-  if (isRecording) {
-    recognition.abort();
-    resetMicUI();
-    setTimeout(forceStopMic, 300);
-  } else {
-    recognition.start();
-  }
-}
-
-// =========================
-// 初期化
-// =========================
 window.onload = function() {
-  safeLoadProfile();
-  loadHeaderFooter();
-  checkCityHeavenCredentials();
-  document.getElementById("targetMonth").value = new Date().getMonth() + 1;
-  createButtons(SITUATIONS_TOP,    "situationButtonsTop",    (v) => selectedSituation = v);
-  createButtons(SITUATIONS_BOTTOM, "situationButtonsBottom", (v) => selectedSituation = v);
-  createEroButtons();
-  renderMoodButtons(selectedEro);
-  createButtons(LENGTH_OPTIONS, "lengthButtons", (v) => selectedLength = v);
-  try { migrateHistoryIfNeeded(); renderHistory(); }
-  catch(e) { localStorage.removeItem("diaryHistory"); renderHistory(); }
+  renderButtons("storeTypeBtns",  STORE_TYPES, "storeType");
+  renderButtons("characterBtns",  CHARACTERS,  "character");
+  renderButtons("traitBtns",      TRAITS,      "trait");
+  loadProfile();
 };
 
-function checkCityHeavenCredentials() {
-  const { id, pass } = getCityHeavenCreds();
-  if (!id || !pass) {
-    const group = document.getElementById("scheduleGroup");
-    const note  = document.getElementById("scheduleNote");
-    if (group) group.classList.add("schedule-disabled");
-    if (note)  note.innerText = "⚠️ シフト機能を使うにはプロフィールでCityHeavenのIDを設定してください";
-  }
-}
-
-function getCityHeavenCreds() {
-  const id   = localStorage.getItem("cityheavenId")   || "";
-  const pass = localStorage.getItem("cityheavenPass") || "";
-  return { id, pass };
-}
-
-function safeLoadProfile() {
-  const infoDiv = document.getElementById("profileInfo");
-  try {
-    const saved = localStorage.getItem("profile");
-    if (!saved) {
-      infoDiv.innerHTML = '<a href="profile.html" style="color:#ff5fa2; text-decoration:underline;">⚠️ プロフィールを設定してください</a>';
-      return;
-    }
-    profile = JSON.parse(saved);
-    infoDiv.innerText = profile.name + "（" + (profile.character || "") + "）";
-    const textarea = document.getElementById("resultTextarea");
-    if (profile.textAlign === "center") textarea.style.textAlign = "center";
-    else textarea.style.textAlign = "left";
-  } catch(e) {
-    infoDiv.innerHTML = '<a href="profile.html" style="color:#ff5fa2; text-decoration:underline;">⚠️ プロフィールを設定し直してください</a>';
-  }
-}
-
-function loadHeaderFooter() {
-  const hVal = localStorage.getItem("diaryHeader") || "";
-  const fVal = localStorage.getItem("diaryFooter") || "";
-  document.getElementById("headerPreview").innerText = "Header: " + (hVal || "（未設定）");
-  document.getElementById("footerPreview").innerText = "Footer: " + (fVal || "（未設定）");
-}
-
-// =========================
-// シフト告知オプション
-// =========================
-function onScheduleChange() {
-  const scheduleType  = getSelectedScheduleType();
-  const fetchArea     = document.getElementById("shiftFetchArea");
-  const shiftPreview  = document.getElementById("shiftPreview");
-
-  if (scheduleType) {
-    fetchArea.style.display = "block";
-  } else {
-    fetchArea.style.display = "none";
-    shiftPreview.classList.remove("visible");
-    fetchedShiftData = null;
-  }
-}
-
-function getSelectedScheduleType() {
-  const checked = document.querySelector('input[name="scheduleType"]:checked');
-  return checked ? checked.value : "";
-}
-
-async function fetchShiftData() {
-  const { id: cityheavenId, pass: cityheavenPass } = getCityHeavenCreds();
-
-  if (!cityheavenId || !cityheavenPass) {
-    showModal("プロフィール画面からCityHeavenのIDとパスワードを設定してください");
-    setTimeout(() => location.href = "profile.html", 2000);
-    return;
-  }
-
-  const fetchBtn    = document.getElementById("shiftFetchBtn");
-  const loader      = document.getElementById("loadingOverlay");
-  const preview     = document.getElementById("shiftPreview");
-  const content     = document.getElementById("shiftPreviewContent");
-  const statusMsg   = document.getElementById("shiftStatusMsg");
-
-  fetchBtn.disabled = true;
-  loader.classList.add("active");
-  fetchedShiftData  = null;
-  preview.classList.remove("visible");
-
-  try {
-    const res  = await fetch(WORKER_URL + "/get-schedule-msg", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ cityheavenId, cityheavenPass })
-    });
-    const data = await res.json().catch(() => ({}));
-
-    if (!res.ok || !data.ok) {
-      showModal("シフト情報の取得に失敗しました💦");
-      statusMsg.className = "shift-status error";
-      statusMsg.innerText = "❌ 取得失敗";
-      preview.classList.add("visible");
-      content.innerHTML   = "";
-      return;
-    }
-
-    // 取得成功 → データを保持
-    fetchedShiftData = data;
-
-    // プレビュー表示
-    const allShifts = data.allShifts || [];
-    if (allShifts.length === 0) {
-      content.innerHTML   = '<div class="shift-preview-item">シフト情報が見つかりませんでした</div>';
-      statusMsg.className = "shift-status error";
-      statusMsg.innerText = "⚠️ シフトなし";
-    } else {
-      content.innerHTML = allShifts.map(s =>
-        `<div class="shift-preview-item">📅 ${s.dateLabel}　${s.timeLabel}</div>`
-      ).join("");
-      statusMsg.className = "shift-status ok";
-      statusMsg.innerText = `✅ ${allShifts.length}件取得完了`;
-    }
-    preview.classList.add("visible");
-
-  } catch(e) {
-    console.error(e);
-    showModal("通信エラー💦 シフト取得に失敗しました");
-    statusMsg.className = "shift-status error";
-    statusMsg.innerText = "❌ 通信エラー";
-    preview.classList.add("visible");
-    content.innerHTML   = "";
-  } finally {
-    fetchBtn.disabled = false;
-    loader.classList.remove("active");
-  }
-}
-
-// =========================
-// 季節UI
-// =========================
-function getSelectedTimeCategory() {
-  const checked = document.querySelector('input[name="timeCategory"]:checked');
-  return checked ? checked.value : "";
-}
-
-function onSeasonChange() {
-  const val  = getSelectedTimeCategory();
-  const wrap = document.getElementById("seasonMonthWrap");
-  if (val === "") wrap.classList.add("disabled");
-  else wrap.classList.remove("disabled");
-}
-
-// =========================
-// ボタン生成
-// =========================
-function createButtons(list, containerId, callback) {
+function renderButtons(containerId, list, type) {
   const container = document.getElementById(containerId);
   if (!container) return;
+  container.innerHTML = "";
   list.forEach(item => {
     const btn = document.createElement("button");
     btn.className = "choice-btn";
     btn.innerText = item;
-    if (containerId === "lengthButtons" && item === "長め") btn.classList.add("active");
-    btn.onclick = () => {
-      if (containerId.includes("situation")) {
-        document.querySelectorAll("#situationButtonsTop .choice-btn, #situationButtonsBottom .choice-btn").forEach(b => b.classList.remove("active"));
-      } else {
-        [...container.children].forEach(b => b.classList.remove("active"));
+    btn.onclick = () => handleBtnClick(btn, item, type);
+    container.appendChild(btn);
+  });
+}
+
+function handleBtnClick(btn, item, type) {
+  if (type === "storeType") {
+    document.querySelectorAll("#storeTypeBtns .choice-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    selectedStoreType = item;
+
+  } else if (type === "character") {
+    if (btn.classList.contains("active")) {
+      selectedCharacters = selectedCharacters.filter(v => v !== item);
+      btn.classList.remove("active");
+    } else {
+      if (selectedCharacters.length >= 3) {
+        shake(btn);
+        showLimitError("charLimitInfo", "⚠️ 3つまでしか選べません！");
+        return;
       }
+      selectedCharacters.push(item);
       btn.classList.add("active");
-      callback(item);
-    };
-    container.appendChild(btn);
-  });
-}
+    }
+    updateLimit("charLimitInfo", 3 - selectedCharacters.length);
 
-function createEroButtons() {
-  const container = document.getElementById("eroButtons");
-  if (!container) return;
-  container.innerHTML = "";
-  ERO_LEVELS.forEach((item) => {
-    const btn = document.createElement("button");
-    btn.className = "choice-btn";
-    btn.innerText = item.label;
-    if (item.value === selectedEro) btn.classList.add("active");
-    btn.onclick = () => {
-      [...container.children].forEach(b => b.classList.remove("active"));
+  } else if (type === "trait") {
+    if (btn.classList.contains("active")) {
+      selectedTraits = selectedTraits.filter(v => v !== item);
+      btn.classList.remove("active");
+    } else {
+      if (selectedTraits.length >= 4) {
+        shake(btn);
+        showLimitError("traitLimitInfo", "⚠️ 4つまでしか選べません！");
+        return;
+      }
+      selectedTraits.push(item);
       btn.classList.add("active");
-      selectedEro = item.value;
-      renderMoodButtons(selectedEro);
-    };
-    container.appendChild(btn);
-  });
-}
-
-function renderMoodButtons(spiceLevel) {
-  const container = document.getElementById("moodButtons");
-  if (!container) return;
-  container.innerHTML = "";
-  (MOOD_MAP[spiceLevel] || []).forEach((item) => {
-    const btn = document.createElement("div");
-    btn.className = "choice-btn";
-    btn.style.cursor = "default";
-    btn.innerText = item;
-    container.appendChild(btn);
-  });
-}
-
-// =========================
-// 生成処理
-// =========================
-async function generate() {
-  if (!profile || !profile.name) {
-    showModal("プロフィール設定がまだのようです💦");
-    setTimeout(() => location.href = "profile.html", 1500);
-    return;
-  }
-  const title = document.getElementById("title").value.trim();
-  if (!title)            { showModal("題名を入力してね"); return; }
-  if (!selectedSituation){ showModal("日記の状況を選んでね"); return; }
-
-  const scheduleType = getSelectedScheduleType();
-  const timeCategory = getSelectedTimeCategory();
-  const targetMonth  = timeCategory ? parseInt(document.getElementById("targetMonth").value, 10) : null;
-
-  // シフト告知オプション使用時のバリデーション
-  if (scheduleType) {
-    const { id, pass } = getCityHeavenCreds();
-    if (!id || !pass) {
-      showModal("プロフィール画面からCityHeavenのIDとパスワードを設定してください");
-      setTimeout(() => location.href = "profile.html", 2000);
-      return;
     }
-    if (!fetchedShiftData) {
-      showModal("先に「シフト情報を取得する」ボタンを押してください📡");
-      return;
-    }
-  }
-
-  // scheduleData を scheduleType に合わせて選択
-  let scheduleData = null;
-  if (scheduleType && fetchedShiftData) {
-    const allShifts = fetchedShiftData.allShifts || [];
-    if (scheduleType === "today" || scheduleType === "remaining") {
-      scheduleData = fetchedShiftData.todayShift || allShifts.find(s => s.dateLabel === "本日") || null;
-      if (!scheduleData) { showModal("本日の出勤情報がありません。通常モードで生成します"); }
-    } else if (scheduleType === "next") {
-      scheduleData = allShifts.find(s => s.dateLabel !== "本日") || null;
-      if (!scheduleData) { showModal("次回出勤情報がありません。通常モードで生成します"); }
-    } else if (scheduleType === "week") {
-      const weekShifts = allShifts.filter(s => s.dateLabel !== "本日").slice(0, 7);
-      scheduleData = weekShifts.length > 0 ? weekShifts : null;
-      if (!scheduleData) { showModal("今週の出勤予定がありません。通常モードで生成します"); }
-    }
-  }
-
-  const useSchedule = scheduleType && scheduleData;
-  const route       = useSchedule ? "/generate-with-schedule" : "/generate";
-
-  const loader = document.getElementById("loadingOverlay");
-  const btn    = document.getElementById("generateBtn");
-  loader.classList.add("active");
-  btn.disabled = true;
-
-  try {
-    const postBody = {
-      mode:          "diary",
-      storeType:     profile.storeType    || "普通店",
-      name:          profile.name         || "",
-      character:     profile.character    || "",
-      characters:    profile.characters   || [],
-      traits:        profile.traits       || [],
-      situation:     selectedSituation,
-      spiceLevel:    selectedEro,
-      targetLength:  selectedLength === "短め" ? 140 : 220,
-      emojiPalette:  ["💕","🥺","✨","💦","💋","🤫","🍼","🔞"],
-      customer:      profile.customerCall || "お客様",
-      header:        localStorage.getItem("diaryHeader") || "",
-      footer:        localStorage.getItem("diaryFooter") || "",
-      title:         title,
-      freeText:      document.getElementById("freeText").value.trim(),
-      scheduleType:  useSchedule ? scheduleType : "",
-      scheduleData:  scheduleData,
-      target_month:  targetMonth,
-      time_category: timeCategory
-    };
-
-    const response = await fetch(WORKER_URL + route, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(postBody)
-    });
-
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok || !data.ok) {
-      showModal(data.message || data.error || "生成エラー💦");
-      return;
-    }
-
-    let bodyText = data.result || data.finalText || data.text || "";
-    bodyText = bodyText.replace(/\r\n/g,"\n").replace(/\n{3,}/g,"\n\n").trim();
-    const fullText = "【" + title + "】\n\n" + bodyText;
-
-    const container = document.getElementById("resultContainer");
-    container.style.display = "block";
-    const textarea = document.getElementById("resultTextarea");
-    textarea.value = fullText;
-    if (profile.textAlign === "center") textarea.style.textAlign = "center";
-    else textarea.style.textAlign = "left";
-    addToHistory(fullText);
-    container.scrollIntoView({ behavior:"smooth", block:"center" });
-
-  } catch (error) {
-    console.error(error);
-    showModal("通信エラー💦");
-  } finally {
-    loader.classList.remove("active");
-    btn.innerText = "日記をつくる";
-    btn.disabled  = false;
+    updateLimit("traitLimitInfo", 4 - selectedTraits.length);
   }
 }
 
-// =========================
-// 履歴
-// =========================
-function migrateHistoryIfNeeded() {
-  let raw = localStorage.getItem("diaryHistory");
-  if (!raw) return;
-  try {
-    let history = JSON.parse(raw);
-    if (history.length > 0 && (typeof history[0] === "string" || !history[0].id)) {
-      const newFormat = history.map(item => {
-        const text = (typeof item === "string") ? item : (item.text || "");
-        return { text, fav: false, id: Date.now() + Math.random() };
-      });
-      localStorage.setItem("diaryHistory", JSON.stringify(newFormat));
-    }
-  } catch(e) { localStorage.removeItem("diaryHistory"); }
-}
-
-function addToHistory(text) {
-  let history = getHistory();
-  history.unshift({ text, fav: false, id: Date.now() });
-  if (history.length > 20) history = history.slice(0, 20);
-  saveHistory(history);
-  renderHistory();
-}
-
-function toggleFav(id) {
-  let history = getHistory();
-  const index = history.findIndex(h => h.id === id);
-  if (index !== -1) {
-    history[index].fav = !history[index].fav;
-    saveHistory(history);
-    renderHistory();
-  }
-}
-
-function getHistory() { try { return JSON.parse(localStorage.getItem("diaryHistory") || "[]"); } catch(e) { return []; } }
-function saveHistory(history) { localStorage.setItem("diaryHistory", JSON.stringify(history)); }
-
-function renderHistory() {
-  const history = getHistory();
-  const list    = document.getElementById("historyList");
-  list.innerHTML = "";
-  if (history.length === 0) {
-    list.innerHTML = '<div style="text-align:center; font-size:12px; color:#aaa;">まだ履歴はありません</div>';
-    return;
-  }
-  history.forEach(item => {
-    const div = document.createElement("div");
-    div.className = "history-item";
-    const preview   = (item.text || "").split("\n")[0] || "無題";
-    const heartClass = item.fav ? "active" : "";
-    div.innerHTML = '<div class="history-text">' + preview + '</div><button class="fav-btn ' + heartClass + '" onclick="event.stopPropagation(); toggleFav(' + item.id + ')">♥</button>';
-    div.onclick = () => {
-      const container = document.getElementById("resultContainer");
-      container.style.display = "block";
-      const textarea  = document.getElementById("resultTextarea");
-      textarea.value  = item.text || "";
-      if (profile && profile.textAlign === "center") textarea.style.textAlign = "center";
-      else textarea.style.textAlign = "left";
-      container.scrollIntoView({ behavior:"smooth", block:"center" });
-    };
-    list.appendChild(div);
-  });
-}
-
-// =========================
-// ユーティリティ
-// =========================
-function copyText() {
-  const textarea = document.getElementById("resultTextarea");
-  if (!textarea.value) return;
-  textarea.select();
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(textarea.value).then(() => showModal("コピーしました✨"));
+function updateLimit(id, remaining) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (remaining <= 0) {
+    el.innerText = "MAX（これ以上選べません）";
+    el.classList.add("full");
   } else {
-    document.execCommand("copy");
-    showModal("コピーしました✨");
+    el.innerText = "あと " + remaining + " つ選べます";
+    el.classList.remove("full");
   }
 }
 
-function showModal(msg) {
-  const modal = document.getElementById("modal");
-  modal.innerText = msg;
-  modal.style.opacity = "1";
-  modal.style.top = "50%";
-  setTimeout(() => { modal.style.opacity = "0"; }, 2500);
+function showLimitError(id, message) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerText = message;
+  el.classList.add("full");
+  setTimeout(() => {
+    el.innerText = "MAX（これ以上選べません）";
+    el.classList.add("full");
+  }, 1500);
+}
+
+function shake(btn) {
+  btn.style.transform = "translateX(4px)";
+  setTimeout(() => btn.style.transform = "translateX(-4px)", 60);
+  setTimeout(() => btn.style.transform = "translateX(4px)", 120);
+  setTimeout(() => btn.style.transform = "translateX(0)", 180);
+}
+
+function selectAlign(align) {
+  selectedAlign = align;
+  document.getElementById("alignLeft").classList.toggle("active", align === "left");
+  document.getElementById("alignCenter").classList.toggle("active", align === "center");
+}
+
+function saveProfile() {
+  const name = document.getElementById("name").value.trim();
+  if (!name) { alert("源氏名を入力してください✨"); return; }
+  const profileData = {
+    name,
+    storeType:  selectedStoreType,
+    character:  selectedCharacters[0] || "",
+    characters: selectedCharacters,
+    traits:     selectedTraits,
+    textAlign:  selectedAlign,
+  };
+  localStorage.setItem("profile",        JSON.stringify(profileData));
+  localStorage.setItem("diaryHeader",    document.getElementById("headerText").value);
+  localStorage.setItem("diaryFooter",    document.getElementById("footerText").value);
+  localStorage.setItem("cityheavenId",   document.getElementById("cityheavenId").value.trim());
+  localStorage.setItem("cityheavenPass", document.getElementById("cityheavenPass").value);
+  const msg = document.getElementById("statusMsg");
+  msg.innerText = "保存しました✨";
+  setTimeout(() => { msg.innerText = ""; }, 2000);
+}
+
+function loadProfile() {
+  const saved = localStorage.getItem("profile");
+  if (saved) {
+    try {
+      const p = JSON.parse(saved);
+      document.getElementById("name").value = p.name || "";
+      selectedStoreType = p.storeType || "普通店";
+      document.querySelectorAll("#storeTypeBtns .choice-btn").forEach(btn => {
+        if (btn.innerText === selectedStoreType) btn.classList.add("active");
+      });
+      selectedCharacters = Array.isArray(p.characters)
+        ? p.characters.map(v => String(v).trim()).filter(v => CHARACTERS.includes(v)).slice(0,3)
+        : (p.character && CHARACTERS.includes(String(p.character).trim()) ? [String(p.character).trim()] : []);
+      document.querySelectorAll("#characterBtns .choice-btn").forEach(btn => {
+        if (selectedCharacters.includes(btn.innerText)) btn.classList.add("active");
+      });
+      updateLimit("charLimitInfo", 3 - selectedCharacters.length);
+      selectedTraits = Array.isArray(p.traits)
+        ? p.traits.map(v => String(v).trim()).filter(v => TRAITS.includes(v)).slice(0,4)
+        : [];
+      document.querySelectorAll("#traitBtns .choice-btn").forEach(btn => {
+        if (selectedTraits.includes(btn.innerText)) btn.classList.add("active");
+      });
+      updateLimit("traitLimitInfo", 4 - selectedTraits.length);
+      selectAlign(p.textAlign || "left");
+    } catch(e) { console.error("Profile load error", e); }
+  }
+  document.getElementById("headerText").value    = localStorage.getItem("diaryHeader")    || "";
+  document.getElementById("footerText").value    = localStorage.getItem("diaryFooter")    || "";
+  document.getElementById("cityheavenId").value   = localStorage.getItem("cityheavenId")   || "";
+  document.getElementById("cityheavenPass").value = localStorage.getItem("cityheavenPass") || "";
+}
+
+function logoutCityHeaven() {
+  ["cityheavenId","cityheavenPass","profile_cityheavenId","profile_cityheavenPass","ch_id","ch_pass"].forEach(k => localStorage.removeItem(k));
+  document.getElementById("cityheavenId").value   = "";
+  document.getElementById("cityheavenPass").value = "";
+  const msg = document.getElementById("logoutMsg");
+  msg.innerText = "ログアウトしました。次回は新しいID/PASSを入力してください。";
+  setTimeout(() => { msg.innerText = ""; }, 3000);
 }
 </script>
 </body>
 </html>
+```
+
+**変更点は1箇所のみです：**
+```
+.nav-btn に以下を追加
+　-webkit-tap-highlight-color:transparent;
+　cursor:pointer;
+
+.nav-btn.active に以下を追加
+　pointer-events:none;
