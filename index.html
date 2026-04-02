@@ -82,16 +82,10 @@
   </div>
 
   <div class="card">
-    <div class="card-title">固定文（Header / Footer）<span class="sub-label">※保存されます</span></div>
-    <label>冒頭固定挨拶（Header）</label>
-    <input id="header" type="text" placeholder="例：こんばんは💕">
+    <div class="card-title">固定文（Header / Footer）</div>
     <div class="header-footer-preview" id="headerPreview">Header: （未設定）</div>
-    <div style="margin-top:14px;">
-      <label>末尾固定署名（Footer）</label>
-      <input id="footer" type="text" placeholder="例：会えたら嬉しいな💕">
-      <div class="header-footer-preview" id="footerPreview" style="margin-top:6px;">Footer: （未設定）</div>
-    </div>
-    <div class="mini-note">入力すると自動保存・次回以降も表示されます</div>
+    <div class="header-footer-preview" id="footerPreview" style="margin-top:6px;">Footer: （未設定）</div>
+    <div class="mini-note">変更はプロフィール設定から行ってください</div>
   </div>
 
   <div class="card">
@@ -276,10 +270,10 @@ function getSeasonAssist() {
   const day = now.getDate();
   const dow = now.getDay();
   const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-  if (day <= 5)             return { value:"月初",  note:"📅 月初（1〜5日）を自動選択しました" };
-  if (day >= lastDay - 4)  return { value:"月末",  note:"📅 月末を自動選択しました" };
+  if (day <= 5)               return { value:"月初",  note:"📅 月初（1〜5日）を自動選択しました" };
+  if (day >= lastDay - 4)     return { value:"月末",  note:"📅 月末を自動選択しました" };
   if (dow === 0 || dow === 6) return { value:"週末",  note:"📅 週末を自動選択しました" };
-  if (dow === 1)            return { value:"週明け", note:"📅 週明けを自動選択しました" };
+  if (dow === 1)              return { value:"週明け", note:"📅 週明けを自動選択しました" };
   if (day >= 11 && day <= 20) return { value:"月半ば", note:"📅 月半ばを自動選択しました" };
   return { value:"指定なし", note:"" };
 }
@@ -294,6 +288,13 @@ function initSeasonUI() {
   select.addEventListener("change", () => {
     document.getElementById("seasonAssistNote").innerText = "（手動で変更されました）";
   });
+}
+
+function loadHeaderFooter() {
+  const hVal = localStorage.getItem("diaryHeader") || "";
+  const fVal = localStorage.getItem("diaryFooter") || "";
+  document.getElementById("headerPreview").innerText = "Header: " + (hVal || "（未設定）");
+  document.getElementById("footerPreview").innerText = "Footer: " + (fVal || "（未設定）");
 }
 
 window.onload = function() {
@@ -409,26 +410,6 @@ function getCityHeavenCreds() {
   return { id, pass };
 }
 
-function saveHeaderFooter() {
-  const hVal = document.getElementById("header").value;
-  const fVal = document.getElementById("footer").value;
-  localStorage.setItem("diaryHeader", hVal);
-  localStorage.setItem("diaryFooter", fVal);
-  document.getElementById("headerPreview").innerText = "Header: " + (hVal || "（未設定）");
-  document.getElementById("footerPreview").innerText = "Footer: " + (fVal || "（未設定）");
-}
-
-function loadHeaderFooter() {
-  const hVal = localStorage.getItem("diaryHeader") || "";
-  const fVal = localStorage.getItem("diaryFooter") || "";
-  const headerEl = document.getElementById("header");
-  const footerEl = document.getElementById("footer");
-  if (headerEl) { headerEl.value = hVal; headerEl.addEventListener("input", saveHeaderFooter); }
-  if (footerEl) { footerEl.value = fVal; footerEl.addEventListener("input", saveHeaderFooter); }
-  document.getElementById("headerPreview").innerText = "Header: " + (hVal || "（未設定）");
-  document.getElementById("footerPreview").innerText = "Footer: " + (fVal || "（未設定）");
-}
-
 async function generate() {
   if (!profile || !profile.name) {
     showModal("プロフィール設定がまだのようです💦");
@@ -504,8 +485,8 @@ async function generate() {
       targetLength:  selectedLength === "短め" ? 140 : 220,
       emojiPalette:  ["💕","🥺","✨","💦","💋","🤫","🍼","🔞"],
       customer:      profile.customerCall || "お客様",
-      header:        document.getElementById("header").value.trim(),
-      footer:        document.getElementById("footer").value.trim(),
+      header:        localStorage.getItem("diaryHeader") || "",
+      footer:        localStorage.getItem("diaryFooter") || "",
       title:         title,
       freeText:      document.getElementById("freeText").value.trim(),
       scheduleType:  useSchedule ? scheduleType : "",
