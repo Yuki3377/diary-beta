@@ -328,4 +328,308 @@ function safeLoadProfile() {
       infoDiv.innerHTML = '<a href="profile.html" style="color:#ff5fa2; text-decoration:underline;">⚠️ プロフィールを設定してください</a>';
       return;
     }
-    profile = JSON.parse(saved
+    profile = JSON.parse(saved);
+    infoDiv.innerText = profile.name + "（" + (profile.character || "") + "）";
+    const textarea = document.getElementById("resultTextarea");
+    if (profile.textAlign === "center") textarea.style.textAlign = "center";
+    else textarea.style.textAlign = "left";
+  } catch(e) {
+    infoDiv.innerHTML = '<a href="profile.html" style="color:#ff5fa2; text-decoration:underline;">⚠️ プロフィールを設定し直してください</a>';
+  }
+}
+
+function createButtons(list, containerId, callback) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  list.forEach(item => {
+    const btn = document.createElement("button");
+    btn.className = "choice-btn";
+    btn.innerText = item;
+    if (containerId === "lengthButtons" && item === "長め") btn.classList.add("active");
+    btn.onclick = () => {
+      if (containerId.includes("situation")) {
+        document.querySelectorAll("#situationButtonsTop .choice-btn, #situationButtonsBottom .choice-btn").forEach(b => b.classList.remove("active"));
+      } else {
+        [...container.children].forEach(b => b.classList.remove("active"));
+      }
+      btn.classList.add("active");
+      callback(item);
+    };
+    container.appendChild(btn);
+  });
+}
+
+function createEroButtons() {
+  const container = document.getElementById("eroButtons");
+  if (!container) return;
+  container.innerHTML = "";
+  ERO_LEVELS.forEach((item) => {
+    const btn = document.createElement("button");
+    btn.className = "choice-btn";
+    btn.innerText = item.label;
+    if (item.value === selectedEro) btn.classList.add("active");
+    btn.onclick = () => {
+      [...container.children].forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      selectedEro = item.value;
+      renderMoodButtons(selectedEro);
+    };
+    container.appendChild(btn);
+  });
+}
+
+function renderMoodButtons(spiceLevel) {
+  const container = document.getElementById("moodButtons");
+  if (!container) return;
+  container.innerHTML = "";
+  (MOOD_MAP[spiceLevel] || []).forEach((item) => {
+    const btn = document.createElement("div");
+    btn.className = "choice-btn";
+    btn.style.cursor = "default";
+    btn.innerText = item;
+    container.appendChild(btn);
+  });
+}
+
+function onScheduleChange() {
+  const scheduleType = getSelectedScheduleType();
+  const hint = document.getElementById("scheduleHint");
+  if (scheduleType) hint.classList.add("visible");
+  else hint.classList.remove("visible");
+}
+
+function getSelectedScheduleType() {
+  const checked = document.querySelector('input[name="scheduleType"]:checked');
+  return checked ? checked.value : "";
+}
+
+function getCityHeavenCreds() {
+  const id   = localStorage.getItem("cityheavenId")   || localStorage.getItem("profile_cityheavenId")   || localStorage.getItem("ch_id")   || "";
+  const pass = localStorage.getItem("cityheavenPass") || localStorage.getItem("profile_cityheavenPass") || localStorage.getItem("ch_pass") || "";
+  return { id, pass };
+}
+
+function saveHeaderFooter() {
+  const hVal = document.getElementById("header").value;
+  const fVal = document.getElementById("footer").value;
+  localStorage.setItem("diaryHeader", hVal);
+  localStorage.setItem("diaryFooter", fVal);
+  document.getElementById("headerPreview").innerText = "Header: " + (hVal || "（未設定）");
+  document.getElementById("footerPreview").innerText = "Footer: " + (fVal || "（未設定）");
+}
+
+function loadHeaderFooter() {
+  const hVal = localStorage.getItem("diaryHeader") || "";
+  const fVal = localStorage.getItem("diaryFooter") || "";
+  const headerEl = document.getElementById("header");
+  const footerEl = document.getElementById("footer");
+  if (headerEl) { headerEl.value = hVal; headerEl.addEventListener("input", saveHeaderFooter); }
+  if (footerEl) { footerEl.value = fVal; footerEl.addEventListener("input", saveHeaderFooter); }
+  document.getElementById("headerPreview").innerText = "Header: " + (hVal || "（未設定）");
+  document.getElementById("footerPreview").innerText = "Footer: " + (fVal || "（未設定）");
+}
+
+async function generate() {
+  if (!profile || !profile.name) {
+    showModal("プロフィール設定がまだのようです💦");
+    setTimeout(() => location.href = "profile.html", 1500);
+    return;
+  }
+  const title = document.getElementById("title").value.trim();
+  if (!title) { showModal("題名を入力してね"); return; }
+  if (!selectedSituation) { showModal("日記の状況を選んでね"); return; }
+
+  const scheduleType = getSelectedScheduleType();
+  const { id: cityheavenId, pass: cityheavenPass } = getCityHeavenCreds();
+
+  if (scheduleType && (!cityheavenId || !cityheavenPass)) {
+    showModal("プロフィール設定でCityHeaven情報を保存してください");
+    setTimeout(() => location.href = "profile.html", 2000);
+    return;
+  }
+
+  const targetMonth  = parseInt(document.getElementById("targetMonth").value, 10);
+  const timeCategory = document.getElementById("timeCategory").value;
+
+  const loader = document.getElementById("loadingOverlay");
+  loader.classList.add("active");
+  const btn = document.getElementById("generateBtn");
+  btn.disabled = true;
+
+  try {
+    let scheduleData = null;
+    if (scheduleType) {
+      let scrapeData = {};
+      try {
+        const scrapeRes = await fetch(WORKER_URL + "/get-schedule-msg", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ cityheavenId, cityheavenPass })
+        });
+        scrapeData = await scrapeRes.json().catch(() => ({}));
+      } catch(e) {
+        showModal("出勤情報の取得に失敗しました。通常モードで生成します💦");
+      }
+
+      if (scrapeData.ok) {
+        if (scheduleType === "today" || scheduleType === "remaining") {
+          const todayShift = scrapeData.todayShift || (scrapeData.nextShift?.dateLabel === "本日" ? scrapeData.nextShift : null);
+          if (!todayShift) showModal("本日の出勤情報がありません。通常モードで生成します");
+          else scheduleData = todayShift;
+        } else if (scheduleType === "next") {
+          const allShifts = scrapeData.allShifts || [];
+          const nextShift = allShifts.find(s => s.dateLabel !== "本日") || null;
+          if (!nextShift) showModal("次回出勤情報がありません。通常モードで生成します");
+          else scheduleData = nextShift;
+        } else if (scheduleType === "week") {
+          const weekShifts = (scrapeData.allShifts || []).filter(s => s.dateLabel !== "本日").slice(0, 7);
+          if (weekShifts.length === 0) showModal("今週の出勤予定がありません。通常モードで生成します");
+          else scheduleData = weekShifts;
+        }
+      }
+    }
+
+    const useSchedule = scheduleType && scheduleData;
+    const route = useSchedule ? "/generate-with-schedule" : "/generate";
+
+    const postBody = {
+      mode:          "diary",
+      storeType:     profile.storeType    || "普通店",
+      name:          profile.name         || "",
+      character:     profile.character    || "",
+      characters:    profile.characters   || [],
+      traits:        profile.traits       || [],
+      situation:     selectedSituation,
+      spiceLevel:    selectedEro,
+      targetLength:  selectedLength === "短め" ? 140 : 220,
+      emojiPalette:  ["💕","🥺","✨","💦","💋","🤫","🍼","🔞"],
+      customer:      profile.customerCall || "お客様",
+      header:        document.getElementById("header").value.trim(),
+      footer:        document.getElementById("footer").value.trim(),
+      title:         title,
+      freeText:      document.getElementById("freeText").value.trim(),
+      scheduleType:  useSchedule ? scheduleType : "",
+      scheduleData:  scheduleData,
+      target_month:  targetMonth,
+      time_category: timeCategory
+    };
+
+    const response = await fetch(WORKER_URL + route, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(postBody)
+    });
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data.ok) {
+      showModal(data.message || data.error || "生成エラー💦");
+      return;
+    }
+
+    let bodyText = data.result || data.finalText || data.text || "";
+    bodyText = bodyText.replace(/\r\n/g,"\n").replace(/\n{3,}/g,"\n\n").trim();
+    const fullText = "【" + title + "】\n\n" + bodyText;
+    const container = document.getElementById("resultContainer");
+    container.style.display = "block";
+    const textarea = document.getElementById("resultTextarea");
+    textarea.value = fullText;
+    if (profile.textAlign === "center") textarea.style.textAlign = "center";
+    else textarea.style.textAlign = "left";
+    addToHistory(fullText);
+    container.scrollIntoView({ behavior:"smooth", block:"center" });
+
+  } catch (error) {
+    console.error(error);
+    showModal("通信エラー💦");
+  } finally {
+    loader.classList.remove("active");
+    btn.innerText = "日記をつくる";
+    btn.disabled = false;
+  }
+}
+
+function migrateHistoryIfNeeded() {
+  let raw = localStorage.getItem("diaryHistory");
+  if (!raw) return;
+  try {
+    let history = JSON.parse(raw);
+    if (history.length > 0 && (typeof history[0] === "string" || !history[0].id)) {
+      const newFormat = history.map(item => {
+        const text = (typeof item === "string") ? item : (item.text || "");
+        return { text, fav: false, id: Date.now() + Math.random() };
+      });
+      localStorage.setItem("diaryHistory", JSON.stringify(newFormat));
+    }
+  } catch(e) { localStorage.removeItem("diaryHistory"); }
+}
+
+function addToHistory(text) {
+  let history = getHistory();
+  history.unshift({ text, fav: false, id: Date.now() });
+  if (history.length > 20) history = history.slice(0, 20);
+  saveHistory(history);
+  renderHistory();
+}
+
+function toggleFav(id) {
+  let history = getHistory();
+  const index = history.findIndex(h => h.id === id);
+  if (index !== -1) {
+    history[index].fav = !history[index].fav;
+    saveHistory(history);
+    renderHistory();
+  }
+}
+
+function getHistory() { try { return JSON.parse(localStorage.getItem("diaryHistory") || "[]"); } catch(e) { return []; } }
+function saveHistory(history) { localStorage.setItem("diaryHistory", JSON.stringify(history)); }
+
+function renderHistory() {
+  const history = getHistory();
+  const list = document.getElementById("historyList");
+  list.innerHTML = "";
+  if (history.length === 0) {
+    list.innerHTML = '<div style="text-align:center; font-size:12px; color:#aaa;">まだ履歴はありません</div>';
+    return;
+  }
+  history.forEach(item => {
+    const div = document.createElement("div");
+    div.className = "history-item";
+    const preview = (item.text || "").split("\n")[0] || "無題";
+    const heartClass = item.fav ? "active" : "";
+    div.innerHTML = '<div class="history-text">' + preview + '</div><button class="fav-btn ' + heartClass + '" onclick="event.stopPropagation(); toggleFav(' + item.id + ')">♥</button>';
+    div.onclick = () => {
+      const container = document.getElementById("resultContainer");
+      container.style.display = "block";
+      const textarea = document.getElementById("resultTextarea");
+      textarea.value = item.text || "";
+      if (profile && profile.textAlign === "center") textarea.style.textAlign = "center";
+      else textarea.style.textAlign = "left";
+      container.scrollIntoView({ behavior:"smooth", block:"center" });
+    };
+    list.appendChild(div);
+  });
+}
+
+function copyText() {
+  const textarea = document.getElementById("resultTextarea");
+  if (!textarea.value) return;
+  textarea.select();
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(textarea.value).then(() => showModal("コピーしました✨"));
+  } else {
+    document.execCommand("copy");
+    showModal("コピーしました✨");
+  }
+}
+
+function showModal(msg) {
+  const modal = document.getElementById("modal");
+  modal.innerText = msg;
+  modal.style.opacity = "1";
+  modal.style.top = "50%";
+  setTimeout(() => { modal.style.opacity = "0"; }, 2500);
+}
+</script>
+</body>
+</html>
