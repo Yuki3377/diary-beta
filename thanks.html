@@ -50,10 +50,10 @@ button.primary:disabled{ background:#ddd; cursor:not-allowed; box-shadow:none; }
 .radio-row{ display:flex; align-items:center; gap:10px; font-size:14px; color:#666; font-weight:normal; padding:10px 12px; border-radius:10px; border:1px solid #f0f0f0; background:#fafafa; cursor:pointer; transition:0.2s; justify-content:flex-start; }
 .radio-row:has(input:checked){ border-color:#d09dfc; background:#fdf6ff; color:#a65cd6; font-weight:bold; }
 .radio-row input[type="radio"]{ width:auto; padding:0; margin:0; accent-color:#a65cd6; flex-shrink:0; }
-.structure-box{ background:#fdf6ff; border-radius:12px; padding:14px 16px; margin-top:8px; }
-.structure-row{ display:flex; align-items:flex-start; gap:10px; padding:6px 0; border-bottom:1px solid #ebdcfc; font-size:13px; color:#666; }
-.structure-row:last-child{ border-bottom:none; }
-.structure-tag{ font-size:11px; font-weight:bold; color:#a65cd6; background:#f0e4ff; padding:2px 8px; border-radius:10px; white-space:nowrap; flex-shrink:0; }
+.mic-btn{ border-radius:20px; border:1px solid #d09dfc; background:#fff; color:#a65cd6; padding:8px 16px; font-size:13px; font-weight:bold; cursor:pointer; transition:0.2s; display:inline-flex; align-items:center; gap:4px; }
+.mic-btn:active{ transform:scale(0.95); }
+.mic-btn.recording{ background:#f8f0fc; animation:pulse 1.5s infinite; }
+@keyframes pulse{ 0%{box-shadow:0 0 0 0 rgba(166,92,214,0.4);} 70%{box-shadow:0 0 0 10px rgba(166,92,214,0);} 100%{box-shadow:0 0 0 0 rgba(166,92,214,0);} }
 </style>
 </head>
 <body>
@@ -95,7 +95,11 @@ button.primary:disabled{ background:#ddd; cursor:not-allowed; box-shadow:none; }
 
   <div class="card">
     <div class="card-title">今日の出来事・共通体験 <span class="sub-label">※毎回入力</span></div>
-    <textarea id="todayMemo" rows="4" placeholder="例：いっぱい笑った / 映画の話で盛り上がった / ずっと話してた / 最初緊張してたけど打ち解けた"></textarea>
+    <textarea id="todayMemo" rows="4" placeholder="例：いっぱい笑った / 映画の話で盛り上がった / ずっと話してた"></textarea>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+      <div class="mini-note" id="micStatus" style="margin-top:0; color:#a65cd6; display:none;">● 録音中...喋ってください</div>
+      <button type="button" id="micBtn" class="mic-btn" onclick="toggleSpeechRecognition()">🎤 音声で入力する</button>
+    </div>
     <div class="mini-note">AIの生成に反映されます</div>
   </div>
 
@@ -108,13 +112,8 @@ button.primary:disabled{ background:#ddd; cursor:not-allowed; box-shadow:none; }
     <label>ちょっぴり大人のスパイス<span class="sub-label">※文章の攻め具合</span></label>
     <div class="button-group" id="eroButtons"></div>
     <div class="divider" style="margin:16px 0;"></div>
-    <label>文章の構成例<span class="sub-label">※お礼日記の流れ</span></label>
-    <div class="structure-box">
-      <div class="structure-row"><span class="structure-tag">冒頭</span><span>挨拶 ＋ 今日会えた感謝</span></div>
-      <div class="structure-row"><span class="structure-tag">中盤</span><span>接客中の具体的なエピソード（自由入力の内容）</span></div>
-      <div class="structure-row"><span class="structure-tag">終盤</span><span>スパイスを効かせた余韻 ＋ 次回の指名への匂わせ</span></div>
-      <div class="structure-row"><span class="structure-tag">末尾</span><span>定型署名（Footer）</span></div>
-    </div>
+    <label>文章の構成例<span class="sub-label">※こんなテイストの文章が入ります</span></label>
+    <div class="button-group" id="moodButtons" style="pointer-events:none; opacity:0.8;"></div>
   </div>
 
   <div class="card">
@@ -158,11 +157,87 @@ const ERO_LEVELS = [
   { label:"過激 ⭐️⭐️⭐️",      value:"high"  },
   { label:"過激○伏せ ⭐️⭐️⭐️", value:"ultra" }
 ];
+const MOOD_MAP = {
+  low:   ["たくさんイチャイチャできたね"],
+  mid:   ["たくさん感じてくれた","いっぱいいっちゃったよ"],
+  high:  ["ずっといきっぱなし","ビクンビクンしちゃった"],
+  ultra: ["気持ち良すぎて","もっと感じさせたい💦"]
+};
 
 let profile          = null;
 let selectedType     = null;
 let selectedEpisodes = [];
 let selectedEro      = "low";
+
+// =========================
+// 音声入力
+// =========================
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null;
+let isRecording = false;
+
+if (SpeechRecognition) {
+  recognition = new SpeechRecognition();
+  recognition.lang = 'ja-JP';
+  recognition.interimResults = false;
+  recognition.continuous = false;
+
+  recognition.onstart = function() {
+    isRecording = true;
+    const btn = document.getElementById("micBtn");
+    btn.innerText = "🛑 録音を停止する";
+    btn.classList.add("recording");
+    document.getElementById("micStatus").style.display = "block";
+  };
+
+  recognition.onresult = function(event) {
+    let finalTranscript = '';
+    for (let i = event.resultIndex; i < event.results.length; ++i) {
+      if (event.results[i].isFinal) finalTranscript += event.results[i][0].transcript;
+    }
+    if (finalTranscript) {
+      const ta = document.getElementById("todayMemo");
+      ta.value = ta.value ? ta.value + "\n" + finalTranscript : finalTranscript;
+    }
+  };
+
+  recognition.onend = function() { resetMicUI(); };
+
+  recognition.onerror = function(event) {
+    console.error(event.error);
+    resetMicUI();
+    if (event.error !== 'no-speech' && event.error !== 'aborted') {
+      showModal("音声入力エラー💦: " + event.error);
+    }
+  };
+}
+
+function resetMicUI() {
+  isRecording = false;
+  const btn = document.getElementById("micBtn");
+  btn.innerText = "🎤 音声で入力する";
+  btn.classList.remove("recording");
+  document.getElementById("micStatus").style.display = "none";
+}
+
+function forceStopMic() {
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(stream => stream.getTracks().forEach(track => track.stop()))
+      .catch(err => console.log("Mic cleanup error:", err));
+  }
+}
+
+function toggleSpeechRecognition() {
+  if (!SpeechRecognition) { showModal("お使いのブラウザは音声入力に未対応です💦"); return; }
+  if (isRecording) {
+    recognition.abort();
+    resetMicUI();
+    setTimeout(forceStopMic, 300);
+  } else {
+    recognition.start();
+  }
+}
 
 window.onload = function() {
   loadProfile();
@@ -190,6 +265,7 @@ window.onload = function() {
     }
   });
   createEroButtons();
+  renderMoodButtons(selectedEro);
 };
 
 function createSingleButtons(containerId, list, onClick) {
@@ -229,7 +305,21 @@ function createEroButtons() {
       [...container.children].forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
       selectedEro = item.value;
+      renderMoodButtons(selectedEro);
     };
+    container.appendChild(btn);
+  });
+}
+
+function renderMoodButtons(spiceLevel) {
+  const container = document.getElementById("moodButtons");
+  if (!container) return;
+  container.innerHTML = "";
+  (MOOD_MAP[spiceLevel] || []).forEach((item) => {
+    const btn = document.createElement("div");
+    btn.className = "choice-btn";
+    btn.style.cursor = "default";
+    btn.innerText = item;
     container.appendChild(btn);
   });
 }
