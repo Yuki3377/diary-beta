@@ -75,6 +75,13 @@ button.primary:disabled{ background:#ddd; cursor:not-allowed; box-shadow:none; }
   </div>
 
   <div class="card">
+    <div class="card-title">固定情報 <span class="sub-label">※保存されます</span></div>
+    <label>コース・場所など</label>
+    <input id="fixedDetail" placeholder="例：120分コース / 〇〇ホテル">
+    <div class="mini-note">次回以降も自動で表示されます</div>
+  </div>
+
+  <div class="card">
     <div class="card-title">お客様の呼び方</div>
     <label>種類を選択 <span class="sub-label">※1つ選択</span></label>
     <div class="button-group" id="typeButtons"></div>
@@ -84,13 +91,6 @@ button.primary:disabled{ background:#ddd; cursor:not-allowed; box-shadow:none; }
         <input type="text" id="customerInitial" placeholder="例：N、Kさん、田中さん" maxlength="20">
       </div>
     </div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">固定情報 <span class="sub-label">※保存されます</span></div>
-    <label>コース・場所など</label>
-    <input id="fixedDetail" placeholder="例：120分コース / 〇〇ホテル">
-    <div class="mini-note">次回以降も自動で表示されます</div>
   </div>
 
   <div class="card">
@@ -169,9 +169,6 @@ let selectedType     = null;
 let selectedEpisodes = [];
 let selectedEro      = "low";
 
-// =========================
-// 音声入力
-// =========================
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition = null;
 let isRecording = false;
